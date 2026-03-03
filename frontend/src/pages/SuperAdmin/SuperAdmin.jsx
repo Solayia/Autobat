@@ -5,7 +5,7 @@ import {
   Eye, RefreshCw, Euro, Trash2, LogIn, FileText, Activity,
   BarChart2, Terminal, AlertTriangle, ChevronRight, MapPin, HardHat, Clock, Zap,
   Tag, Percent, Save, Plus, ToggleLeft, ToggleRight, Calculator,
-  Target, PhoneCall, X, Edit2, ChevronDown
+  Target, PhoneCall, X, Edit2, ChevronDown, LogOut
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
@@ -34,7 +34,7 @@ const SOURCES = ['MANUEL', 'LINKEDIN', 'EMAIL', 'COLD_CALL', 'SITE_WEB', 'BOUCHE
 
 export default function SuperAdmin() {
   const navigate = useNavigate();
-  const { setUser, setTenant } = useAuthStore();
+  const { setUser, setTenant, logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState(null);
   const [tenants, setTenants] = useState([]);
@@ -366,6 +366,12 @@ export default function SuperAdmin() {
             className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ChevronRight className="w-3.5 h-3.5" /> App client
+          </button>
+          <button
+            onClick={() => { logout(); navigate('/login'); }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Déconnexion
           </button>
         </div>
       </aside>
