@@ -1,0 +1,2594 @@
+[
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Forfait coupes divers",
+    "unite": "F",
+    "debourse_ht": 455,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Forfait élévateur",
+    "unite": "F",
+    "debourse_ht": 850,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de charpente traditionnelle",
+    "unite": "M²",
+    "debourse_ht": 97.75,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "Charpente ",
+    "denomination": "Fourniture et pose de chevrons et poutres bois pour réparation de toiture",
+    "unite": "F",
+    "debourse_ht": 1250,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de couloir Zinc ",
+    "unite": "ML",
+    "debourse_ht": 55.25,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de descentes ALU",
+    "unite": "ML",
+    "debourse_ht": 29.75,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de faitage posés à sec",
+    "unite": "ML",
+    "debourse_ht": 42.5,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de fronton ou about de faitage",
+    "unite": "2",
+    "debourse_ht": 56,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de gouttières ALU",
+    "unite": "ML",
+    "debourse_ht": 29.75,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de lambris PVC",
+    "unite": "m²",
+    "debourse_ht": 44,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de lambris PVC en débord de toiture ",
+    "unite": "F",
+    "debourse_ht": 244.8,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "Charpente ",
+    "denomination": "Fourniture et pose de liteaux 30x40 support de couverture tuiles",
+    "unite": "m²",
+    "debourse_ht": 6,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de pare pluie",
+    "unite": "M²",
+    "debourse_ht": 6.8,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de pare pluie",
+    "unite": "m²",
+    "debourse_ht": 6.8,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de planches de rives PVC",
+    "unite": "ML",
+    "debourse_ht": 32,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de planches de rives PVC (uniquement à l'égout)",
+    "unite": "ML",
+    "debourse_ht": 35.7,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de tuile chatière et tuile à douille",
+    "unite": "U",
+    "debourse_ht": 125,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de tuiles Canal de chez TERREAL ",
+    "unite": "M²",
+    "debourse_ht": 38.25,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de tuiles DC12 de chez TERREAL",
+    "unite": "m²",
+    "debourse_ht": 44,
+    "note": ""
+  },
+  {
+    "categorie": "Charpente",
+    "code": "",
+    "denomination": "Fourniture et pose de tuiles de rives",
+    "unite": "ML",
+    "debourse_ht": 42.5,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Abatage et déssouchage d'arbres",
+    "unite": "U",
+    "debourse_ht": 500,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Dépose conduit de cheminée compris évacuation",
+    "unite": "F",
+    "debourse_ht": 685,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Dépose de cloture existantes ",
+    "unite": "ml",
+    "debourse_ht": 21,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Dépose de couverture avec évacuation en décharge ",
+    "unite": "m²",
+    "debourse_ht": 25,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Dépose de la charpente au droit de la poutre abîmée",
+    "unite": "F",
+    "debourse_ht": 750,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Dépose et évacuation carrelage existant",
+    "unite": "m²",
+    "debourse_ht": 0,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Dépose et évacuation du doublage existant",
+    "unite": "m²",
+    "debourse_ht": 15,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Dépose et évacuation margelle existante",
+    "unite": "ml",
+    "debourse_ht": 21,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Dépose gouttière et descente ",
+    "unite": "F",
+    "debourse_ht": 350,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Dépose menuiserie existante et évacuation",
+    "unite": "U",
+    "debourse_ht": 50,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "Démolition ",
+    "denomination": "Dépose planche de rive et lambris compris évacuation ",
+    "unite": "F",
+    "debourse_ht": 385,
+    "note": ""
+  },
+  {
+    "categorie": "Démolition",
+    "code": "",
+    "denomination": "Sciage du béton ",
+    "unite": "ml",
+    "debourse_ht": 10,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Acrotères BA",
+    "unite": "m²",
+    "debourse_ht": 78.4,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Ajustement du niveau de la dalle du local surpresseur comprenant:\n- le remplissage de la fosse en béton allégé;\n- la dalle de compression en béton armé finition lissée en",
+    "unite": "m2",
+    "debourse_ht": 1500,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Appuis et seuil BA",
+    "unite": "U",
+    "debourse_ht": 120,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Appuis et seuil BA ",
+    "unite": "U",
+    "debourse_ht": 108,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Arase étanche ",
+    "unite": "ml",
+    "debourse_ht": 21.6,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Bande de redressement ",
+    "unite": "U",
+    "debourse_ht": 62.4,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Bêches de blocage du hérisson des zones extérieures (profondeur minimale de 50 cm), comprenant :\n- le terrassement en rigole avec l'évacuation des terres ;\n-le béton armé dosé à 300 kg, y compris le coffrage et les armatures.",
+    "unite": "ml",
+    "debourse_ht": 10.66,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Béton de fondation semelles filantes SF40",
+    "unite": "m3",
+    "debourse_ht": 304.92,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Béton désactivé, travaux comprenant :\n- lit de sable de 5 d’épaisseur tiré à la règle, roulé et compacté uniformément donnant une forme de pente vers l’extérieur pour évacuation des eaux de pluies ;\n- travaux préparatoires, fourniture et mise en œuvre du béton (couleur des graviers de Garonne) pour une dalle de 8 cm d’épaisseur, compris l'épandage du béton, la vibration du béton, le surfaçage du béton;\n-  la pulvérisation du produit désactivant ;\n-  le nettoyage au jet haute pression.\n- confection des joints de retrait moulés dans le béton frais, de 5 mm d'épaisseur minimale sur 1/3 de la hauteur de la dalle par incorporation d'un profilé spécial en plastique.",
+    "unite": "m2",
+    "debourse_ht": 38,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Béton fondations semellle filantes SF 40",
+    "unite": "M3",
+    "debourse_ht": 272.64,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Blocs à bancher VPP",
+    "unite": "m²",
+    "debourse_ht": 78.4,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Calibric TH VPP",
+    "unite": "M²",
+    "debourse_ht": 49.6,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Canalisation EU PVC diam 100 pour évac garage",
+    "unite": "F",
+    "debourse_ht": 942,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Carottage dalle diamètre 40 mm pour passage d'évacuation EU",
+    "unite": "U",
+    "debourse_ht": 760,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Ceinture béton pour pose des margelles",
+    "unite": "F",
+    "debourse_ht": 840,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Coffrage, ferraillage, coulage balcon compris IPN",
+    "unite": "F",
+    "debourse_ht": 2859.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Coffres volet roulant intégrés à la maçonnerie",
+    "unite": "ML",
+    "debourse_ht": 228,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Condamnation de porte par blocs parpaings pleins CF1h00 joints ciment sur arase étanche",
+    "unite": "m2",
+    "debourse_ht": 34,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Construction d'une cloison séparative en briques de terre cuite, joints ciment, sur arase étanche",
+    "unite": "U",
+    "debourse_ht": 48,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Construction d'un mur séparatif en blocs de parpaings pleins CF 1h joints ciment sur arase étanche compris réservation pour porte des toilettes.",
+    "unite": "m2",
+    "debourse_ht": 861.31,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": " Couche de base en grave naturelle 0/20 sur 0,15 m d'épaisseur, épaisseur moyenne après compactage, exempts d’argile et de débris végétaux.",
+    "unite": "m2",
+    "debourse_ht": 9,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Couche de fondation en grave alluvionnaire 0/80 sur 0,30 m d'épaisseur, épaisseur moyenne après compactage, compris épandage, réglage, compactage, arrosage éventuel.",
+    "unite": "m2",
+    "debourse_ht": 16,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Création de marche accès garage ou rampe",
+    "unite": "F",
+    "debourse_ht": 427.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Création de rampe accès sur dalle",
+    "unite": "F",
+    "debourse_ht": 1687.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Création de sommier béton pour charpente",
+    "unite": "F",
+    "debourse_ht": 348,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Dallage sur terre plein",
+    "unite": "m2",
+    "debourse_ht": 85,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Décapage -50 cm/ dalle existante",
+    "unite": "M3",
+    "debourse_ht": 24.96,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Décapage pour agrandissement de la plage de piscine compris evacuation de terre",
+    "unite": "m²",
+    "debourse_ht": 15,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Découpe de l'enrobé et sciage des bordures selon plans",
+    "unite": "m2",
+    "debourse_ht": 50.78,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Démolition de mur de rebouchage épaisseur 20 cm, pour création de porte",
+    "unite": "m2",
+    "debourse_ht": 108,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Démolition de plots béton de support de surpresseur",
+    "unite": "Ens.",
+    "debourse_ht": 2000,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Démotition et évacuation mur existant compris fondation",
+    "unite": "F",
+    "debourse_ht": 1310.4,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Dépose complète du portail coulissant, portillon et clôture existants sur emprise du projet et évcuation en décharge spécialisée.",
+    "unite": "Ens.",
+    "debourse_ht": 50.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Dépose de cloison et porte de fermeture des toilettes, et du bâti évier et évacuation en décharge spécialisée",
+    "unite": "Ens.",
+    "debourse_ht": 78,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Dépose des portes tôles des locaux V.O. (portes 1 vantail) et local ménage (porte 2 vantaux) et évacuation en décharges spécialisées",
+    "unite": "U",
+    "debourse_ht": 48.09,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Dépose et évacuation de la fosse sceptique",
+    "unite": "F",
+    "debourse_ht": 295,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Enduit ciment lissé à la taloche sur deux faces",
+    "unite": "m2",
+    "debourse_ht": 750,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Enduit d'imperméabilisation ",
+    "unite": "m²",
+    "debourse_ht": 20.7,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Epandage de terre végétale, avec terre mise en dépôt lors des décapages de sol prévus  article ‘Décapage de la terre végétale’ (1.3.1.) du présent lot.\nLa répartition de la terre sera faite suivant les prescriptions du Maître d’Œuvre.",
+    "unite": "Ens",
+    "debourse_ht": 1,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Evacuation au fossé existant",
+    "unite": "F",
+    "debourse_ht": 590,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": " Evacuation des déblais excédentaires de toute nature",
+    "unite": "Ens",
+    "debourse_ht": 1,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Evacuations de terre avec dumper",
+    "unite": "M3",
+    "debourse_ht": 68.16,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Fouilles en puits à la tarière ",
+    "unite": "U",
+    "debourse_ht": 1,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Fouilles en tranchées, descendues sur bon sol et hors gel, suivant étude ingénieur béton.",
+    "unite": "ml",
+    "debourse_ht": 1,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Fourniture et pose de caniveau à grille ",
+    "unite": "ml",
+    "debourse_ht": 135,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Fourniture et pose de chapeau béton gris plat",
+    "unite": "ml",
+    "debourse_ht": 45,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Fourniture et pose de delta MS ",
+    "unite": "m²",
+    "debourse_ht": 18.9,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Fourniture et pose de géotextile",
+    "unite": "m²",
+    "debourse_ht": 8,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Fourniture et pose de natte drainante",
+    "unite": "m²",
+    "debourse_ht": 70,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Fourniture et pose de regard à grille ",
+    "unite": "U",
+    "debourse_ht": 300,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Fourniture et pose de trappe CF1/2h 600x600 mm",
+    "unite": "U",
+    "debourse_ht": 24,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Fourniture et pose d'IPN",
+    "unite": "ml",
+    "debourse_ht": 125,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Fourniture et pose d'un drain agricole en pied de mur ",
+    "unite": "ml",
+    "debourse_ht": 36.9,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Fourniture et pose d'une porte bois CF 1h00 équipée d'un ferme-porte et compris toute quincaillerie, serrure à condamnation, béquilles et platines et butoir.",
+    "unite": "U",
+    "debourse_ht": 65,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Fourreaux en PVC-U de 45 x 1,8 avec aiguille de tirage, fournis et posés en extérieur dans tranchée avec enrobage de sable et grillage avertisseur.",
+    "unite": "ml",
+    "debourse_ht": 1,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Fourreaux sous dallage",
+    "unite": "F",
+    "debourse_ht": 328.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Gravillonnage, pour marquage tactile composé de gravillons fixés dans résine. Epaisseur inférieure à 10 mm, coloris au choix du maitre d’oeuvre.",
+    "unite": "U",
+    "debourse_ht": 110,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Longrines coulées en place",
+    "unite": "ml",
+    "debourse_ht": 20.17,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Maçonnerie B40 ",
+    "unite": "m²",
+    "debourse_ht": 66,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Mise en œuvre de couche de forme",
+    "unite": "m²",
+    "debourse_ht": 25,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "",
+    "denomination": "Mise en place de matériel pour travail en hauteur",
+    "unite": "F",
+    "debourse_ht": 450,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Mortier de réparation ",
+    "unite": "m²",
+    "debourse_ht": 28,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Nappe matériaux non tissés ‘géotextile’, type ‘Bidim’ ou équivalent",
+    "unite": "m2",
+    "debourse_ht": 141,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Percement dans maçonnerie pour création d'une réservation 60x40 cm pour la ventilation haute des locaux V.O.",
+    "unite": "U",
+    "debourse_ht": 430,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Plancher poutrelle hourdis béton",
+    "unite": "m²",
+    "debourse_ht": 94.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Plancher poutrelle hourdis polystèrene",
+    "unite": "m²",
+    "debourse_ht": 94.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Plus-value bande noyée",
+    "unite": "F",
+    "debourse_ht": 275,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Plus-value BRH",
+    "unite": "F",
+    "debourse_ht": 1071,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Plus-value chainage périphérique",
+    "unite": "ml",
+    "debourse_ht": 21.6,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Plus-value coffrage de rive",
+    "unite": "F",
+    "debourse_ht": 474,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Pose et raccordement fosse sceptique compris enrobage grains de riz",
+    "unite": "F",
+    "debourse_ht": 845,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Poteau BA  30 x 30 x 180 cm ht",
+    "unite": "U",
+    "debourse_ht": 525,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Poutre BA  70 x 60 cm ht",
+    "unite": "m3",
+    "debourse_ht": 725,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Puits en béton armé pour ancrage potelets métalliques de clôture et portillons",
+    "unite": "U",
+    "debourse_ht": 19.74,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "PV arase",
+    "unite": "ml",
+    "debourse_ht": 19.8,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "PV coulage au longue distance",
+    "unite": "F",
+    "debourse_ht": 750,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "PV coulage au longue distance",
+    "unite": "F",
+    "debourse_ht": 680,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "PV planelle brique RP =1,00",
+    "unite": "ML",
+    "debourse_ht": 15.36,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "PV raidisseur horizontal",
+    "unite": "ML",
+    "debourse_ht": 26.88,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "PV raidisseur vertical",
+    "unite": "ML",
+    "debourse_ht": 24,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "PV raidisseur Vertical",
+    "unite": "ML",
+    "debourse_ht": 24,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Raccordement au réseau principal",
+    "unite": "F",
+    "debourse_ht": 784,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Raccordement du drain au réseau existant ",
+    "unite": "F",
+    "debourse_ht": 310.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Ragréage finitions et sous enduits ",
+    "unite": "F",
+    "debourse_ht": 360,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Raidisseur BA",
+    "unite": "ml",
+    "debourse_ht": 25.2,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Régalage de terre végétale. Travaux comprenant le nivellement du terrain, le cassage des mottes de terre et le d’épierrement suivant besoins, pour obtenir un profil régulier.",
+    "unite": "Ens",
+    "debourse_ht": 1,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Remblaie périphérique",
+    "unite": "F",
+    "debourse_ht": 247,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Remblai périphérique en matériaux noble",
+    "unite": "F",
+    "debourse_ht": 789.75,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Remblais des déblais inertes stockés",
+    "unite": "m3",
+    "debourse_ht": 30,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Repliement du matériel, nettoyage final et évacuation des gravats et déchets en décharges spécialisées, DOE, Notes de calculs, Plans de récolement",
+    "unite": "F",
+    "debourse_ht": 5.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Reprise des feuillures suite à dépose des portes et selon caractéristiques attendues par le lot Menuiseries extérieures - Serrurerie",
+    "unite": "Ens.",
+    "debourse_ht": 41,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Reprise du jambage suite dépose ",
+    "unite": "U",
+    "debourse_ht": 100,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Réseaux sous dallage",
+    "unite": "F",
+    "debourse_ht": 520,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Soubassement B80 ht 40 cm",
+    "unite": "M²",
+    "debourse_ht": 55.68,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Sous-enduit de finition extérieur",
+    "unite": "m²",
+    "debourse_ht": 22.5,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "GO",
+    "denomination": "Taille et/ou arrachage et évacuation des arbustes et remise en plantation d'arbustes pour mise en place des clôture rigides",
+    "unite": "Ens",
+    "debourse_ht": 1,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Terrassement dallage garage",
+    "unite": "F",
+    "debourse_ht": 1485,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Terrassement fondation manuel",
+    "unite": "F",
+    "debourse_ht": 494.1,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros oeuvre",
+    "denomination": "Terrassement fondation mur",
+    "unite": "m3",
+    "debourse_ht": 74.34,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Terrassement fondations avec petit engins",
+    "unite": "M3",
+    "debourse_ht": 140,
+    "note": ""
+  },
+  {
+    "categorie": "Gros Oeuvre",
+    "code": "Gros œuvre",
+    "denomination": "Traitement des joints de dilatations ",
+    "unite": "F",
+    "debourse_ht": 194.4,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Création,fourniture,pose et raccordement de 6\npoints lumineux en plafonnier commandé par un \ninterrupteur simple allumage",
+    "unite": "U",
+    "debourse_ht": 230,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Création,fourniture,pose et raccordement de\ntrois points lumineux commandé par un interrupteur simple",
+    "unite": "U",
+    "debourse_ht": 170,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Création,fourniture,pose et raccordement de trois points lumineux en plafonnier commandé par deux\ninterrupteur va et vient",
+    "unite": "U",
+    "debourse_ht": 200,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Création,fourniture,pose et raccordement d’une prise\nRJ45 dépuis le tableau de communication",
+    "unite": "U",
+    "debourse_ht": 150,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Création, fourniture, pose et raccordement d'une prise USB/USBC",
+    "unite": "U",
+    "debourse_ht": 130,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Forfait dépose et mise en sécurité de l’installation existante",
+    "unite": "U",
+    "debourse_ht": 200,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture et pose d’une gaine en attente pour arrivée fibre",
+    "unite": "U",
+    "debourse_ht": 150,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture et pose d'un radiateur à inertie 1000W",
+    "unite": "U",
+    "debourse_ht": 273,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture et pose d'un sèche serviette électrique ",
+    "unite": "U",
+    "debourse_ht": 260,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture et pose d'un tableau 4 rangées ",
+    "unite": "F",
+    "debourse_ht": 2225,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement de 1 applique",
+    "unite": "U",
+    "debourse_ht": 195,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement de 2 points lumineux commandé par 2 interrupteur va et vient",
+    "unite": "U",
+    "debourse_ht": 312,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement de 3 points lumineux commandé par 2 interrupteur va et vient",
+    "unite": "U",
+    "debourse_ht": 338,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement de  points lumineux commandé par un interrupteur double",
+    "unite": "U",
+    "debourse_ht": 130,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement de  points lumineux commandé par un interrupteur va et vient",
+    "unite": "U",
+    "debourse_ht": 150,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement de prise de courant 2P +T double",
+    "unite": "U",
+    "debourse_ht": 169,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement de prise de courant 2P+T double",
+    "unite": "U",
+    "debourse_ht": 130,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement de spots étanche commandé par un interrupteur simple",
+    "unite": "U",
+    "debourse_ht": 61.43,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement de spots leds",
+    "unite": "U",
+    "debourse_ht": 40,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement d'une prise de courant 2P +T",
+    "unite": "U",
+    "debourse_ht": 156,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement d'un point lumineux commandé par prise simple ",
+    "unite": "U",
+    "debourse_ht": 247,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement d'un point lumineux en applique commandé par un interrupteur simple",
+    "unite": "U",
+    "debourse_ht": 110,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, pose et raccordement  d'un point lumineux en applique commandé par un interrupteur va et vient",
+    "unite": "U",
+    "debourse_ht": 150,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture,pose et raccordement d’un tableau de\ncommunication avec emplacement de boxe",
+    "unite": "U",
+    "debourse_ht": 300,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, tirage d'alimentation pour sèche serviette",
+    "unite": "U",
+    "debourse_ht": 195,
+    "note": ""
+  },
+  {
+    "categorie": "Electricité",
+    "code": "",
+    "denomination": "Fourniture, tirage d'une alimentation pour VMC",
+    "unite": "U",
+    "debourse_ht": 195,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Ext",
+    "code": "Mext",
+    "denomination": "Fourniture de porte d'entrée loison Aluminium 900x2150 mm (modèle à confirmé)",
+    "unite": "U",
+    "debourse_ht": 1725.3,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Ext",
+    "code": "Mext",
+    "denomination": "Fourniture et pose de moustiquaire PVC 120 x 74 : \n- Toile en fibre de verre noire \n- Couleur profilés : RAL 7016 Satinée\n- Enroulement intérieur",
+    "unite": "U",
+    "debourse_ht": 172,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Ext",
+    "code": "Mext",
+    "denomination": "Fourniture et pose de moustiquaire velux",
+    "unite": "U",
+    "debourse_ht": 230,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Ext",
+    "code": "Mext",
+    "denomination": "Fourniture menuiserie PVC 120x74 :\n- Gamme NEO PRESTIGE 2\n- Localisation : Cuisine\n- RAL 7016\n- Pose en applique\n- Grille de ventilation auto-régulée 1 sur 2\n- Uw = à 1.5W/m².K\n- Sw = à 0.48\n- Dormant 140\n- Vitrage 4/20/4 LowE\n- Ensemble du chassis : Vitrage LowE avec intercalaire Warm-Edge + ARGON\n- Poignée tombante, coloris alu brossé\n- Avec Pare-empête",
+    "unite": "U",
+    "debourse_ht": 322,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Ext",
+    "code": "Mext",
+    "denomination": "Fourniture menuiserie pvc 2500x1150 3 vantaux compris volet extérieur motorisé",
+    "unite": "U",
+    "debourse_ht": 2297.7,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Ext",
+    "code": "Mext",
+    "denomination": "Fourniture menuiserie pvc blanc compris volet extérieur motorisé\nLocalisation : Cuisine/ Séjour",
+    "unite": "U",
+    "debourse_ht": 812.7,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Ext",
+    "code": "Mext",
+    "denomination": "Fourniture menuiserie pvc blanc\nLocalisation : Sdb/ WC",
+    "unite": "U",
+    "debourse_ht": 465.75,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Ext",
+    "code": "Mext",
+    "denomination": "Pose de menuiseries",
+    "unite": "U",
+    "debourse_ht": 150,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Ext",
+    "code": "Mext",
+    "denomination": "Pose de menuiseries compris volet",
+    "unite": "U",
+    "debourse_ht": 245,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Int",
+    "code": "Mint",
+    "denomination": "Fourniture et pose de blocs portes isoplanes 83 cm x 204 cm compris quincailleries ",
+    "unite": "U",
+    "debourse_ht": 250,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Int",
+    "code": "Mint",
+    "denomination": "Fourniture et pose de Porte coulissante prépeinte acoustique 43db avec habillage acoustique couvre-joints intégrés et plinthes auto 204 ht x 123 larg",
+    "unite": "m²",
+    "debourse_ht": 1850,
+    "note": ""
+  },
+  {
+    "categorie": "Menuiserie Int",
+    "code": "Mint",
+    "denomination": "Réalisation de l'habillage du batî support sanitaire suspendu avec plaque haute dureté HABITO",
+    "unite": "F",
+    "debourse_ht": 255,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Fourniture et pose de blocs portes ISOPLANE AMES PLEINES ",
+    "unite": "U",
+    "debourse_ht": 305,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Fourniture et pose de laine de verre GR32 en  120 mm",
+    "unite": "m²",
+    "debourse_ht": 21,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Fourniture et pose de porte coulissante ",
+    "unite": "U",
+    "debourse_ht": 605,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Fourniture et pose de trappe de visite 30 x 30 laquée blanc ",
+    "unite": "F",
+    "debourse_ht": 125,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Fourniture et pose d'un isolant alvéolaire hybris en 105 mm R=4,00 K/W",
+    "unite": "m²",
+    "debourse_ht": 19,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Fourniture et pose d'un isolant alvéolaire hybris en 60 + 125 mm R=6,10 K/W",
+    "unite": "m²",
+    "debourse_ht": 19,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Fourniture et pose d'un isolant laine de verre 200 mm R=6,00 K/W",
+    "unite": "m²",
+    "debourse_ht": 36,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "",
+    "denomination": "Plus value pour plaques hydrofuges \"Pièces humides\"",
+    "unite": "m²",
+    "debourse_ht": 5,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "",
+    "denomination": "Plus value pour plaques phonique ",
+    "unite": "m²",
+    "debourse_ht": 7,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Réalisation de cloison séparative en 100 mm avec pose de plaques de plâtre BA 13 pour pose de porte à galandage",
+    "unite": "m²",
+    "debourse_ht": 38,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Réalisation de cloison séparative en 72/48 avec pose de plaques de plâtre BA13 vissées sur ossature métalique compris laine 45 mm",
+    "unite": "m²",
+    "debourse_ht": 41.5,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Réalisation de faux plafond suspendu rampant avec pose de BA13 vissées sur ossature métallique R+1",
+    "unite": "m²",
+    "debourse_ht": 35,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Réalisation de tête de lit 120 ht x 200 long x 20 cm ép ",
+    "unite": "m²",
+    "debourse_ht": 150,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Réalisation d'un doublage de mur par pose de plaque de plâtre BA13 vissées sur ossature métallique ",
+    "unite": "m²",
+    "debourse_ht": 41.5,
+    "note": ""
+  },
+  {
+    "categorie": "Plâtrerie",
+    "code": "Platrerie",
+    "denomination": "Traitement des joints de l'ensemble",
+    "unite": "m²",
+    "debourse_ht": 5,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Création des réseaux de distribution eau chaude et eau froide",
+    "unite": "U",
+    "debourse_ht": 900,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Création des réseaux de distribution eau chaude et eau froide",
+    "unite": "U",
+    "debourse_ht": 2400,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Dépose et pose de la climatisation",
+    "unite": "F",
+    "debourse_ht": 250,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Dispositif alimentation WC et robinet  avec EP cuve : \n- Compresseur \n- Filtre \n- Clapet anti-retour\n- Flotteur",
+    "unite": "U",
+    "debourse_ht": 648,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture bati support et WC suspendu",
+    "unite": "U",
+    "debourse_ht": 444.15,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture de caniveau encastrable ",
+    "unite": "U",
+    "debourse_ht": 186,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture de receveur de douche 90 x 90",
+    "unite": "U",
+    "debourse_ht": 253.5,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture d'une paroi de baignoire amovible 105 x 140 cm",
+    "unite": "U",
+    "debourse_ht": 280,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture d'une paroi de douche",
+    "unite": "U",
+    "debourse_ht": 280,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture d'un mitigeur evier",
+    "unite": "U",
+    "debourse_ht": 50,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture d'un robinet de salle de bain",
+    "unite": "U",
+    "debourse_ht": 50,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture et pose d'un meuble double vasque compris mirroir",
+    "unite": "U",
+    "debourse_ht": 804.7,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture et pose d'un meuble simple vasque",
+    "unite": "U",
+    "debourse_ht": 450,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture et pose d'un robinet extérieur",
+    "unite": "U",
+    "debourse_ht": 245,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture et pose d'un système de VMC simple flux hydro B compris trappe de visite ou Extracteur d'air",
+    "unite": "U",
+    "debourse_ht": 1650,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture meuble lave main compris mitigeur",
+    "unite": "U",
+    "debourse_ht": 160,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture mirroir ",
+    "unite": "U",
+    "debourse_ht": 95,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture un ensemble barre de douche",
+    "unite": "U",
+    "debourse_ht": 155,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture un ensemble barre de douche",
+    "unite": "U",
+    "debourse_ht": 201.5,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture un ensemble barre de douche support et flexible",
+    "unite": "U",
+    "debourse_ht": 155,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Fourniture WC ",
+    "unite": "U",
+    "debourse_ht": 160,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Pose d'élément sanitaire :\n- Siphon douche\n- Pare douche\n- Colonne de douche \n- Mitigeur \n- Meuble vasque \n- WC\n- Lave main WC",
+    "unite": "U",
+    "debourse_ht": 1745,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "",
+    "denomination": "Pose d'éléments sanitaires :\n- Receveur\n- Paroi de douche\n- Colonne de douche \n- Mitigeur \n- Meuble vasque \n- WC",
+    "unite": "U",
+    "debourse_ht": 2745,
+    "note": ""
+  },
+  {
+    "categorie": "Plomberie CVC",
+    "code": "PLOMBERIE CVC",
+    "denomination": "Receveur céramique  l. 80 x L. 80 x h. 5,8 cm Ø de la bonde 90 mm",
+    "unite": "1",
+    "debourse_ht": 180,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture dalle travertin 1,2 cm ép",
+    "unite": "m²",
+    "debourse_ht": 31,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture dalle travertin 3 cm ép",
+    "unite": "m²",
+    "debourse_ht": 0,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture de carrelage 60 x 60 cm",
+    "unite": "m²",
+    "debourse_ht": 35,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture de carrelage R+1",
+    "unite": "m²",
+    "debourse_ht": 35,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture de carrelage RDC",
+    "unite": "m²",
+    "debourse_ht": 35,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture de margelle carrelée 60 x 30 x 2 cm",
+    "unite": "ml",
+    "debourse_ht": 24,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture d'un parquet contre collé 35€/m² (max)",
+    "unite": "m²",
+    "debourse_ht": 35,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture et pose de plinthes largeur 8cm en médium pré-peintes à bords droits",
+    "unite": "ml",
+    "debourse_ht": 17.5,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture et pose de ragréage fibré P3 renforcé",
+    "unite": "m²",
+    "debourse_ht": 15,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Fourniture margelle travertin 60 x 33 x 3 cm ép",
+    "unite": "ml",
+    "debourse_ht": 30,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Pose dalle 1,2 cm ép compris jointement",
+    "unite": "m²",
+    "debourse_ht": 35,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Pose dalle 3 cm ép compris jointement",
+    "unite": "m²",
+    "debourse_ht": 50,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Pose du carrelage compris jointement ",
+    "unite": "m²",
+    "debourse_ht": 75,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Pose du margelle compris jointement sur dalle existante",
+    "unite": "ml",
+    "debourse_ht": 28,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Pose d'un parquet contre collé en pose flottante",
+    "unite": "m²",
+    "debourse_ht": 30,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Sols",
+    "denomination": "Pose margelle 3 cm ép compris jointement",
+    "unite": "m²",
+    "debourse_ht": 20,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Primaire d'accrochage",
+    "unite": "m²",
+    "debourse_ht": 2.5,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement de sol",
+    "code": "Revêtements sols",
+    "denomination": "Traitement hydrofuge des dalles ",
+    "unite": "m²",
+    "debourse_ht": 3,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement mural",
+    "code": "",
+    "denomination": "Détapissage complet des supports",
+    "unite": "m²",
+    "debourse_ht": 11.5,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement mural",
+    "code": "",
+    "denomination": "Peinture mur velours  : Préparation, impression et 2 couches de finition",
+    "unite": "m²",
+    "debourse_ht": 12,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement mural",
+    "code": "",
+    "denomination": "Peinture plafond velours : Préparation, impression et 2 couches de finition velours",
+    "unite": "m²",
+    "debourse_ht": 11.5,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement mural",
+    "code": "",
+    "denomination": "Peinture porte à galandage : Préparation, impression et 2 couches de finition",
+    "unite": "U",
+    "debourse_ht": 70,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement mural",
+    "code": "",
+    "denomination": "Peinture poutre : Préparation, impression et 2 couches de finition",
+    "unite": "U",
+    "debourse_ht": 250,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement mural",
+    "code": "Revêtements mural",
+    "denomination": "Pose d'un carrelage murale compris encollage et jointement et primaire d'étanchéité pour SDB et WC",
+    "unite": "F",
+    "debourse_ht": 1745,
+    "note": ""
+  },
+  {
+    "categorie": "Revêtement mural",
+    "code": "",
+    "denomination": "Ratissage en 2 passes des supports à l'enduit fin, Ponçage",
+    "unite": "m²",
+    "debourse_ht": 15.2,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Fourniture et pose d'agrafes",
+    "unite": "F",
+    "debourse_ht": 1390,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Lavage avec jet à haute pression",
+    "unite": "m²",
+    "debourse_ht": 3.5,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Mise en œuvre de baguette d'angle de finition",
+    "unite": "F",
+    "debourse_ht": 845,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Ouverture des fissures",
+    "unite": "F",
+    "debourse_ht": 924,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Préparation, application 2 couches de peinture mat façade, couleur approchante",
+    "unite": "m²",
+    "debourse_ht": 21,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Préparation, application d'une couche de fixateur",
+    "unite": "m²",
+    "debourse_ht": 14,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Réalisation de peinture appuis en terre cuite",
+    "unite": "U",
+    "debourse_ht": 95,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Réalisation de peinture sous le porche RAL enduit",
+    "unite": "F",
+    "debourse_ht": 575,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Réalisation d'un enduit monocouche finition gratté sur maison",
+    "unite": "m²",
+    "debourse_ht": 40,
+    "note": ""
+  },
+  {
+    "categorie": "Ravalement",
+    "code": "",
+    "denomination": "Rebouchage des fissures au mortier fibré de réparation",
+    "unite": "F",
+    "debourse_ht": 875,
+    "note": ""
+  },
+  {
+    "categorie": "Zinguerie",
+    "code": "",
+    "denomination": "Fourniture et pose de descente Alu diam 100",
+    "unite": "ML",
+    "debourse_ht": 30,
+    "note": ""
+  },
+  {
+    "categorie": "Zinguerie",
+    "code": "",
+    "denomination": "Fourniture et pose de gouttières Alu diam 100",
+    "unite": "ML",
+    "debourse_ht": 30,
+    "note": ""
+  },
+  {
+    "categorie": "Zinguerie",
+    "code": "",
+    "denomination": "Réalisation de couloir zinc au droit de la cheminée",
+    "unite": "F",
+    "debourse_ht": 385,
+    "note": ""
+  },
+  {
+    "categorie": "Initial",
+    "code": "Initiale",
+    "denomination": "Installation, amené et repli du matériels",
+    "unite": "F",
+    "debourse_ht": 650,
+    "note": ""
+  },
+  {
+    "categorie": "Initial",
+    "code": "Initiale",
+    "denomination": "Préparation chantier - Amené et repli du matériels - Déplacement - Etude d'exécution",
+    "unite": "F",
+    "debourse_ht": 350,
+    "note": ""
+  },
+  {
+    "categorie": "Initial",
+    "code": "Initial ",
+    "denomination": "Réalisation de plans d'exécution",
+    "unite": "F",
+    "debourse_ht": 5000,
+    "note": ""
+  },
+  {
+    "categorie": "Serrurerie",
+    "code": "",
+    "denomination": "Approvisionnement IPE",
+    "unite": "F",
+    "debourse_ht": 50,
+    "note": ""
+  },
+  {
+    "categorie": "Serrurerie",
+    "code": "",
+    "denomination": "Fourniture cornière pour IPE sur mesure",
+    "unite": "U",
+    "debourse_ht": 49,
+    "note": ""
+  },
+  {
+    "categorie": "Serrurerie",
+    "code": "",
+    "denomination": "Fourniture et pose de ratelier à vélo pour 5 emplacements en acier galvanisé compris toutes sujétions de fixation au sol",
+    "unite": "U",
+    "debourse_ht": 3,
+    "note": ""
+  },
+  {
+    "categorie": "Serrurerie",
+    "code": "",
+    "denomination": "Fourniture IPE 140 6 ml",
+    "unite": "U",
+    "debourse_ht": 114,
+    "note": ""
+  },
+  {
+    "categorie": "Serrurerie",
+    "code": "",
+    "denomination": "Pose cornière IPE sous plancher suivant plan implantation",
+    "unite": "F",
+    "debourse_ht": 494.1,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Cloture",
+    "denomination": "Fourniture et pose de chapeau plat béton",
+    "unite": "ML",
+    "debourse_ht": 52,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Cloture",
+    "denomination": "Fourniture et pose de lattes d'occultation en composite en remplissage des panneaux rigides, ht=1.73 m",
+    "unite": "ml",
+    "debourse_ht": 110,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Serrurerie",
+    "denomination": "Fourniture et pose de lattes d'occultation en composite en remplissage des panneaux rigides, ht=1.73 m, comprenant lattes intémédiaires et lattes d'extrémités, réglettes de fixation, lisse haute et triangles aluminium ainsi que toutes sujétions de mise en oeuvre.",
+    "unite": "ml",
+    "debourse_ht": 15,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "",
+    "denomination": " Fourniture et pose de lattes d'occultation en PVC en remplissage des panneaux rigides, ht=1.53 m, comprenant lattes intermédiaires et lattes d'extrémités, réglettes de fixation, lisse haute et triangles aluminium",
+    "unite": "ml",
+    "debourse_ht": 283.14,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Serrurerie",
+    "denomination": "Fourniture et pose de panneau de protection et d’habillage (de type Decochoc de SPM) en PVC rigide antibactérien, classé M1 (Bs2d0) et coloré dans la masse",
+    "unite": "U",
+    "debourse_ht": 13,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "",
+    "denomination": "Fourniture et pose de panneaux de clôture rigide métallique en fils d'acier soudés galvanisés plastifiés de 5 mm maille de 200 x 50 mm, ht=1.53 m,largeur de panneau 2,50 m compris pose sur poteaux à clips et toutes sujétion",
+    "unite": "U",
+    "debourse_ht": 167.31,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Serrurerie",
+    "denomination": "Fourniture et pose de panneaux de clôture rigide métallique en fils d'acier soudés galvanisés plastifiés de 5 mm maille de 200 x 50 mm, ht=1.73 m,largeur de panneau 2,50 m compris pose sur poteaux à clips et toutes sujétion.",
+    "unite": "U",
+    "debourse_ht": 20,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Serrurerie",
+    "denomination": "Fourniture et pose de panneaux de clôture rigide métallique en fils d'acier soudés galvanisés plastifiés de 5 mm maille de 200 x 50 mm, ht=1.73 m,largeur de panneau 2,50 m compris pose sur poteaux à clips et toutes sujétion.",
+    "unite": "U",
+    "debourse_ht": 25,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Cloture",
+    "denomination": "Fourniture et pose de panneaux de clôture rigide métallique ht=1.73 ml largeur de panneau 2,50 m",
+    "unite": "ml",
+    "debourse_ht": 35,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Serrurerie",
+    "denomination": "Fourniture et pose de poteaux métalliques à clips en tôle d'acier galvanisé plastifiés ht=1.23 m, entraxes 2,52m, section 66 x 50 mm compris platines d'ancrage, bouchon et crochets.",
+    "unite": "U",
+    "debourse_ht": 23,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "",
+    "denomination": " Fourniture et pose de poteaux métalliques à clips en tôle d'acier galvanisé plastifiés ht=1.53 m, entraxes 2,52m, section 66 x 50 mm compris platines d'ancrage, bouchon et crochets.",
+    "unite": "U",
+    "debourse_ht": 146.72,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Serrurerie",
+    "denomination": "Fourniture et pose de poteaux métalliques à clips en tôle d'acier galvanisé plastifiés ht=1.73 m, entraxes 2,52m, section 66 x 50 mm compris platines d'ancrage, bouchon et crochets.",
+    "unite": "U",
+    "debourse_ht": 36,
+    "note": ""
+  },
+  {
+    "categorie": "Clôture",
+    "code": "Cloture",
+    "denomination": "Pose de cloture existantes ",
+    "unite": "ml",
+    "debourse_ht": 45,
+    "note": ""
+  },
+  {
+    "categorie": "Etanchéité",
+    "code": "",
+    "denomination": "Boite à eau alu",
+    "unite": "U",
+    "debourse_ht": 95.5,
+    "note": ""
+  },
+  {
+    "categorie": "Etanchéité",
+    "code": "",
+    "denomination": "Dalle béton ép entre 6 et 10 cm",
+    "unite": "m²",
+    "debourse_ht": 60,
+    "note": ""
+  },
+  {
+    "categorie": "Etanchéité",
+    "code": "",
+    "denomination": "Départ EP/TP par moignon et platine Alu",
+    "unite": "U",
+    "debourse_ht": 95.5,
+    "note": ""
+  },
+  {
+    "categorie": "Etanchéité",
+    "code": "",
+    "denomination": "deuxième couche etanchéitié",
+    "unite": "m²",
+    "debourse_ht": 21,
+    "note": ""
+  },
+  {
+    "categorie": "Etanchéité",
+    "code": "",
+    "denomination": "Ecran de désolidarisation",
+    "unite": "m²",
+    "debourse_ht": 13,
+    "note": ""
+  },
+  {
+    "categorie": "Etanchéité",
+    "code": "",
+    "denomination": "Première couche etanchéitié",
+    "unite": "m²",
+    "debourse_ht": 25,
+    "note": ""
+  },
+  {
+    "categorie": "Etanchéité",
+    "code": "",
+    "denomination": "Relevé auto protégé",
+    "unite": "ml",
+    "debourse_ht": 29,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Amené et repli",
+    "unite": "Ens",
+    "debourse_ht": 2400,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Appuis BA",
+    "unite": "ml",
+    "debourse_ht": 78,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA MEXT",
+    "denomination": "Baies vitrée ALUMINIUM VR",
+    "unite": "U",
+    "debourse_ht": 1890,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA CHARPENTE",
+    "denomination": "Bandeau PVC",
+    "unite": "m3",
+    "debourse_ht": 236.17,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Bande de redressement",
+    "unite": "U",
+    "debourse_ht": 65,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Béton fondations",
+    "unite": "m3",
+    "debourse_ht": 236.17,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Calibric TH VPP",
+    "unite": "m2",
+    "debourse_ht": 48.09,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA CHARPENTE",
+    "denomination": "Charpente type fermette industrielle ",
+    "unite": "m²",
+    "debourse_ht": 50.5,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA CHARPENTE",
+    "denomination": "Couverture en tuile à emboitement",
+    "unite": "m²",
+    "debourse_ht": 38,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Décapage TV ép. 30 cm stocké",
+    "unite": "m3",
+    "debourse_ht": 7.35,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA ZINGUERIE",
+    "denomination": "Descente EP en Aluminium",
+    "unite": "ml",
+    "debourse_ht": 25,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Enduit ciment",
+    "unite": "m2",
+    "debourse_ht": 24,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Evacuations de terre ",
+    "unite": "m3",
+    "debourse_ht": 22,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Fourreaux sous dallage",
+    "unite": "Ens",
+    "debourse_ht": 760,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA ZINGUERIE",
+    "denomination": "Gouttière en aluminium",
+    "unite": "ml",
+    "debourse_ht": 23.5,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Grille de défence ",
+    "unite": "U",
+    "debourse_ht": 110,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Gros béton fondation",
+    "unite": "m3",
+    "debourse_ht": 170.5,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Implantation",
+    "unite": "Ens",
+    "debourse_ht": 1500,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA CHARPENTE",
+    "denomination": "Lambris PVC",
+    "unite": "m²",
+    "debourse_ht": 38,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Maçonnerie B40 VPP",
+    "unite": "m2",
+    "debourse_ht": 41,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA ZINGUERIE",
+    "denomination": "Naissance en aluminium",
+    "unite": "U",
+    "debourse_ht": 5.5,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA ZINGUERIE",
+    "denomination": "Noue",
+    "unite": "ml",
+    "debourse_ht": 38.5,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA MEXT",
+    "denomination": "Ouvrant PVC oscillo-battant 75x40 ",
+    "unite": "U",
+    "debourse_ht": 359,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA MEXT",
+    "denomination": "Ouvrant PVC oscillo-battant 75x60",
+    "unite": "U",
+    "debourse_ht": 323,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA MEXT",
+    "denomination": "Ouvrant PVC oscillo-battant 95x60 ",
+    "unite": "U",
+    "debourse_ht": 457,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA MEXT",
+    "denomination": "Ouvrant PVC + VR 125x120",
+    "unite": "U",
+    "debourse_ht": 567,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA CHARPENTE",
+    "denomination": "Planche de rive PVC",
+    "unite": "ml",
+    "debourse_ht": 35,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Plancher vide sanitaire isolant ",
+    "unite": "m²",
+    "debourse_ht": 141,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Porte de garage (Suivant choix Client)",
+    "unite": "U",
+    "debourse_ht": 1500,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Porte d'entrée (Suivant choix Client)",
+    "unite": "U",
+    "debourse_ht": 2000,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Porte de service (Suivant choix Client)",
+    "unite": "U",
+    "debourse_ht": 430,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Poteau BA (Suivant plan béton)",
+    "unite": "m3",
+    "debourse_ht": 861.31,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "P.V. arase",
+    "unite": "ml",
+    "debourse_ht": 34,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA CHARPENTE",
+    "denomination": "PV ecran sous toiture ",
+    "unite": "Ens",
+    "debourse_ht": 5.5,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "PV finition lisse",
+    "unite": "m2",
+    "debourse_ht": 16,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "P.V. planelle brique RP=1,00",
+    "unite": "ml",
+    "debourse_ht": 10.66,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "P.V. raidisseur horizontal",
+    "unite": "ml",
+    "debourse_ht": 19.74,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "P.V. raidisseur vertical",
+    "unite": "ml",
+    "debourse_ht": 20.17,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Ragréage fintions",
+    "unite": "ens",
+    "debourse_ht": 750,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Regard de tringlage",
+    "unite": "U",
+    "debourse_ht": 108,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Remblais périphérique avec terre stockee",
+    "unite": "m3",
+    "debourse_ht": 9,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Réseaux sous dallages",
+    "unite": "ml",
+    "debourse_ht": 38,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Seuil BA",
+    "unite": "ml",
+    "debourse_ht": 48,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Soubassement B80",
+    "unite": "m2",
+    "debourse_ht": 50.78,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA GO",
+    "denomination": "Terrassement fondations",
+    "unite": "m3",
+    "debourse_ht": 49.29,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA CHARPENTE",
+    "denomination": "Tuile à douille ",
+    "unite": "ml",
+    "debourse_ht": 32,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA CHARPENTE",
+    "denomination": "Tuile chatière ",
+    "unite": "U",
+    "debourse_ht": 30,
+    "note": ""
+  },
+  {
+    "categorie": "Villa",
+    "code": "VILLA CHARPENTE",
+    "denomination": "Tuile faitage ",
+    "unite": "m3",
+    "debourse_ht": 7.35,
+    "note": ""
+  }
+]

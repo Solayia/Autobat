@@ -1,0 +1,746 @@
+// Prisma Schema - Autobat
+// PostgreSQL 16 multi-tenant database
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [uuid_ossp]
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TENANTS (Multi-tenant isolation)
+// ═══════════════════════════════════════════════════════════════
+
+model Tenant {
+  id                String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nom               String
+  siret             String   @unique
+  adresse           String
+  code_postal       String
+  ville             String
+  telephone         String
+  email             String
+  logo_url          String?
+
+  // Facturation
+  rib               String?
+  capital           String?
+  rcs               String?
+  tva_intra         String?
+
+  // Abonnement
+  plan              PlanType @default(STARTER)
+  statut            TenantStatus @default(ACTIF)
+  date_inscription  DateTime @default(now())
+
+  // Metadata
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  users             User[]
+  clients           Client[]
+  devis             Devis[]
+  chantiers         Chantier[]
+  factures          Facture[]
+  catalogue         Ouvrage[]
+  employes          Employe[]
+
+  @@map("tenants")
+}
+
+enum PlanType {
+  STARTER   // 130€ + 30€/user
+  PRO       // V2
+  ENTERPRISE // V2
+}
+
+enum TenantStatus {
+  ACTIF
+  SUSPENDU
+  INACTIF
+}
+
+// ═══════════════════════════════════════════════════════════════
+// USERS & AUTHENTICATION
+// ═══════════════════════════════════════════════════════════════
+
+model User {
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id     String   @db.Uuid
+  email         String
+  password_hash String
+  role          Role
+
+  // Info personnelle
+  prenom        String
+  nom           String
+  telephone     String?
+  avatar_url    String?
+
+  // Status
+  actif         Boolean  @default(true)
+  email_verified Boolean @default(false)
+
+  // Metadata
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  last_login    DateTime?
+
+  // Relations
+  tenant        Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  refresh_tokens RefreshToken[]
+  employe       Employe?  // 1-to-1 si role = EMPLOYEE
+
+  @@unique([tenant_id, email])
+  @@index([tenant_id])
+  @@index([email])
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN
+  COMPANY_ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+model RefreshToken {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  token      String   @unique
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  // Relations
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EMPLOYÉS (extended user info for EMPLOYEE role)
+// ═══════════════════════════════════════════════════════════════
+
+model Employe {
+  id                String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id         String   @db.Uuid
+  user_id           String   @unique @db.Uuid
+
+  // Quota horaire
+  quota_mensuel_heures Decimal? @db.Decimal(5, 2)  // Ex: 151.67
+
+  // Metadata
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  tenant            Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  badgeages         Badgeage[]
+  chantiers_assignes ChantierEmploye[]
+
+  @@index([tenant_id])
+  @@map("employes")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CLIENTS
+// ═══════════════════════════════════════════════════════════════
+
+model Client {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id   String   @db.Uuid
+
+  // Informations
+  nom         String
+  email       String
+  telephone   String
+  adresse     String?
+  code_postal String?
+  ville       String?
+
+  // Si client pro
+  siret       String?
+
+  // Status
+  actif       Boolean  @default(true)
+  notes       String?
+
+  // Metadata
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  tenant      Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  devis       Devis[]
+  chantiers   Chantier[]
+  factures    Facture[]
+
+  @@unique([tenant_id, email])
+  @@index([tenant_id])
+  @@map("clients")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CATALOGUE OUVRAGES (Auto-learning)
+// ═══════════════════════════════════════════════════════════════
+
+model Ouvrage {
+  id                  String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id           String   @db.Uuid
+
+  // Référence
+  code                String   // Ex: GO-DEM-001
+  categorie           String   // Ex: Gros Oeuvre
+
+  // Description
+  denomination        String
+  unite               String   // m², ml, u, h, etc.
+
+  // Prix
+  prix_unitaire_ht    Decimal  @db.Decimal(10, 2)
+
+  // Auto-learning
+  temps_estime_minutes Int?    // Temps estimé initial
+  temps_reel_moyen     Decimal? @db.Decimal(10, 2)  // Moyenne mobile temps réel
+  nb_chantiers_realises Int @default(0)
+  derniere_maj_auto    DateTime?
+
+  // Notes
+  notes               String?
+
+  // Metadata
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  // Relations
+  tenant              Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  lignes_devis        LigneDevis[]
+  taches              Tache[]
+  lignes_facture      LigneFacture[]
+  historique_prix     HistoriquePrix[]
+
+  @@unique([tenant_id, code])
+  @@index([tenant_id])
+  @@index([categorie])
+  @@map("ouvrages")
+}
+
+model HistoriquePrix {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  ouvrage_id       String   @db.Uuid
+
+  // Prix
+  ancien_prix      Decimal  @db.Decimal(10, 2)
+  nouveau_prix     Decimal  @db.Decimal(10, 2)
+
+  // Raison
+  raison           String   // "Auto-learning", "Manuel", "Inflation"
+  ecart_pourcent   Decimal? @db.Decimal(5, 2)
+
+  // Metadata
+  created_at       DateTime @default(now())
+
+  // Relations
+  ouvrage          Ouvrage  @relation(fields: [ouvrage_id], references: [id], onDelete: Cascade)
+
+  @@index([ouvrage_id])
+  @@map("historique_prix")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DEVIS
+// ═══════════════════════════════════════════════════════════════
+
+model Devis {
+  id                String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id         String      @db.Uuid
+  numero_devis      String      // DEV-2026-0001
+  client_id         String      @db.Uuid
+
+  // Montants
+  montant_ht        Decimal     @db.Decimal(10, 2)
+  montant_tva       Decimal     @db.Decimal(10, 2)
+  montant_ttc       Decimal     @db.Decimal(10, 2)
+
+  // Dates
+  date_creation     DateTime    @default(now())
+  date_validite     DateTime
+  date_envoi        DateTime?
+  date_acceptation  DateTime?
+  date_refus        DateTime?
+
+  // Statut
+  statut            StatutDevis @default(BROUILLON)
+
+  // Document
+  pdf_url           String?
+  notes             String?
+
+  // Metadata
+  created_at        DateTime    @default(now())
+  updated_at        DateTime    @updatedAt
+
+  // Relations
+  tenant            Tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  client            Client      @relation(fields: [client_id], references: [id])
+  lignes            LigneDevis[]
+  chantiers         Chantier[]
+
+  @@unique([tenant_id, numero_devis])
+  @@index([tenant_id])
+  @@index([client_id])
+  @@index([statut])
+  @@map("devis")
+}
+
+enum StatutDevis {
+  BROUILLON
+  ENVOYE
+  ACCEPTE
+  REFUSE
+  EXPIRE
+}
+
+model LigneDevis {
+  id                String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  devis_id          String  @db.Uuid
+  ouvrage_id        String? @db.Uuid  // Null si ligne personnalisée
+
+  // Détails
+  description       String
+  quantite          Decimal @db.Decimal(10, 2)
+  unite             String
+  prix_unitaire_ht  Decimal @db.Decimal(10, 2)
+  montant_ht        Decimal @db.Decimal(10, 2)
+  tva_pourcent      Decimal @db.Decimal(4, 2) @default(20.00)
+  montant_ttc       Decimal @db.Decimal(10, 2)
+
+  // Ordre d'affichage
+  ordre             Int
+
+  // Metadata
+  created_at        DateTime @default(now())
+
+  // Relations
+  devis             Devis   @relation(fields: [devis_id], references: [id], onDelete: Cascade)
+  ouvrage           Ouvrage? @relation(fields: [ouvrage_id], references: [id])
+
+  @@index([devis_id])
+  @@index([ouvrage_id])
+  @@map("lignes_devis")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHANTIERS
+// ═══════════════════════════════════════════════════════════════
+
+model Chantier {
+  id                    String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id             String          @db.Uuid
+  client_id             String          @db.Uuid
+  devis_id              String?         @db.Uuid
+
+  // Informations
+  nom                   String
+  adresse               String
+  code_postal           String
+  ville                 String
+
+  // GPS
+  latitude              Decimal         @db.Decimal(10, 8)
+  longitude             Decimal         @db.Decimal(11, 8)
+  rayon_gps_metres      Int             @default(100)
+
+  // Configuration badgeage
+  badgeage_par_tache    Boolean         @default(false)
+
+  // Dates
+  date_debut            DateTime        @default(now())
+  date_fin_prevue       DateTime?
+  date_fin_reelle       DateTime?
+
+  // Statut
+  statut                StatutChantier  @default(EN_COURS)
+
+  // Notes
+  notes                 String?
+
+  // Metadata
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @updatedAt
+
+  // Relations
+  tenant                Tenant          @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  client                Client          @relation(fields: [client_id], references: [id])
+  devis                 Devis?          @relation(fields: [devis_id], references: [id])
+  taches                Tache[]
+  badgeages             Badgeage[]
+  employes_assignes     ChantierEmploye[]
+  documents             Document[]
+  factures              Facture[]
+
+  @@index([tenant_id])
+  @@index([client_id])
+  @@index([statut])
+  @@map("chantiers")
+}
+
+enum StatutChantier {
+  EN_COURS
+  TERMINE
+  ANNULE
+  FACTURE
+}
+
+// Table de liaison chantier <-> employés
+model ChantierEmploye {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  chantier_id  String   @db.Uuid
+  employe_id   String   @db.Uuid
+
+  // Metadata
+  assigned_at  DateTime @default(now())
+
+  // Relations
+  chantier     Chantier @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+  employe      Employe  @relation(fields: [employe_id], references: [id], onDelete: Cascade)
+
+  @@unique([chantier_id, employe_id])
+  @@index([chantier_id])
+  @@index([employe_id])
+  @@map("chantier_employe")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TÂCHES (optionnel par chantier)
+// ═══════════════════════════════════════════════════════════════
+
+model Tache {
+  id                String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  chantier_id       String       @db.Uuid
+  ouvrage_id        String?      @db.Uuid
+
+  // Détails
+  nom               String
+  description       String?
+  quantite_prevue   Decimal?     @db.Decimal(10, 2)
+  unite             String?
+
+  // Status
+  statut            StatutTache  @default(A_FAIRE)
+
+  // Métadata
+  ordre             Int          // Ordre d'affichage
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+
+  // Relations
+  chantier          Chantier     @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+  ouvrage           Ouvrage?     @relation(fields: [ouvrage_id], references: [id])
+  badgeages         Badgeage[]
+
+  @@index([chantier_id])
+  @@index([ouvrage_id])
+  @@map("taches")
+}
+
+enum StatutTache {
+  A_FAIRE
+  EN_COURS
+  TERMINEE
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BADGEAGES
+// ═══════════════════════════════════════════════════════════════
+
+model Badgeage {
+  id                String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id         String        @db.Uuid
+  chantier_id       String        @db.Uuid
+  employe_id        String        @db.Uuid
+  tache_id          String?       @db.Uuid
+
+  // Type de badgeage
+  type              TypeBadgeage
+  methode           MethodeBadgeage
+
+  // GPS (si GPS)
+  latitude          Decimal?      @db.Decimal(10, 8)
+  longitude         Decimal?      @db.Decimal(11, 8)
+  precision_metres  Int?
+
+  // Timestamps
+  timestamp         DateTime      @default(now())
+
+  // Metadata
+  synced            Boolean       @default(true)  // false si créé offline
+  created_at        DateTime      @default(now())
+
+  // Relations
+  chantier          Chantier      @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+  employe           Employe       @relation(fields: [employe_id], references: [id])
+  tache             Tache?        @relation(fields: [tache_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([chantier_id])
+  @@index([employe_id])
+  @@index([timestamp])
+  @@map("badgeages")
+}
+
+enum TypeBadgeage {
+  PRESENCE_DEBUT
+  PRESENCE_FIN
+  TACHE_DEBUT
+  TACHE_FIN
+}
+
+enum MethodeBadgeage {
+  GPS_AUTO
+  MANUEL
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DOCUMENTS (photos, PDFs chantiers)
+// ═══════════════════════════════════════════════════════════════
+
+model Document {
+  id           String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id    String       @db.Uuid
+  chantier_id  String       @db.Uuid
+
+  // Fichier
+  nom          String
+  type         TypeDocument
+  url          String
+  taille_bytes Int
+
+  // Metadata
+  titre        String?
+  description  String?
+  uploaded_by  String       @db.Uuid  // user_id
+  created_at   DateTime     @default(now())
+
+  // Relations
+  chantier     Chantier     @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+  @@index([chantier_id])
+  @@map("documents")
+}
+
+enum TypeDocument {
+  PHOTO
+  PDF
+  AUTRE
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FACTURES
+// ═══════════════════════════════════════════════════════════════
+
+model Facture {
+  id                  String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id           String             @db.Uuid
+  numero_facture      String             // FAC-2026-0001
+  chantier_id         String             @db.Uuid
+  devis_id            String?            @db.Uuid
+  client_id           String             @db.Uuid
+
+  // Snapshots (données figées au moment de la facturation)
+  entreprise_nom      String
+  entreprise_siret    String
+  entreprise_adresse  String
+  entreprise_tel      String
+  entreprise_email    String
+
+  client_nom          String
+  client_adresse      String
+  client_siret        String?
+  client_tel          String
+  client_email        String
+
+  // Montants
+  montant_ht          Decimal            @db.Decimal(10, 2)
+  montant_tva         Decimal            @db.Decimal(10, 2)
+  montant_ttc         Decimal            @db.Decimal(10, 2)
+
+  // Paiements
+  acompte_demande     Decimal            @db.Decimal(10, 2)
+  acompte_recu        Decimal            @db.Decimal(10, 2) @default(0)
+  reste_a_payer       Decimal            @db.Decimal(10, 2)
+
+  // Statuts
+  statut_paiement     StatutPaiement     @default(EN_ATTENTE)
+  statut_facture      StatutFacture      @default(BROUILLON)
+
+  // Dates
+  date_emission       DateTime           @default(now())
+  date_echeance       DateTime
+  date_envoi          DateTime?
+  date_paiement_complet DateTime?
+
+  // Document
+  pdf_url             String?
+  notes               String?
+
+  // Facture d'avoir (si annulation)
+  facture_origine_id  String?            @db.Uuid
+  facture_avoir_id    String?            @db.Uuid
+
+  // Metadata
+  created_at          DateTime           @default(now())
+  updated_at          DateTime           @updatedAt
+
+  // Relations
+  tenant              Tenant             @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  chantier            Chantier           @relation(fields: [chantier_id], references: [id])
+  client              Client             @relation(fields: [client_id], references: [id])
+  lignes              LigneFacture[]
+  paiements           PaiementFacture[]
+
+  @@unique([tenant_id, numero_facture])
+  @@index([tenant_id])
+  @@index([chantier_id])
+  @@index([client_id])
+  @@index([statut_paiement])
+  @@index([statut_facture])
+  @@map("factures")
+}
+
+enum StatutPaiement {
+  EN_ATTENTE
+  ACOMPTE_RECU
+  PARTIELLEMENT_PAYE
+  SOLDE
+}
+
+enum StatutFacture {
+  BROUILLON
+  EMISE
+  ENVOYEE
+  ANNULEE
+}
+
+model LigneFacture {
+  id                String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  facture_id        String  @db.Uuid
+  ouvrage_id        String? @db.Uuid
+
+  // Détails
+  description       String
+  quantite          Decimal @db.Decimal(10, 2)
+  unite             String
+  prix_unitaire_ht  Decimal @db.Decimal(10, 2)
+  montant_ht        Decimal @db.Decimal(10, 2)
+  tva_pourcent      Decimal @db.Decimal(4, 2) @default(20.00)
+  montant_ttc       Decimal @db.Decimal(10, 2)
+
+  // Ordre
+  ordre             Int
+
+  // Metadata
+  created_at        DateTime @default(now())
+
+  // Relations
+  facture           Facture  @relation(fields: [facture_id], references: [id], onDelete: Cascade)
+  ouvrage           Ouvrage? @relation(fields: [ouvrage_id], references: [id])
+
+  @@index([facture_id])
+  @@index([ouvrage_id])
+  @@map("lignes_facture")
+}
+
+model PaiementFacture {
+  id              String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  facture_id      String        @db.Uuid
+  tenant_id       String        @db.Uuid
+
+  // Paiement
+  montant         Decimal       @db.Decimal(10, 2)
+  date_paiement   DateTime
+  moyen_paiement  MoyenPaiement
+  reference       String?       // Numéro chèque, ref virement
+  type            TypePaiement
+
+  // Validation
+  valide          Boolean       @default(true)
+  valide_par      String?       @db.Uuid  // user_id
+  valide_le       DateTime?
+
+  // Notes
+  notes           String?
+
+  // Metadata
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  // Relations
+  facture         Facture       @relation(fields: [facture_id], references: [id], onDelete: Cascade)
+
+  @@index([facture_id])
+  @@index([tenant_id])
+  @@map("paiements_facture")
+}
+
+enum MoyenPaiement {
+  VIREMENT
+  CHEQUE
+  ESPECES
+  CARTE
+  AUTRE
+}
+
+enum TypePaiement {
+  ACOMPTE
+  SOLDE
+  PARTIEL
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════
+
+model Notification {
+  id         String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenant_id  String            @db.Uuid
+  user_id    String            @db.Uuid
+
+  // Contenu
+  type       TypeNotification
+  titre      String
+  message    String
+  lien_url   String?           // Lien vers la ressource concernée
+
+  // Statut
+  lue        Boolean           @default(false)
+
+  // Metadata
+  created_at DateTime          @default(now())
+
+  @@index([tenant_id])
+  @@index([user_id])
+  @@index([lue])
+  @@map("notifications")
+}
+
+enum TypeNotification {
+  DEVIS_ACCEPTE
+  DEVIS_REFUSE
+  FACTURE_PAYEE
+  FACTURE_EN_RETARD
+  BADGEAGE_CREE
+  CHANTIER_TERMINE
+  DOCUMENT_AJOUTE
+  AUTRE
+}
