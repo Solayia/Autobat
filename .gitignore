@@ -1,5 +1,5 @@
-# Screenshots (fichiers lourds, pas utiles en git)
-screenshots/
+# Screenshots racine (fichiers lourds, pas utiles en git)
+/screenshots/
 
 # Claude
 .claude/

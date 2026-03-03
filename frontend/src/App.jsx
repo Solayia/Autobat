@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './components/ProtectedRoute';
+import LandingPage from './pages/LandingPage';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -329,8 +330,11 @@ function App() {
           }
         />
 
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* Landing page */}
+        <Route path="/" element={<LandingPage />} />
+
+        {/* /app → redirect vers l'app (dashboard ou login) */}
+        <Route path="/app" element={<Navigate to="/dashboard" replace />} />
 
         {/* 404 */}
         <Route
