@@ -91,13 +91,13 @@ const FEATURES = [
   },
   {
     icon: <BarChart2 className="w-8 h-8 text-secondary-500" />,
-    title: 'Sache en temps réel si tu gagnes de l'argent.',
+    title: "Sache en temps réel si tu gagnes de l'argent.",
     description:
       "Visualise tes marges chantier par chantier. Anticipe les dérives avant qu'il soit trop tard. Identifie tes chantiers les plus rentables — et fais-en la règle.",
     bullets: [
       'Tableau de bord en temps réel',
       'Comparatif prévu / réel',
-      'Analyse de rentabilité par type d'ouvrage',
+      "Analyse de rentabilité par type d'ouvrage",
     ],
     desktop: '/screenshots/desktop-pilotage.png',
     mobile: '/screenshots/mobile-pilotage.png',
@@ -499,7 +499,7 @@ export default function LandingPage() {
               {
                 step: '3',
                 title: 'Laisse Autobat apprendre',
-                desc: 'Après chaque chantier, tes prix s'ajustent automatiquement. Tu gagnes de plus en plus à chaque devis.',
+                desc: "Après chaque chantier, tes prix s'ajustent automatiquement. Tu gagnes de plus en plus à chaque devis.",
               },
             ].map((item) => (
               <div key={item.step} className="text-center">
