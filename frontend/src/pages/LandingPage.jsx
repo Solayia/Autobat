@@ -69,6 +69,9 @@ function PhoneMockup({ src, alt, mini = false }) {
   const muteH = mini ? 14 : 18
   const pwrTop = mini ? 60 : 82
   const pwrH = mini ? 26 : 38
+  // Hauteur image = ratio iPhone 9:19.5, moins les barres
+  const screenW = w - padding * 2
+  const imgH = Math.round(screenW * 19.5 / 9) - islandBarH - homeBarH
 
   return (
     <div className="relative mx-auto" style={{ width: w }}>
@@ -94,8 +97,8 @@ function PhoneMockup({ src, alt, mini = false }) {
           <div style={{ background: '#000', height: islandBarH, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <div style={{ width: islandW, height: islandH, background: '#111', borderRadius: 99, border: '1px solid #2d2d2d' }} />
           </div>
-          {/* Screenshot — ratio 9:19.5, crop from top */}
-          <div style={{ width: '100%', aspectRatio: '9/19.5', overflow: 'hidden' }}>
+          {/* Screenshot — crop to iPhone height */}
+          <div style={{ width: '100%', height: imgH, overflow: 'hidden', flexShrink: 0 }}>
             <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }} loading="lazy" />
           </div>
           {/* Home indicator */}
