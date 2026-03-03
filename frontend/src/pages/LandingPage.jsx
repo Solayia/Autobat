@@ -50,12 +50,56 @@ function BrowserMockup({ src, alt }) {
   )
 }
 
-function PhoneMockup({ src, alt }) {
+function PhoneMockup({ src, alt, mini = false }) {
+  const w = mini ? 120 : 200
+  const borderRadius = mini ? 28 : 44
+  const innerRadius = mini ? 22 : 34
+  const padding = mini ? 6 : 10
+  const islandW = mini ? 44 : 70
+  const islandH = mini ? 10 : 18
+  const islandBarH = mini ? 20 : 30
+  const homeW = mini ? 30 : 55
+  const homeBarH = mini ? 14 : 22
+  const btnW = mini ? 3 : 4
+  const v1Top = mini ? 52 : 70
+  const v1H = mini ? 18 : 24
+  const v2Top = mini ? 76 : 102
+  const v2H = mini ? 18 : 24
+  const muteTop = mini ? 34 : 50
+  const muteH = mini ? 14 : 18
+  const pwrTop = mini ? 60 : 82
+  const pwrH = mini ? 26 : 38
+
   return (
-    <div className="relative w-48 mx-auto">
-      <div className="bg-gray-900 rounded-[2.5rem] p-3 shadow-2xl">
-        <div className="bg-gray-800 rounded-[2rem] overflow-hidden">
-          <img src={src} alt={alt} className="w-full" loading="lazy" />
+    <div className="relative mx-auto" style={{ width: w }}>
+      {/* Volume down */}
+      <div style={{ position: 'absolute', left: -btnW, top: v1Top, width: btnW, height: v1H, background: '#374151', borderRadius: '3px 0 0 3px' }} />
+      {/* Volume up */}
+      <div style={{ position: 'absolute', left: -btnW, top: v2Top, width: btnW, height: v2H, background: '#374151', borderRadius: '3px 0 0 3px' }} />
+      {/* Mute/silent */}
+      <div style={{ position: 'absolute', left: -btnW, top: muteTop, width: btnW, height: muteH, background: '#374151', borderRadius: '3px 0 0 3px' }} />
+      {/* Power */}
+      <div style={{ position: 'absolute', right: -btnW, top: pwrTop, width: btnW, height: pwrH, background: '#374151', borderRadius: '0 3px 3px 0' }} />
+
+      {/* Phone body */}
+      <div style={{
+        background: 'linear-gradient(145deg, #1f2937, #0f172a)',
+        borderRadius,
+        padding,
+        boxShadow: '0 0 0 1px rgba(255,255,255,0.08) inset, 0 25px 50px rgba(0,0,0,0.55)',
+      }}>
+        {/* Screen */}
+        <div style={{ borderRadius: innerRadius, overflow: 'hidden', background: '#000', position: 'relative' }}>
+          {/* Dynamic Island bar */}
+          <div style={{ background: '#000', height: islandBarH, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: islandW, height: islandH, background: '#111', borderRadius: 99, border: '1px solid #2d2d2d' }} />
+          </div>
+          {/* Screenshot */}
+          <img src={src} alt={alt} style={{ width: '100%', display: 'block' }} loading="lazy" />
+          {/* Home indicator */}
+          <div style={{ background: '#000', height: homeBarH, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: homeW, height: 4, background: 'rgba(255,255,255,0.38)', borderRadius: 99 }} />
+          </div>
         </div>
       </div>
     </div>
@@ -296,17 +340,8 @@ export default function LandingPage() {
               {/* Desktop */}
               <BrowserMockup src="/screenshots/desktop-dashboard.png" alt="Dashboard Autobat desktop" />
               {/* Mobile float */}
-              <div className="absolute -bottom-8 -right-4 w-36 hidden lg:block">
-                <div className="bg-gray-900 rounded-[2rem] p-2.5 shadow-2xl border-4 border-white">
-                  <div className="bg-gray-800 rounded-[1.5rem] overflow-hidden">
-                    <img
-                      src="/screenshots/mobile-dashboard.png"
-                      alt="Dashboard Autobat mobile"
-                      className="w-full"
-                      loading="eager"
-                    />
-                  </div>
-                </div>
+              <div className="absolute -bottom-8 -right-4 hidden lg:block" style={{ width: 120 }}>
+                <PhoneMockup mini src="/screenshots/mobile-dashboard.png" alt="Dashboard Autobat mobile" />
               </div>
               {/* Floating stats */}
               <div className="absolute -bottom-4 left-4 bg-white rounded-xl shadow-lg border border-gray-100 p-3 flex items-center gap-3 lg:left-8">
@@ -455,17 +490,8 @@ export default function LandingPage() {
                     {/* Desktop */}
                     <BrowserMockup src={feature.desktop} alt={feature.title + ' desktop'} />
                     {/* Mobile flottant */}
-                    <div className="absolute -bottom-6 -right-4 w-28 hidden sm:block">
-                      <div className="bg-gray-900 rounded-[1.8rem] p-2 shadow-xl border-4 border-white">
-                        <div className="bg-gray-800 rounded-[1.3rem] overflow-hidden">
-                          <img
-                            src={feature.mobile}
-                            alt={feature.title + ' mobile'}
-                            className="w-full"
-                            loading="lazy"
-                          />
-                        </div>
-                      </div>
+                    <div className="absolute -bottom-6 -right-4 hidden sm:block" style={{ width: 110 }}>
+                      <PhoneMockup mini src={feature.mobile} alt={feature.title + ' mobile'} />
                     </div>
                   </div>
                 </div>
