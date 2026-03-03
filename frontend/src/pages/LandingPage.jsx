@@ -94,8 +94,10 @@ function PhoneMockup({ src, alt, mini = false }) {
           <div style={{ background: '#000', height: islandBarH, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <div style={{ width: islandW, height: islandH, background: '#111', borderRadius: 99, border: '1px solid #2d2d2d' }} />
           </div>
-          {/* Screenshot */}
-          <img src={src} alt={alt} style={{ width: '100%', display: 'block' }} loading="lazy" />
+          {/* Screenshot — ratio 9:19.5, crop from top */}
+          <div style={{ width: '100%', aspectRatio: '9/19.5', overflow: 'hidden' }}>
+            <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }} loading="lazy" />
+          </div>
           {/* Home indicator */}
           <div style={{ background: '#000', height: homeBarH, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <div style={{ width: homeW, height: 4, background: 'rgba(255,255,255,0.38)', borderRadius: 99 }} />
