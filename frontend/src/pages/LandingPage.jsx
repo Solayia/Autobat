@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../stores/authStore'
+import useAuthStore from '../stores/authStore'
 import {
   CheckCircle,
   Clock,
