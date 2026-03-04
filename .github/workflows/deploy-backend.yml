@@ -36,7 +36,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "backend/src,backend/prisma,backend/package.json,backend/package-lock.json,backend/ecosystem.config.js"
+          source: "backend/src,backend/prisma,backend/package.json,backend/package-lock.json,backend/ecosystem.config.cjs"
           target: "/var/www/autobat/"
           strip_components: 1
 
@@ -50,6 +50,6 @@ jobs:
             cd /var/www/autobat/backend
             npm ci --production
             npx prisma generate
-            npx prisma migrate deploy
-            pm2 reload ecosystem.config.js --env production
+            npx prisma db push
+            pm2 reload ecosystem.config.cjs --env production
             pm2 save
