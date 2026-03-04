@@ -1,13 +1,23 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { UserPlus, Loader2 } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 export default function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register, loading, error, clearError } = useAuthStore();
+  const [stripeLoading, setStripeLoading] = useState(false);
   const [acceptCGU, setAcceptCGU] = useState(false);
+  const [stripeCancelled, setStripeCancelled] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('stripe_cancel') === '1') {
+      setStripeCancelled(true);
+    }
+  }, []);
   const [formData, setFormData] = useState({
     // Entreprise
     entreprise_nom: '',
@@ -49,10 +59,13 @@ export default function Register() {
     try {
       const { password_confirm, ...registerData } = formData;
       await register(registerData);
-      toast.success('Inscription réussie ! Bienvenue sur Autobat.');
-      navigate('/dashboard');
+      // Rediriger vers Stripe Checkout pour l'abonnement (trial 7j)
+      setStripeLoading(true);
+      const response = await api.post('/stripe/create-subscription-checkout');
+      window.location.href = response.data.url;
     } catch (err) {
-      toast.error(error || 'Erreur lors de l\'inscription');
+      setStripeLoading(false);
+      toast.error(error || "Erreur lors de l'inscription");
     }
   };
 
@@ -81,6 +94,15 @@ export default function Register() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               Inscription
             </h2>
+
+            {stripeCancelled && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-amber-800">
+                  Vous avez annulé le paiement. Votre compte a été créé mais votre abonnement n'est pas encore actif.
+                  Complétez votre inscription en cliquant sur "Créer mon compte" pour activer votre essai gratuit.
+                </p>
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -328,9 +350,14 @@ export default function Register() {
               <button
                 type="submit"
                 className="btn btn-primary w-full flex items-center justify-center"
-                disabled={loading || !acceptCGU}
+                disabled={loading || stripeLoading || !acceptCGU}
               >
-                {loading ? (
+                {stripeLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Redirection vers le paiement...
+                  </>
+                ) : loading ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Création du compte...
@@ -338,7 +365,7 @@ export default function Register() {
                 ) : (
                   <>
                     <UserPlus className="w-5 h-5 mr-2" />
-                    Créer mon compte
+                    Créer mon compte — Essai gratuit 7 jours
                   </>
                 )}
               </button>

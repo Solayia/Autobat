@@ -16,6 +16,9 @@ export const authenticate = async (req, res, next) => {
 
     const token = authHeader.substring(7); // Enlever 'Bearer '
 
+    // Reset du tenant global pour éviter pollution entre requêtes concurrentes
+    global.currentTenantId = null;
+
     // Vérifier le token
     let payload;
     try {
@@ -40,9 +43,14 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({ error: 'Utilisateur introuvable ou inactif' });
     }
 
-    // Vérifier que le tenant est actif
-    if (user.tenant.statut !== 'ACTIF') {
-      return res.status(403).json({ error: 'Compte suspendu. Contactez le support.' });
+    // Vérifier que le tenant est actif (ACTIF ou TRIAL autorisés)
+    const statutsAutorises = ['ACTIF', 'TRIAL'];
+    if (!statutsAutorises.includes(user.tenant.statut)) {
+      return res.status(403).json({
+        error: 'Compte suspendu ou résilié. Contactez le support.',
+        code: 'ACCOUNT_SUSPENDED',
+        statut: user.tenant.statut
+      });
     }
 
     // Injecter user et tenant_id dans req

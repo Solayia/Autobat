@@ -2,6 +2,9 @@ import prisma from '../config/database.js';
 import logger from '../config/logger.js';
 import puppeteer from 'puppeteer';
 import { sendDevisEmail } from '../services/emailService.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * POST /api/devis - Créer un nouveau devis

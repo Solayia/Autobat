@@ -649,6 +649,16 @@ export default function SuperAdmin() {
                         <h3 className="font-bold text-white">{selectedTenant.nom}</h3>
                         <p className="text-xs text-gray-400 mt-0.5">SIRET: {selectedTenant.siret}</p>
                         <p className="text-xs text-gray-500">Inscrit: {fmt(selectedTenant.date_inscription)}</p>
+                        {selectedTenant.stripe_customer_id && (
+                          <a
+                            href={`https://dashboard.stripe.com/customers/${selectedTenant.stripe_customer_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-purple-400 hover:text-purple-300 underline mt-0.5 inline-block"
+                          >
+                            Stripe: {selectedTenant.stripe_customer_id.slice(0, 20)}…
+                          </a>
+                        )}
                       </div>
                       <button onClick={() => handleImpersonate(selectedTenant)}
                         className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors">

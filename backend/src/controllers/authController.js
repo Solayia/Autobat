@@ -390,6 +390,8 @@ export const me = async (req, res) => {
       plan: req.user.tenant.plan,
       employes_max: req.user.tenant.employes_max,
       statut: req.user.tenant.statut,
+      trial_ends_at: req.user.tenant.trial_ends_at,
+      stripe_customer_id: req.user.tenant.stripe_customer_id,
       onboarding_completed: req.user.tenant.onboarding_completed,
       onboarding_step: req.user.tenant.onboarding_step
     }

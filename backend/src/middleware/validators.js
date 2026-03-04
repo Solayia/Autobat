@@ -189,8 +189,11 @@ export const validateCreateClient = [
   validateEmail(),
   validatePhone('telephone'),
   validateEnum('type', ['PARTICULIER', 'ENTREPRISE']),
-  body('siret').optional().trim().isLength({ min: 14, max: 14 }).isNumeric(),
-  ...validateAddress(),
+  body('siret').optional({ checkFalsy: true }).trim().isLength({ min: 14, max: 14 }).withMessage('SIRET invalide (14 chiffres)').isNumeric(),
+  // Adresse optionnelle (peut être renseignée plus tard)
+  body('adresse').optional({ checkFalsy: true }).trim().isLength({ min: 2, max: 255 }).withMessage('Adresse invalide').escape(),
+  body('code_postal').optional({ checkFalsy: true }).trim().matches(/^\d{5}$/).withMessage('Code postal français invalide (5 chiffres)'),
+  body('ville').optional({ checkFalsy: true }).trim().isLength({ min: 1, max: 100 }).withMessage('Ville invalide').escape(),
   validateText('notes', 2000, false),
   handleValidationErrors
 ];

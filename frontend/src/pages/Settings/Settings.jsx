@@ -241,13 +241,14 @@ export default function Settings() {
     try {
       setUpdatingSubscription(true);
       setShowSubscriptionModal(false);
-      // Créer une session de checkout Stripe
-      const { url } = await settingsService.createCheckoutSession(newEmployesMax);
-      // Rediriger vers Stripe
-      window.location.href = url;
+      await settingsService.upgradeEmployees(newEmployesMax);
+      toast.success(`Abonnement mis à jour : ${newEmployesMax} compte${newEmployesMax > 1 ? 's' : ''}`);
+      // Rafraîchir les infos tenant
+      await refreshUser();
     } catch (error) {
-      console.error('Erreur création session de paiement:', error);
-      toast.error(error.response?.data?.message || 'Erreur lors de la création de la session de paiement');
+      console.error('Erreur upgrade employés:', error);
+      toast.error(error.response?.data?.message || 'Erreur lors de la mise à jour de l\'abonnement');
+    } finally {
       setUpdatingSubscription(false);
     }
   };
@@ -1267,30 +1268,64 @@ export default function Settings() {
         {/* Onglet Abonnement */}
         {activeTab === 'abonnement' && (
           <div className="space-y-6">
-            {/* Plan actuel */}
+            {/* Statut de l'abonnement */}
             <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
-              <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Plan actuel</h2>
+              <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Mon abonnement</h2>
 
-              <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
+              {/* Badge statut */}
+              <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-200 mb-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">Plan Entreprise</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">Autobat Pro</h3>
                     <p className="text-gray-600 mt-1">Accès complet à toutes les fonctionnalités</p>
                   </div>
-                  <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold">
-                    Actif
-                  </div>
+                  {/* Badge statut coloré */}
+                  {tenant?.statut === 'TRIAL' && (
+                    <div className="bg-amber-500 text-white px-4 py-2 rounded-lg font-semibold">Essai gratuit</div>
+                  )}
+                  {tenant?.statut === 'ACTIF' && (
+                    <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold">Actif</div>
+                  )}
+                  {tenant?.statut === 'SUSPENDU' && (
+                    <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">Suspendu</div>
+                  )}
+                  {tenant?.statut === 'RESILIE' && (
+                    <div className="bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold">Résilié</div>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                {/* Trial countdown */}
+                {tenant?.statut === 'TRIAL' && tenant?.trial_ends_at && (() => {
+                  const daysLeft = Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24)));
+                  return (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                      <p className="text-sm text-amber-800 font-medium">
+                        {daysLeft > 0
+                          ? `Essai gratuit : ${daysLeft} jour${daysLeft > 1 ? 's' : ''} restant${daysLeft > 1 ? 's' : ''}`
+                          : "Votre essai gratuit se termine aujourd'hui — votre carte sera débitée."}
+                      </p>
+                    </div>
+                  );
+                })()}
+
+                {/* Alerte si suspendu */}
+                {tenant?.statut === 'SUSPENDU' && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-red-800 font-medium">
+                      Votre paiement a échoué. Mettez à jour votre moyen de paiement pour réactiver l'accès.
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                   <div className="bg-white/80 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-1">Employés</p>
+                    <p className="text-sm text-gray-600 mb-1">Comptes</p>
                     <p className="text-2xl font-bold text-gray-900">
                       {tenant?.employes_max || 1} compte{(tenant?.employes_max || 1) > 1 ? 's' : ''}
                     </p>
                   </div>
                   <div className="bg-white/80 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-2">Tarification mensuelle</p>
+                    <p className="text-sm text-gray-600 mb-2">Tarif mensuel</p>
                     <p className="text-4xl font-bold text-green-600">
                       {(tenant?.employes_max || 1) === 1 ? '100€' : `${100 + ((tenant?.employes_max || 1) - 1) * 20}€`}
                     </p>
@@ -1298,110 +1333,149 @@ export default function Settings() {
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Modifier l'abonnement */}
-            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
-              <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Modifier mon abonnement</h2>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Nombre d'employés souhaité
-                  </label>
-
-                  <div className="flex items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setNewEmployesMax(Math.max(1, newEmployesMax - 1))}
-                      disabled={newEmployesMax <= 1}
-                      className="p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Minus className="w-5 h-5" />
-                    </button>
-
-                    <div className="flex-1 max-w-xs">
-                      <input
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={newEmployesMax}
-                        onChange={(e) => setNewEmployesMax(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
-                        className="w-full px-4 py-3 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                      <p className="text-sm text-gray-500 mt-1 text-center">employé{newEmployesMax > 1 ? 's' : ''}</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setNewEmployesMax(Math.min(100, newEmployesMax + 1))}
-                      disabled={newEmployesMax >= 100}
-                      className="p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Calcul du nouveau tarif */}
-                <div className="bg-gradient-to-br from-green-50 to-blue-50 border border-green-200 rounded-xl p-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-700">1er employé</span>
-                      <span className="font-medium">100€ HT/mois</span>
-                    </div>
-                    {newEmployesMax > 1 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-700">{newEmployesMax - 1} employé{newEmployesMax - 1 > 1 ? 's' : ''} supplémentaire{newEmployesMax - 1 > 1 ? 's' : ''}</span>
-                        <span className="font-medium">{(newEmployesMax - 1) * 20}€ HT/mois</span>
-                      </div>
-                    )}
-                    <div className="border-t border-green-300 pt-3 flex items-center justify-between">
-                      <span className="font-bold text-gray-900 text-lg">Total mensuel</span>
-                      <span className="font-bold text-green-600 text-2xl">{calculateNewPrice(newEmployesMax)}€ HT</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Boutons d'action */}
-                <div className="flex items-center justify-end gap-3">
+              {/* Bouton Gérer l'abonnement → Stripe Portal */}
+              {tenant?.stripe_customer_id && (
+                <div className="mb-2">
                   <button
                     type="button"
-                    onClick={() => setNewEmployesMax(tenant?.employes_max || 1)}
-                    disabled={newEmployesMax === (tenant?.employes_max || 1)}
-                    className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleUpdateSubscription}
-                    disabled={updatingSubscription || newEmployesMax === (tenant?.employes_max || 1)}
-                    className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    onClick={async () => {
+                      try {
+                        setUpdatingSubscription(true);
+                        const { url } = await settingsService.createPortalSession();
+                        window.location.href = url;
+                      } catch (err) {
+                        toast.error(err.response?.data?.message || 'Erreur lors de la redirection');
+                        setUpdatingSubscription(false);
+                      }
+                    }}
+                    disabled={updatingSubscription}
+                    className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 font-medium"
                   >
                     {updatingSubscription ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Mise à jour...
-                      </>
+                      <><Loader2 className="w-5 h-5 animate-spin" /> Redirection...</>
                     ) : (
-                      <>
-                        <Save className="w-5 h-5" />
-                        Confirmer la modification
-                      </>
+                      <><CreditCard className="w-5 h-5" /> Gérer mon abonnement</>
                     )}
                   </button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Modifier votre carte, consulter les factures ou résilier via le portail sécurisé Stripe.
+                  </p>
                 </div>
+              )}
 
-                {/* Note */}
-                <p className="text-sm text-gray-500 italic">
-                  * Pour réduire votre abonnement, veuillez contacter notre équipe support à{' '}
-                  <a href="mailto:support@autobat.fr" className="text-blue-600 hover:underline">
-                    support@autobat.fr
-                  </a>
-                </p>
-              </div>
+              {/* Si pas encore de customer Stripe */}
+              {!tenant?.stripe_customer_id && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <p className="text-sm text-amber-800">
+                    Votre abonnement n'est pas encore activé. Contactez le support à{' '}
+                    <a href="mailto:support@autobat.fr" className="underline">support@autobat.fr</a>.
+                  </p>
+                </div>
+              )}
             </div>
+
+            {/* Ajouter des comptes employés — seulement si abonnement actif */}
+            {(tenant?.statut === 'ACTIF' || tenant?.statut === 'TRIAL') && (
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
+                <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Ajouter des comptes employés</h2>
+
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Nombre de comptes souhaité
+                    </label>
+
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setNewEmployesMax(Math.max(1, newEmployesMax - 1))}
+                        disabled={newEmployesMax <= 1}
+                        className="p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Minus className="w-5 h-5" />
+                      </button>
+
+                      <div className="flex-1 max-w-xs">
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={newEmployesMax}
+                          onChange={(e) => setNewEmployesMax(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
+                          className="w-full px-4 py-3 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                        <p className="text-sm text-gray-500 mt-1 text-center">compte{newEmployesMax > 1 ? 's' : ''}</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setNewEmployesMax(Math.min(100, newEmployesMax + 1))}
+                        disabled={newEmployesMax >= 100}
+                        className="p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Calcul du tarif */}
+                  <div className="bg-gradient-to-br from-green-50 to-blue-50 border border-green-200 rounded-xl p-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-700">1er compte</span>
+                        <span className="font-medium">100€ HT/mois</span>
+                      </div>
+                      {newEmployesMax > 1 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-700">{newEmployesMax - 1} compte{newEmployesMax - 1 > 1 ? 's' : ''} supplémentaire{newEmployesMax - 1 > 1 ? 's' : ''}</span>
+                          <span className="font-medium">{(newEmployesMax - 1) * 20}€ HT/mois</span>
+                        </div>
+                      )}
+                      <div className="border-t border-green-300 pt-3 flex items-center justify-between">
+                        <span className="font-bold text-gray-900 text-lg">Total mensuel</span>
+                        <span className="font-bold text-green-600 text-2xl">{calculateNewPrice(newEmployesMax)}€ HT</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Boutons d'action */}
+                  <div className="flex items-center justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setNewEmployesMax(tenant?.employes_max || 1)}
+                      disabled={newEmployesMax === (tenant?.employes_max || 1)}
+                      className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleUpdateSubscription}
+                      disabled={updatingSubscription || newEmployesMax === (tenant?.employes_max || 1)}
+                      className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    >
+                      {updatingSubscription ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Mise à jour...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-5 h-5" />
+                          Payer la différence
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <p className="text-sm text-gray-500 italic">
+                    * Pour réduire votre abonnement, gérez-le via le portail Stripe ci-dessus ou contactez{' '}
+                    <a href="mailto:support@autobat.fr" className="text-blue-600 hover:underline">support@autobat.fr</a>
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

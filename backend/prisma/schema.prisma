@@ -32,6 +32,10 @@ model Tenant {
   employes_max      Int      @default(1) // Nombre max d'employés autorisés (payés)
   badgeage_par_tache_defaut Boolean @default(false) // Mode de badgeage par défaut pour nouveaux chantiers
 
+  // Stripe
+  stripe_customer_id     String?
+  stripe_subscription_id String?
+
   // Onboarding
   onboarding_completed  Boolean  @default(false)
   onboarding_step       Int      @default(0)

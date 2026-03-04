@@ -5,118 +5,48 @@ import logger from '../config/logger.js';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 /**
- * POST /api/stripe/create-checkout-session
- * Créer une session de paiement Stripe pour augmenter le nombre d'employés
+ * POST /api/stripe/create-subscription-checkout
+ * Créer une session d'abonnement Stripe (essai 7j + CB requise)
+ * Appelée juste après l'inscription depuis Register.jsx
  */
-export const createCheckoutSession = async (req, res, next) => {
+export const createSubscriptionCheckout = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
-    const userId = req.userId;
-    const { new_employes_max } = req.body;
 
-    // Validation
-    if (!new_employes_max || typeof new_employes_max !== 'number' || new_employes_max < 1) {
-      return res.status(400).json({
-        code: 'INVALID_EMPLOYES_MAX',
-        message: 'Le nombre d\'employés doit être un nombre positif'
-      });
-    }
-
-    if (new_employes_max > 100) {
-      return res.status(400).json({
-        code: 'EMPLOYES_MAX_EXCEEDED',
-        message: 'Le nombre maximum d\'employés autorisé est 100'
-      });
-    }
-
-    // Récupérer le tenant actuel
     const tenant = await prisma.tenant.findUnique({
       where: { id: tenantId },
-      select: {
-        id: true,
-        nom: true,
-        employes_max: true,
-        email: true
-      }
+      select: { id: true, nom: true, email: true }
     });
 
     if (!tenant) {
-      return res.status(404).json({
-        code: 'TENANT_NOT_FOUND',
-        message: 'Entreprise introuvable'
-      });
+      return res.status(404).json({ code: 'TENANT_NOT_FOUND', message: 'Entreprise introuvable' });
     }
 
-    // Empêcher la réduction du nombre d'employés
-    if (new_employes_max < tenant.employes_max) {
-      return res.status(400).json({
-        code: 'CANNOT_DECREASE_EMPLOYES',
-        message: 'Vous ne pouvez pas réduire le nombre d\'employés. Contactez le support.'
-      });
+    if (!process.env.STRIPE_PRICE_BASE) {
+      return res.status(500).json({ code: 'STRIPE_NOT_CONFIGURED', message: 'Stripe non configuré' });
     }
 
-    // Si pas de changement
-    if (new_employes_max === tenant.employes_max) {
-      return res.status(400).json({
-        code: 'NO_CHANGE',
-        message: 'Le nombre d\'employés est déjà à cette valeur'
-      });
-    }
-
-    // Calculer le montant
-    // Premier employé: 100€ HT, chaque supplémentaire: 20€ HT
-    const currentPrice = tenant.employes_max === 1 ? 100 : 100 + (tenant.employes_max - 1) * 20;
-    const newPrice = new_employes_max === 1 ? 100 : 100 + (new_employes_max - 1) * 20;
-    const amountToPay = newPrice - currentPrice; // Montant à payer pour l'upgrade
-
-    // Pour Stripe, on paie en centimes et HT
-    const amountInCents = Math.round(amountToPay * 100);
-
-    // Créer la session Stripe
     const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: `Augmentation du nombre d'employés`,
-              description: `De ${tenant.employes_max} à ${new_employes_max} employé${new_employes_max > 1 ? 's' : ''}`,
-            },
-            unit_amount: amountInCents,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/settings?tab=abonnement&payment=success`,
-      cancel_url: `${process.env.FRONTEND_URL}/settings?tab=abonnement&payment=cancel`,
+      line_items: [{ price: process.env.STRIPE_PRICE_BASE, quantity: 1 }],
+      subscription_data: { trial_period_days: 7 },
       customer_email: tenant.email,
-      metadata: {
-        tenant_id: tenantId,
-        user_id: userId,
-        old_employes_max: tenant.employes_max.toString(),
-        new_employes_max: new_employes_max.toString(),
-        tenant_name: tenant.nom
-      }
+      metadata: { tenant_id: tenant.id },
+      success_url: `${process.env.FRONTEND_URL}/dashboard?welcome=1`,
+      cancel_url: `${process.env.FRONTEND_URL}/register?stripe_cancel=1`,
     });
 
-    logger.info('Session de paiement Stripe créée', {
+    logger.info('Session abonnement Stripe créée', {
       service: 'autobat-api',
       tenant_id: tenantId,
-      user_id: userId,
-      session_id: session.id,
-      new_employes_max,
-      amount: amountToPay
+      session_id: session.id
     });
 
-    res.json({
-      sessionId: session.id,
-      url: session.url
-    });
+    res.json({ url: session.url });
 
   } catch (error) {
-    logger.error('Erreur création session Stripe', {
+    logger.error('Erreur création session abonnement Stripe', {
       service: 'autobat-api',
       error: error.message
     });
@@ -125,65 +55,285 @@ export const createCheckoutSession = async (req, res, next) => {
 };
 
 /**
+ * POST /api/stripe/portal
+ * Créer une session Customer Portal Stripe pour gérer l'abonnement
+ */
+export const createPortalSession = async (req, res, next) => {
+  try {
+    const tenantId = req.tenantId;
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { id: true, stripe_customer_id: true }
+    });
+
+    if (!tenant) {
+      return res.status(404).json({ code: 'TENANT_NOT_FOUND', message: 'Entreprise introuvable' });
+    }
+
+    if (!tenant.stripe_customer_id) {
+      return res.status(400).json({
+        code: 'NO_STRIPE_CUSTOMER',
+        message: 'Aucun abonnement Stripe associé. Veuillez créer un abonnement.'
+      });
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: tenant.stripe_customer_id,
+      return_url: `${process.env.FRONTEND_URL}/settings?tab=abonnement`,
+    });
+
+    logger.info('Session portail Stripe créée', {
+      service: 'autobat-api',
+      tenant_id: tenantId
+    });
+
+    res.json({ url: session.url });
+
+  } catch (error) {
+    logger.error('Erreur création session portail Stripe', {
+      service: 'autobat-api',
+      error: error.message
+    });
+    next(error);
+  }
+};
+
+/**
+ * POST /api/stripe/upgrade-employees
+ * Mettre à jour le nombre d'employés dans l'abonnement Stripe (récurrent)
+ */
+export const upgradeEmployees = async (req, res, next) => {
+  try {
+    const tenantId = req.tenantId;
+    const { new_employes_max } = req.body;
+
+    if (!new_employes_max || typeof new_employes_max !== 'number' || new_employes_max < 1) {
+      return res.status(400).json({ code: 'INVALID_EMPLOYES_MAX', message: "Nombre d'employés invalide" });
+    }
+    if (new_employes_max > 100) {
+      return res.status(400).json({ code: 'EMPLOYES_MAX_EXCEEDED', message: "Maximum 100 employés" });
+    }
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { id: true, employes_max: true, stripe_subscription_id: true }
+    });
+
+    if (!tenant) return res.status(404).json({ code: 'TENANT_NOT_FOUND', message: 'Entreprise introuvable' });
+    if (new_employes_max < tenant.employes_max) {
+      return res.status(400).json({ code: 'CANNOT_DECREASE', message: "Réduction impossible. Contactez le support." });
+    }
+    if (new_employes_max === tenant.employes_max) {
+      return res.status(400).json({ code: 'NO_CHANGE', message: "Déjà à cette valeur" });
+    }
+
+    // Mettre à jour l'item de siège dans l'abonnement Stripe
+    if (tenant.stripe_subscription_id && process.env.STRIPE_PRICE_SEAT) {
+      const subscription = await stripe.subscriptions.retrieve(tenant.stripe_subscription_id, {
+        expand: ['items']
+      });
+
+      const additionalSeats = Math.max(0, new_employes_max - 1); // -1 pour l'admin
+      const seatItem = subscription.items.data.find(item => item.price.id === process.env.STRIPE_PRICE_SEAT);
+
+      if (seatItem) {
+        if (additionalSeats === 0) {
+          await stripe.subscriptionItems.del(seatItem.id, { proration_behavior: 'create_prorations' });
+        } else {
+          await stripe.subscriptionItems.update(seatItem.id, {
+            quantity: additionalSeats,
+            proration_behavior: 'create_prorations'
+          });
+        }
+      } else if (additionalSeats > 0) {
+        await stripe.subscriptionItems.create({
+          subscription: tenant.stripe_subscription_id,
+          price: process.env.STRIPE_PRICE_SEAT,
+          quantity: additionalSeats,
+          proration_behavior: 'create_prorations'
+        });
+      }
+    }
+
+    // Mettre à jour en DB
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data: { employes_max: new_employes_max }
+    });
+
+    logger.info('Upgrade employés effectué', {
+      service: 'autobat-api',
+      tenant_id: tenantId,
+      old: tenant.employes_max,
+      new: new_employes_max
+    });
+
+    res.json({ success: true, employes_max: new_employes_max });
+
+  } catch (error) {
+    logger.error('Erreur upgrade employés Stripe', { service: 'autobat-api', error: error.message });
+    next(error);
+  }
+};
+
+/**
  * POST /api/stripe/webhook
- * Webhook Stripe pour gérer les événements de paiement
+ * Webhook Stripe pour gérer les événements d'abonnement et de paiement
  */
 export const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    logger.error('Erreur webhook Stripe', {
-      service: 'autobat-api',
-      error: err.message
-    });
+    logger.error('Erreur webhook Stripe', { service: 'autobat-api', error: err.message });
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Gérer l'événement
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
+  try {
+    switch (event.type) {
 
-    try {
-      // Récupérer les métadonnées
-      const { tenant_id, new_employes_max } = session.metadata;
-      const newEmployesMax = parseInt(new_employes_max);
+      // --- Abonnement créé (fin du checkout avec trial) ---
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        const { tenant_id, new_employes_max } = session.metadata || {};
 
-      // Mettre à jour le tenant
-      const updatedTenant = await prisma.tenant.update({
-        where: { id: tenant_id },
-        data: { employes_max: newEmployesMax },
-        select: {
-          id: true,
-          nom: true,
-          employes_max: true
+        if (session.mode === 'subscription' && tenant_id) {
+          // Récupérer le customer_id depuis la session
+          const customerId = session.customer;
+          const subscriptionId = session.subscription;
+
+          // Récupérer la date de fin de trial depuis la subscription
+          let trialEndsAt = null;
+          if (subscriptionId) {
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            if (subscription.trial_end) {
+              trialEndsAt = new Date(subscription.trial_end * 1000);
+            }
+          }
+
+          await prisma.tenant.update({
+            where: { id: tenant_id },
+            data: {
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              statut: 'TRIAL',
+              trial_ends_at: trialEndsAt,
+            }
+          });
+
+          logger.info('Abonnement Stripe créé — statut TRIAL', {
+            service: 'autobat-api',
+            tenant_id,
+            customer_id: customerId,
+            subscription_id: subscriptionId,
+            trial_ends_at: trialEndsAt
+          });
+
         }
-      });
+        break;
+      }
 
-      logger.info('Abonnement mis à jour après paiement Stripe', {
-        service: 'autobat-api',
-        tenant_id: tenant_id,
-        new_employes_max: newEmployesMax,
-        session_id: session.id,
-        payment_status: session.payment_status
-      });
+      // --- Paiement réussi (après la fin du trial ou renouvellement mensuel) ---
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object;
+        // Ne traiter que les invoices liées à un abonnement (pas les one-time)
+        if (!invoice.subscription) break;
 
-      // TODO: Créer une entrée dans une table de paiements pour l'historique
-      // await prisma.payment.create({ ... })
+        // Retrouver le tenant par stripe_customer_id
+        const tenant = await prisma.tenant.findFirst({
+          where: { stripe_customer_id: invoice.customer }
+        });
+        if (!tenant) break;
 
-    } catch (error) {
-      logger.error('Erreur mise à jour tenant après paiement', {
-        service: 'autobat-api',
-        error: error.message,
-        session_id: session.id
-      });
+        await prisma.tenant.update({
+          where: { id: tenant.id },
+          data: { statut: 'ACTIF', trial_ends_at: null }
+        });
+
+        logger.info('Paiement réussi — statut ACTIF', {
+          service: 'autobat-api',
+          tenant_id: tenant.id,
+          invoice_id: invoice.id
+        });
+        break;
+      }
+
+      // --- Paiement échoué ---
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object;
+        if (!invoice.subscription) break;
+
+        const tenant = await prisma.tenant.findFirst({
+          where: { stripe_customer_id: invoice.customer }
+        });
+        if (!tenant) break;
+
+        await prisma.tenant.update({
+          where: { id: tenant.id },
+          data: { statut: 'SUSPENDU' }
+        });
+
+        logger.warn('Paiement échoué — statut SUSPENDU', {
+          service: 'autobat-api',
+          tenant_id: tenant.id,
+          invoice_id: invoice.id
+        });
+        break;
+      }
+
+      // --- Abonnement résilié ---
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object;
+
+        const tenant = await prisma.tenant.findFirst({
+          where: { stripe_subscription_id: subscription.id }
+        });
+        if (!tenant) break;
+
+        await prisma.tenant.update({
+          where: { id: tenant.id },
+          data: { statut: 'RESILIE', stripe_subscription_id: null }
+        });
+
+        logger.info('Abonnement résilié — statut RESILIE', {
+          service: 'autobat-api',
+          tenant_id: tenant.id,
+          subscription_id: subscription.id
+        });
+        break;
+      }
+
+      // --- Abonnement mis à jour (ex: sortie de trial) ---
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object;
+        const tenant = await prisma.tenant.findFirst({
+          where: { stripe_subscription_id: subscription.id }
+        });
+        if (!tenant) break;
+
+        // Si le trial est terminé mais pas encore de paiement, on garde le statut actuel
+        // (invoice.payment_succeeded s'en chargera)
+        logger.info('Abonnement mis à jour', {
+          service: 'autobat-api',
+          tenant_id: tenant.id,
+          status: subscription.status
+        });
+        break;
+      }
+
+      default:
+        logger.info(`Webhook Stripe ignoré: ${event.type}`, { service: 'autobat-api' });
     }
+  } catch (error) {
+    logger.error('Erreur traitement webhook Stripe', {
+      service: 'autobat-api',
+      error: error.message,
+      event_type: event.type
+    });
+    // Ne pas renvoyer d'erreur à Stripe pour éviter les retries
   }
 
   res.json({ received: true });

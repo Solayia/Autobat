@@ -51,11 +51,19 @@ const settingsService = {
   },
 
   /**
-   * Créer une session de paiement Stripe pour augmenter le nombre d'employés
+   * Mettre à jour le nombre d'employés dans l'abonnement Stripe (récurrent)
    */
-  async createCheckoutSession(new_employes_max) {
-    const response = await api.post('/stripe/create-checkout-session', { new_employes_max });
-    return response.data;
+  async upgradeEmployees(new_employes_max) {
+    const response = await api.post('/stripe/upgrade-employees', { new_employes_max });
+    return response.data; // { success, employes_max }
+  },
+
+  /**
+   * Créer une session Customer Portal Stripe (gérer abonnement, carte, factures)
+   */
+  async createPortalSession() {
+    const response = await api.post('/stripe/portal');
+    return response.data; // { url }
   },
 
   /**
