@@ -51,6 +51,6 @@ jobs:
             npm ci --production
             npx prisma generate
             npx prisma db push
-            node prisma/create-super-admin.js
+            set -o allexport && source .env && set +o allexport && node prisma/create-super-admin.js
             pm2 reload ecosystem.config.cjs --env production
             pm2 save
