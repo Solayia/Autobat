@@ -13,7 +13,13 @@ async function main() {
   });
 
   if (existing) {
-    console.log('SUPER_ADMIN existe déjà:', existing.email);
+    console.log('SUPER_ADMIN trouvé (email:', existing.email, ') — reset du mot de passe et email...');
+    const passwordHash = await bcrypt.hash('SuperAutobat2026!', 10);
+    await prisma.user.update({
+      where: { id: existing.id },
+      data: { email: 'superadmin@autobat.fr', password_hash: passwordHash, actif: true }
+    });
+    console.log('✅ SUPER_ADMIN mis à jour: superadmin@autobat.fr / SuperAutobat2026!');
     return;
   }
 
