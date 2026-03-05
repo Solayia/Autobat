@@ -203,10 +203,11 @@ export const login = async (req, res, next) => {
       });
     }
 
-    // Vérifier tenant actif
-    if (user.tenant.statut !== 'ACTIF') {
+    // Vérifier tenant actif ou en trial
+    const statutsAutorises = ['ACTIF', 'TRIAL'];
+    if (!user.tenant || !statutsAutorises.includes(user.tenant.statut)) {
       return res.status(403).json({
-        error: 'Compte suspendu. Contactez le support.'
+        error: 'Compte suspendu ou résilié. Contactez le support.'
       });
     }
 
@@ -306,7 +307,8 @@ export const refresh = async (req, res, next) => {
 
     global.currentTenantId = tempTenantId;
 
-    if (!user || !user.actif || user.tenant.statut !== 'ACTIF') {
+    const statutsAutorisesRefresh = ['ACTIF', 'TRIAL'];
+    if (!user || !user.actif || !user.tenant || !statutsAutorisesRefresh.includes(user.tenant.statut)) {
       return res.status(401).json({
         error: 'Utilisateur invalide'
       });
