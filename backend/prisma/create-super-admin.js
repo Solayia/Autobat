@@ -1,4 +1,5 @@
 // Script de création du compte SUPER_ADMIN pour l'équipe Autobat
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
