@@ -241,6 +241,8 @@ export const handleWebhook = async (req, res) => {
         const invoice = event.data.object;
         // Ne traiter que les invoices liées à un abonnement (pas les one-time)
         if (!invoice.subscription) break;
+        // Ignorer les factures à 0€ (générées lors de la création du trial)
+        if (invoice.amount_paid === 0) break;
 
         // Retrouver le tenant par stripe_customer_id
         const tenant = await prisma.tenant.findFirst({
