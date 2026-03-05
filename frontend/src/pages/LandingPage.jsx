@@ -5,6 +5,7 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
+  TrendingDown,
   MapPin,
   FileText,
   BarChart2,
@@ -12,8 +13,7 @@ import {
   Menu,
   X,
   ArrowRight,
-  Smartphone,
-  Monitor,
+  AlertTriangle,
 } from 'lucide-react'
 
 function FAQItem({ question, answer }) {
@@ -69,39 +69,28 @@ function PhoneMockup({ src, alt, mini = false }) {
   const muteH = mini ? 14 : 18
   const pwrTop = mini ? 60 : 82
   const pwrH = mini ? 26 : 38
-  // Hauteur image = ratio iPhone 9:19.5, moins les barres
   const screenW = w - padding * 2
   const imgH = Math.round(screenW * 19.5 / 9) - islandBarH - homeBarH
 
   return (
     <div className="relative mx-auto" style={{ width: w }}>
-      {/* Volume down */}
       <div style={{ position: 'absolute', left: -btnW, top: v1Top, width: btnW, height: v1H, background: '#374151', borderRadius: '3px 0 0 3px' }} />
-      {/* Volume up */}
       <div style={{ position: 'absolute', left: -btnW, top: v2Top, width: btnW, height: v2H, background: '#374151', borderRadius: '3px 0 0 3px' }} />
-      {/* Mute/silent */}
       <div style={{ position: 'absolute', left: -btnW, top: muteTop, width: btnW, height: muteH, background: '#374151', borderRadius: '3px 0 0 3px' }} />
-      {/* Power */}
       <div style={{ position: 'absolute', right: -btnW, top: pwrTop, width: btnW, height: pwrH, background: '#374151', borderRadius: '0 3px 3px 0' }} />
-
-      {/* Phone body */}
       <div style={{
         background: 'linear-gradient(145deg, #1f2937, #0f172a)',
         borderRadius,
         padding,
         boxShadow: '0 0 0 1px rgba(255,255,255,0.08) inset, 0 25px 50px rgba(0,0,0,0.55)',
       }}>
-        {/* Screen */}
         <div style={{ borderRadius: innerRadius, overflow: 'hidden', background: '#000', position: 'relative' }}>
-          {/* Dynamic Island bar */}
           <div style={{ background: '#000', height: islandBarH, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <div style={{ width: islandW, height: islandH, background: '#111', borderRadius: 99, border: '1px solid #2d2d2d' }} />
           </div>
-          {/* Screenshot — crop to iPhone height */}
           <div style={{ width: '100%', height: imgH, overflow: 'hidden', flexShrink: 0 }}>
             <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }} loading="lazy" />
           </div>
-          {/* Home indicator */}
           <div style={{ background: '#000', height: homeBarH, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <div style={{ width: homeW, height: 4, background: 'rgba(255,255,255,0.38)', borderRadius: 99 }} />
           </div>
@@ -116,38 +105,41 @@ const FEATURES = [
     icon: <MapPin className="w-8 h-8 text-secondary-500" />,
     title: 'Badgeage automatique. Zéro papier.',
     description:
-      "Tes équipes arrivent sur le chantier, Autobat enregistre. GPS, heure d'arrivée, heure de départ — tout est capturé automatiquement, même sans réseau.",
+      "Vos équipes arrivent sur le chantier, Autobat enregistre grâce à leur téléphone portable. GPS, heure d'arrivée, heure de départ : tout est capturé automatiquement, même sans réseau.",
     bullets: [
-      'Fonctionne hors-ligne, sync automatique',
+      'Fonctionnement hors ligne',
+      'Synchronisation automatique',
       'Historique complet par employé',
       'Disponible sur mobile et tablette',
     ],
-    desktop: '/screenshots/desktop-chantiers.png',
+    phoneOnly: true,
     mobile: '/screenshots/mobile-chantier-detail.png',
   },
   {
     icon: <FileText className="w-8 h-8 text-secondary-500" />,
     title: "Des devis qui s'améliorent à chaque chantier.",
     description:
-      "Autobat ajuste automatiquement tes prix en fonction du temps réellement passé sur tes chantiers précédents. Plus tu l'utilises, plus tes devis sont précis — et plus tu gagnes.",
+      "Autobat vous aide à ajuster vos prix en fonction du temps réellement passé sur vos chantiers précédents. Plus vous l'utilisez, plus vos devis seront précis. Plus vos devis sont précis, plus vous gagnez.",
     bullets: [
       'Catalogue intelligent auto-apprenant',
-      'Devis envoyés en PDF professionnel',
+      'Devis PDF professionnels',
       'Suivi accepté / refusé / en attente',
     ],
+    phoneOnly: false,
     desktop: '/screenshots/desktop-devis.png',
     mobile: '/screenshots/mobile-devis.png',
   },
   {
     icon: <BarChart2 className="w-8 h-8 text-secondary-500" />,
-    title: "Sache en temps réel si tu gagnes de l'argent.",
+    title: "Sachez en temps réel si vous gagnez de l'argent.",
     description:
-      "Visualise tes marges chantier par chantier. Anticipe les dérives avant qu'il soit trop tard. Identifie tes chantiers les plus rentables — et fais-en la règle.",
+      "Visualisez votre chiffre d'affaires chantier par chantier. Anticipez les dérives avant qu'il ne soit trop tard. Identifiez les chantiers les plus rentables et faites-en votre standard.",
     bullets: [
       'Tableau de bord en temps réel',
       'Comparatif prévu / réel',
       "Analyse de rentabilité par type d'ouvrage",
     ],
+    phoneOnly: false,
     desktop: '/screenshots/desktop-pilotage.png',
     mobile: '/screenshots/mobile-pilotage.png',
   },
@@ -157,7 +149,7 @@ const FAQS = [
   {
     question: 'Dois-je saisir tout mon catalogue manuellement ?',
     answer:
-      "Non. Un catalogue de base BTP est inclus à l'inscription. Tu l'affines au fil des chantiers, et Autobat ajuste automatiquement tes prix selon tes temps réels.",
+      "Non. Un catalogue de base BTP est inclus à l'inscription. Vous l'affinez au fil des chantiers, et Autobat ajuste automatiquement vos prix selon vos temps réels.",
   },
   {
     question: "Ça marche sans connexion internet sur un chantier ?",
@@ -172,17 +164,27 @@ const FAQS = [
   {
     question: "Puis-je résilier à tout moment ?",
     answer:
-      "Oui, sans engagement, sans pénalité. Tu peux annuler depuis ton espace client à tout moment. L'accès reste actif jusqu'à la fin de la période payée.",
+      "Oui, sans engagement, sans pénalité. Vous pouvez annuler depuis votre espace client à tout moment. L'accès reste actif jusqu'à la fin de la période payée.",
   },
   {
     question: "Combien de temps dure l'essai gratuit ?",
     answer:
-      "7 jours. Une carte bancaire est requise à l'inscription mais aucun débit n'est effectué pendant l'essai. Tu es prélevé uniquement à partir du 8ème jour si tu ne résilies pas.",
+      "7 jours. Une carte bancaire est requise à l'inscription mais aucun débit n'est effectué pendant l'essai. Vous êtes prélevé uniquement à partir du 8ème jour si vous ne résiliez pas.",
   },
   {
     question: 'Combien ça coûte avec mes employés ?',
     answer:
-      '100 €/mois pour le compte gérant, puis 20 €/mois par employé supplémentaire. 5 employés = 180 €/mois. 10 employés = 280 €/mois. Pas de frais cachés.',
+      '100 € HT/mois pour le compte gérant, puis 20 € HT/mois par employé supplémentaire. 5 personnes = 180 €/mois. 10 personnes = 280 €/mois. Pas de frais cachés.',
+  },
+  {
+    question: 'Pourquoi la rentabilité est-elle difficile à piloter dans le bâtiment ?',
+    answer:
+      "Le pilotage de la rentabilité est complexe car il dépend fortement du temps humain, souvent mal évalué ou non suivi avec précision. Les aléas de chantier et le manque de données en temps réel rendent difficile l'ajustement des marges au cours d'un projet.",
+  },
+  {
+    question: 'Comment mieux estimer le temps dans un devis BTP ?',
+    answer:
+      "Une estimation fiable repose sur l'historique réel des chantiers précédents. En analysant le temps réellement passé par tâche, il devient possible d'ajuster progressivement ses prix et d'améliorer la précision des devis.",
   },
 ]
 
@@ -220,9 +222,9 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
+            {/* Logo — icône "A" uniquement, sans texte */}
+            <div className="flex items-center">
               <img src="/Logo_Autobat.png" alt="Autobat" className="h-8 w-auto" />
-              <span className="text-xl font-bold text-primary-600">Autobat</span>
             </div>
 
             <div className="hidden md:flex items-center gap-8">
@@ -304,23 +306,18 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-secondary-100 text-secondary-700 text-sm font-semibold px-3 py-1.5 rounded-full mb-6">
-                <span>🏗️</span>
-                <span>Logiciel de gestion BTP</span>
-              </div>
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-primary-600 leading-tight mb-6">
-                Chaque heure travaillée doit être rentable.
+                Maîtriser son temps pour gagner plus d'argent.
               </h1>
               <p className="text-xl text-gray-600 leading-relaxed mb-8">
-                Autobat mesure automatiquement le temps passé sur chaque chantier et le transforme
-                en données concrètes — pour des devis justes et des marges que tu maîtrises enfin.
+                Transformer chaque heure passée sur un chantier en données stratégiques pour produire des devis précis et piloter ses marges en temps réel.
               </p>
               <div className="mb-6">
                 <Link
                   to="/register"
                   className="inline-flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all shadow-lg hover:shadow-xl"
                 >
-                  Démarrer l'essai gratuit
+                  Démarrer gratuitement
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>
@@ -340,15 +337,12 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right — desktop + mobile mockups */}
+            {/* Right — inchangé */}
             <div className="relative">
-              {/* Desktop */}
               <BrowserMockup src="/screenshots/desktop-dashboard.png" alt="Dashboard Autobat desktop" />
-              {/* Mobile float */}
               <div className="absolute -bottom-8 -right-4 hidden lg:block" style={{ width: 120 }}>
                 <PhoneMockup mini src="/screenshots/mobile-dashboard.png" alt="Dashboard Autobat mobile" />
               </div>
-              {/* Floating stats */}
               <div className="absolute -bottom-4 left-4 bg-white rounded-xl shadow-lg border border-gray-100 p-3 flex items-center gap-3 lg:left-8">
                 <div className="bg-green-100 rounded-full p-2">
                   <TrendingUp className="w-4 h-4 text-green-600" />
@@ -372,75 +366,39 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── DESKTOP + MOBILE SECTION ── */}
-      <section className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl lg:text-3xl font-bold text-primary-600 mb-3">
-              Sur le chantier ou au bureau. Partout.
-            </h2>
-            <p className="text-gray-600 text-lg">
-              Application web desktop pour le bureau · Application mobile pour le terrain
-            </p>
-          </div>
-          <div className="flex flex-col lg:flex-row items-center justify-center gap-12">
-            {/* Desktop */}
-            <div className="w-full lg:w-3/5">
-              <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-500">
-                <Monitor className="w-4 h-4" />
-                <span>Bureau — pilotage & devis</span>
-              </div>
-              <BrowserMockup
-                src="/screenshots/desktop-pilotage.png"
-                alt="Pilotage des marges desktop"
-              />
-            </div>
-            {/* Mobile */}
-            <div className="lg:w-2/5 flex flex-col items-center">
-              <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-500">
-                <Smartphone className="w-4 h-4" />
-                <span>Terrain — badgeage & chantiers</span>
-              </div>
-              <PhoneMockup
-                src="/screenshots/mobile-chantier-detail.png"
-                alt="Chantier mobile"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── PROBLEM ── */}
       <section className="py-20 bg-primary-600">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-            Tu travailles beaucoup. Mais tu ne sais pas vraiment combien tu gagnes par heure.
+            Le casse-tête du manque de visibilité sur le temps humain
           </h2>
-          <p className="text-primary-200 text-lg mb-12">
-            La plupart des artisans et chefs d'entreprise BTP font face aux mêmes problèmes.
+          <p className="text-primary-200 text-lg mb-12 max-w-3xl mx-auto">
+            Vous gérez vos chantiers avec passion, mais sans données précises sur le temps réel passé, vous naviguez à l'aveugle.
+            Chaque heure non comptabilisée est une marge qui s'envole.
+            Chaque estimation approximative est un risque pour votre rentabilité.
           </p>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-6">
             {[
               {
-                emoji: '💸',
-                title: 'Des devis sous-estimés',
-                desc: "Tu gagnes des chantiers mais tu perds de l'argent. Tes prix ne reflètent pas le temps réellement passé.",
+                icon: <Clock className="w-7 h-7 text-secondary-400" />,
+                text: 'Impossible de savoir combien de temps prend réellement chaque tâche',
               },
               {
-                emoji: '⏰',
-                title: 'Des heures perdues en admin',
-                desc: 'Tu passes des heures à recopier les feuilles de présence, reconstituer qui a travaillé quoi et quand.',
+                icon: <FileText className="w-7 h-7 text-secondary-400" />,
+                text: 'Des devis basés sur des estimations approximatives',
               },
               {
-                emoji: '📉',
-                title: 'Des marges invisibles',
-                desc: "Tu découvres en fin de chantier que tu as perdu de l'argent — quand il est trop tard pour agir.",
+                icon: <TrendingDown className="w-7 h-7 text-secondary-400" />,
+                text: "Des marges qui s'évaporent sans comprendre pourquoi",
               },
-            ].map((item) => (
-              <div key={item.title} className="bg-primary-700/50 rounded-2xl p-6 text-left">
-                <div className="text-4xl mb-4">{item.emoji}</div>
-                <h3 className="text-white font-bold text-xl mb-2">{item.title}</h3>
-                <p className="text-primary-200 leading-relaxed">{item.desc}</p>
+              {
+                icon: <AlertTriangle className="w-7 h-7 text-secondary-400" />,
+                text: 'Découverte des dépassements… trop tard',
+              },
+            ].map((item, i) => (
+              <div key={i} className="bg-primary-700/50 rounded-2xl p-6 flex items-start gap-4 text-left">
+                <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
+                <p className="text-white font-semibold text-lg leading-snug">{item.text}</p>
               </div>
             ))}
           </div>
@@ -459,18 +417,17 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary-600 mb-4">
-              Tout ce dont tu as besoin. Rien de superflu.
+              Tout ce dont vous avez besoin pour maîtriser vos chantiers, rien de superflu.
             </h2>
             <p className="text-gray-600 text-lg">
-              Conçu pour les artisans et chefs d'entreprise du BTP, de l'auto-entrepreneur à
-              l'entreprise de 20 personnes.
+              Conçu pour les artisans et les chefs d'entreprise du bâtiment, de l'auto-entrepreneur à l'entreprise de 50 personnes.
             </p>
           </div>
 
           <div className="space-y-24">
             {FEATURES.map((feature, idx) => (
               <div key={feature.title} className="grid lg:grid-cols-2 gap-12 items-center">
-                {/* Text — alterne gauche/droite */}
+                {/* Text */}
                 <div className={idx % 2 === 1 ? 'lg:order-2' : ''}>
                   <div className="mb-4">{feature.icon}</div>
                   <h3 className="text-2xl lg:text-3xl font-bold text-primary-600 mb-4">
@@ -489,16 +446,21 @@ export default function LandingPage() {
                   </ul>
                 </div>
 
-                {/* Screenshots desktop + mobile */}
-                <div className={`${idx % 2 === 1 ? 'lg:order-1' : ''}`}>
-                  <div className="relative">
-                    {/* Desktop */}
-                    <BrowserMockup src={feature.desktop} alt={feature.title + ' desktop'} />
-                    {/* Mobile flottant */}
-                    <div className="absolute -bottom-6 -right-4 hidden sm:block" style={{ width: 110 }}>
-                      <PhoneMockup mini src={feature.mobile} alt={feature.title + ' mobile'} />
+                {/* Visual */}
+                <div className={idx % 2 === 1 ? 'lg:order-1' : ''}>
+                  {feature.phoneOnly ? (
+                    /* Badgeage : uniquement téléphone portable */
+                    <div className="flex justify-center py-8">
+                      <PhoneMockup src={feature.mobile} alt={feature.title + ' mobile'} />
                     </div>
-                  </div>
+                  ) : (
+                    <div className="relative">
+                      <BrowserMockup src={feature.desktop} alt={feature.title + ' desktop'} />
+                      <div className="absolute -bottom-6 -right-4 hidden sm:block" style={{ width: 110 }}>
+                        <PhoneMockup mini src={feature.mobile} alt={feature.title + ' mobile'} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -511,7 +473,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary-600 mb-4">
-              Opérationnel en 10 minutes.
+              Opérationnel en dix minutes.
             </h2>
             <p className="text-gray-600 text-lg">Pas besoin d'une formation de 3 jours.</p>
           </div>
@@ -519,18 +481,18 @@ export default function LandingPage() {
             {[
               {
                 step: '1',
-                title: 'Inscris-toi',
-                desc: "Crée ton compte et configure ton entreprise : nom, logo, catalogue BTP inclus d'office.",
+                title: 'Créez votre compte',
+                desc: "Configurez votre entreprise : nom, logo, catalogue d'ouvrages.",
               },
               {
                 step: '2',
-                title: 'Lance ton premier chantier',
-                desc: "Crée un client, génère un devis, ouvre le chantier. Tes équipes peuvent badger dès aujourd'hui, sur mobile.",
+                title: 'Lancez vos premiers chantiers',
+                desc: "Créez votre client, générez un devis et ouvrez le chantier. Vos équipes peuvent badger dès aujourd'hui sur mobile.",
               },
               {
                 step: '3',
-                title: 'Laisse Autobat apprendre',
-                desc: "Après chaque chantier, tes prix s'ajustent automatiquement. Tu gagnes de plus en plus à chaque devis.",
+                title: 'Laissez Autobat apprendre',
+                desc: "Après chaque chantier, votre temps par tâche sera automatiquement ajusté. Vous gagnerez progressivement en précision et en rentabilité.",
               },
             ].map((item) => (
               <div key={item.step} className="text-center">
@@ -550,11 +512,8 @@ export default function LandingPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary-600 mb-4">
-              Simple. Transparent. Sans surprise.
+              Vous payez uniquement pour les comptes que vous utilisez.
             </h2>
-            <p className="text-gray-600 text-lg">
-              Tu paies uniquement pour les comptes que tu utilises.
-            </p>
           </div>
 
           <div className="border-2 border-primary-600 rounded-2xl shadow-xl overflow-hidden">
@@ -567,12 +526,12 @@ export default function LandingPage() {
               <div className="text-center mb-8">
                 <div className="flex items-end justify-center gap-1 mb-2">
                   <span className="text-5xl font-bold text-primary-600">100 €</span>
-                  <span className="text-gray-500 text-lg mb-2">/mois</span>
+                  <span className="text-gray-500 text-lg mb-2">HT / mois</span>
                 </div>
-                <p className="text-gray-500">pour le compte gérant</p>
+                <p className="text-gray-500">compte gérant</p>
                 <div className="mt-3 inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-600">
-                  <span className="font-semibold text-primary-600">+ 20 €/mois</span>
-                  <span>par employé supplémentaire</span>
+                  <span className="font-semibold text-primary-600">+ 20 € HT / mois</span>
+                  <span>par utilisateur additionnel</span>
                 </div>
               </div>
 
@@ -581,11 +540,11 @@ export default function LandingPage() {
                   'Badgeage GPS automatique',
                   'Catalogue auto-apprenant',
                   'Devis PDF professionnels',
-                  'Pilotage des marges en temps réel',
+                  'Pilotage du chiffre d\'affaires en temps réel',
                   'Facturation légale France',
-                  'Application mobile (PWA)',
-                  'Mode hors-ligne complet',
-                  'Support par email',
+                  'Application mobile',
+                  'Mode hors ligne complet',
+                  'Support email',
                 ].map((f) => (
                   <div key={f} className="flex items-center gap-2 text-gray-700">
                     <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -601,20 +560,20 @@ export default function LandingPage() {
                 Démarrer l'essai gratuit — 7 jours
               </Link>
               <p className="text-center text-sm text-gray-400 mt-3">
-                CB requise · Aucun débit pendant l'essai · Résiliable à tout moment
+                Aucun débit pendant l'essai · Résiliable à tout moment
               </p>
 
               <div className="mt-8 pt-8 border-t border-gray-100">
                 <p className="text-sm font-semibold text-gray-500 mb-4 text-center">Exemples :</p>
                 <div className="grid grid-cols-4 gap-2 text-center text-sm">
                   {[
-                    ['100 €', 'Gérant seul'],
-                    ['180 €', '5 personnes'],
-                    ['280 €', '10 personnes'],
-                    ['380 €', '20 personnes'],
+                    ['100 € HT', 'Gérant seul'],
+                    ['180 € HT', '5 personnes'],
+                    ['280 € HT', '10 personnes'],
+                    ['380 € HT', '20 personnes'],
                   ].map(([price, label]) => (
                     <div key={label} className="bg-gray-50 rounded-xl p-3">
-                      <p className="font-bold text-primary-600 text-base">{price}</p>
+                      <p className="font-bold text-primary-600 text-sm">{price}</p>
                       <p className="text-gray-500 text-xs mt-0.5">{label}</p>
                     </div>
                   ))}
@@ -645,10 +604,10 @@ export default function LandingPage() {
       <section className="py-20 bg-primary-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-            Arrête de travailler pour rien. Commence à piloter.
+            Arrêtez de travailler pour rien. Commencez à piloter.
           </h2>
           <p className="text-primary-200 text-lg mb-8">
-            7 jours pour voir si Autobat change vraiment la façon dont tu travailles.
+            7 jours pour voir si Autobat change vraiment votre façon de travailler.
           </p>
           <Link
             to="/register"
@@ -667,9 +626,8 @@ export default function LandingPage() {
       <footer className="bg-gray-900 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <img src="/Logo_Autobat.png" alt="Autobat" className="h-7 w-auto" />
-              <span className="text-white font-bold text-lg">Autobat</span>
             </div>
             <div className="flex flex-wrap gap-6 text-gray-400 text-sm">
               <button onClick={() => scrollTo('features')} className="hover:text-white transition-colors">
