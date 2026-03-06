@@ -36,6 +36,9 @@ export default function Settings() {
   const [gmailStatus, setGmailStatus] = useState({ connected: false, email: null });
   const [gmailConnecting, setGmailConnecting] = useState(false);
   const [gmailDisconnecting, setGmailDisconnecting] = useState(false);
+  const [smtpData, setSmtpData] = useState({ smtp_host: '', smtp_port: 587, smtp_secure: false, smtp_user: '', smtp_password: '', smtp_from: '' });
+  const [savingSmtp, setSavingSmtp] = useState(false);
+  const [testingSmtp, setTestingSmtp] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const logoInputRef = useRef(null);
   const [newEmployesMax, setNewEmployesMax] = useState(tenant?.employes_max || 1);
@@ -121,9 +124,10 @@ export default function Settings() {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const [data, gmail] = await Promise.all([
+      const [data, gmail, smtp] = await Promise.all([
         settingsService.getSettings(),
-        settingsService.getGmailStatus().catch(() => ({ connected: false, email: null }))
+        settingsService.getGmailStatus().catch(() => ({ connected: false, email: null })),
+        settingsService.getSmtpSettings().catch(() => null)
       ]);
       setSettings(data);
       setObjectifs({
@@ -134,6 +138,7 @@ export default function Settings() {
         objectif_delai_paiement: data.objectif_delai_paiement ?? ''
       });
       setGmailStatus(gmail || { connected: false, email: null });
+      if (smtp) setSmtpData(prev => ({ ...prev, ...smtp }));
     } catch (error) {
       console.error('Erreur chargement paramètres:', error);
       toast.error('Erreur lors du chargement des paramètres');
@@ -164,6 +169,31 @@ export default function Settings() {
       toast.error('Erreur lors de la déconnexion');
     } finally {
       setGmailDisconnecting(false);
+    }
+  };
+
+  const handleSaveSmtp = async (e) => {
+    e.preventDefault();
+    try {
+      setSavingSmtp(true);
+      await settingsService.updateSmtpSettings(smtpData);
+      toast.success('Configuration SMTP enregistrée');
+    } catch {
+      toast.error('Erreur lors de l\'enregistrement SMTP');
+    } finally {
+      setSavingSmtp(false);
+    }
+  };
+
+  const handleTestSmtp = async () => {
+    try {
+      setTestingSmtp(true);
+      await settingsService.testSmtp(smtpData);
+      toast.success('Email de test envoyé avec succès !');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Échec du test SMTP');
+    } finally {
+      setTestingSmtp(false);
     }
   };
 
@@ -304,8 +334,16 @@ export default function Settings() {
       return;
     }
 
-    if (passwordData.newPassword.length < 8) {
-      toast.error('Le nouveau mot de passe doit contenir au moins 8 caractères');
+    const pwdRules = [
+      { ok: passwordData.newPassword.length >= 12, msg: '12 caractères minimum' },
+      { ok: /[A-Z]/.test(passwordData.newPassword), msg: 'une majuscule' },
+      { ok: /[a-z]/.test(passwordData.newPassword), msg: 'une minuscule' },
+      { ok: /[0-9]/.test(passwordData.newPassword), msg: 'un chiffre' },
+      { ok: /[^A-Za-z0-9]/.test(passwordData.newPassword), msg: 'un caractère spécial' }
+    ];
+    const failedPwd = pwdRules.filter(r => !r.ok);
+    if (failedPwd.length > 0) {
+      toast.error(`Mot de passe invalide : ${failedPwd.map(r => r.msg).join(', ')}`);
       return;
     }
 
@@ -368,14 +406,14 @@ export default function Settings() {
                 <button
                   key={tab.id}
                   onClick={() => setSearchParams({ tab: tab.id })}
-                  className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-3 py-2.5 sm:px-5 sm:py-3 rounded-xl font-medium transition-all duration-200 text-sm ${
+                  className={`flex-shrink-0 flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-2 sm:px-5 sm:py-3 rounded-xl font-medium transition-all duration-200 text-xs sm:text-sm ${
                     isActive
                       ? 'bg-green-600 text-white shadow-md'
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                  <span className="hidden sm:inline whitespace-nowrap">{tab.label}</span>
+                  <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap">{tab.label}</span>
                 </button>
               );
             })}
@@ -463,87 +501,22 @@ export default function Settings() {
               </form>
             </div>
 
-            {/* Changer le mot de passe */}
-            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <Lock className="w-5 h-5 text-gray-500" />
-                Changer le mot de passe
-              </h2>
-              <p className="text-sm text-gray-500 mb-6">
-                12 caractères min. · majuscule · chiffre · caractère spécial (!@#$...)
-              </p>
-              <form onSubmit={handleChangePassword} className="space-y-4">
+            {/* Lien vers sécurité */}
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Lock className="w-5 h-5 text-amber-600 flex-shrink-0" />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe actuel *</label>
-                  <div className="relative">
-                    <input
-                      type={showPwdOld ? 'text' : 'password'}
-                      value={passwordData.oldPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
-                      required
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                    <button type="button" onClick={() => setShowPwdOld(!showPwdOld)} className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600">
-                      {showPwdOld ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
+                  <p className="font-medium text-amber-900 text-sm">Modifier votre mot de passe</p>
+                  <p className="text-xs text-amber-700 mt-0.5">Rendez-vous dans l'onglet Sécurité</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nouveau mot de passe *</label>
-                  <div className="relative">
-                    <input
-                      type={showPwdNew ? 'text' : 'password'}
-                      value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      required
-                      minLength="8"
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                    <button type="button" onClick={() => setShowPwdNew(!showPwdNew)} className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600">
-                      {showPwdNew ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirmer le nouveau mot de passe *</label>
-                  <div className="relative">
-                    <input
-                      type={showPwdConfirm ? 'text' : 'password'}
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                      required
-                      minLength="8"
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                    <button type="button" onClick={() => setShowPwdConfirm(!showPwdConfirm)} className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600">
-                      {showPwdConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  {passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
-                    <p className="text-xs text-red-500 mt-1">Les mots de passe ne correspondent pas</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })}
-                    className="px-6 py-3 text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={changingPassword}
-                    className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
-                  >
-                    {changingPassword ? (
-                      <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>Changement...</>
-                    ) : (
-                      <><Lock className="w-5 h-5" />Changer le mot de passe</>
-                    )}
-                  </button>
-                </div>
-              </form>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSearchParams({ tab: 'securite' })}
+                className="px-4 py-2 bg-amber-600 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
+              >
+                Onglet Sécurité
+              </button>
             </div>
           </div>
         )}
@@ -909,10 +882,14 @@ export default function Settings() {
                 </div>
 
                 {/* Informations supplémentaires */}
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
                   <p className="text-sm text-blue-900">
                     <strong>Note :</strong> Ce paramètre définit le mode par défaut pour les <strong>nouveaux chantiers</strong>.
                     Vous pourrez modifier ce mode individuellement pour chaque chantier existant ou futur.
+                  </p>
+                  <p className="text-xs text-blue-700">
+                    ⚠️ Ce réglage ne restreint pas l'employé — il pré-sélectionne simplement le mode lors de la création d'un chantier.
+                    L'employé peut toujours accéder aux deux types de badgeage sur le terrain.
                   </p>
                 </div>
               </div>
@@ -1119,11 +1096,11 @@ export default function Settings() {
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   required
-                  minLength="8"
+                  minLength="12"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Minimum 8 caractères"
+                  placeholder="Minimum 12 caractères"
                 />
-                <p className="text-xs text-gray-500 mt-1">Le mot de passe doit contenir au moins 8 caractères</p>
+                <p className="text-xs text-gray-500 mt-1">12 caractères min. · majuscule · minuscule · chiffre · caractère spécial</p>
               </div>
 
               <div>
@@ -1135,7 +1112,7 @@ export default function Settings() {
                   value={passwordData.confirmPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                   required
-                  minLength="8"
+                  minLength="12"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Confirmez votre nouveau mot de passe"
                 />
@@ -1262,6 +1239,105 @@ export default function Settings() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Alternative SMTP */}
+          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                <Mail className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Configuration SMTP</h2>
+                <p className="text-sm text-gray-500">Alternative si Gmail OAuth2 ne fonctionne pas</p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl mb-6">
+              <p className="text-sm text-blue-800">
+                <strong>Pour Gmail :</strong> activez la validation 2 étapes puis créez un{' '}
+                <strong>mot de passe d'application</strong> sur{' '}
+                <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="underline">
+                  myaccount.google.com/apppasswords
+                </a>.
+                Utilisez ensuite <code className="bg-blue-100 px-1 rounded">smtp.gmail.com</code> port 587.
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveSmtp} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Serveur SMTP</label>
+                  <input
+                    type="text"
+                    value={smtpData.smtp_host}
+                    onChange={e => setSmtpData({ ...smtpData, smtp_host: e.target.value })}
+                    placeholder="smtp.gmail.com"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
+                  <input
+                    type="number"
+                    value={smtpData.smtp_port}
+                    onChange={e => setSmtpData({ ...smtpData, smtp_port: parseInt(e.target.value) })}
+                    placeholder="587"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Adresse email (expéditeur)</label>
+                  <input
+                    type="email"
+                    value={smtpData.smtp_user}
+                    onChange={e => setSmtpData({ ...smtpData, smtp_user: e.target.value })}
+                    placeholder="contact@mon-entreprise.fr"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe SMTP</label>
+                  <input
+                    type="password"
+                    value={smtpData.smtp_password}
+                    onChange={e => setSmtpData({ ...smtpData, smtp_password: e.target.value })}
+                    placeholder="••••••••••••••••"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom affiché (from)</label>
+                  <input
+                    type="text"
+                    value={smtpData.smtp_from}
+                    onChange={e => setSmtpData({ ...smtpData, smtp_from: e.target.value })}
+                    placeholder="Mon Entreprise BTP <contact@mon-entreprise.fr>"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleTestSmtp}
+                  disabled={testingSmtp || !smtpData.smtp_host}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  {testingSmtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                  Tester l'envoi
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingSmtp}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
+                >
+                  {savingSmtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Enregistrer SMTP
+                </button>
+              </div>
+            </form>
           </div>
         )}
 

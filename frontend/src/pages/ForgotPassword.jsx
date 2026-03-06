@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, CheckCircle, ExternalLink } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -8,13 +8,18 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [devResetUrl, setDevResetUrl] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email });
+      const response = await api.post('/auth/forgot-password', { email });
       setSent(true);
+      // En dev : le backend retourne l'URL directement si SMTP non configuré
+      if (response.data?.dev_reset_url) {
+        setDevResetUrl(response.data.dev_reset_url);
+      }
     } catch (err) {
       toast.error('Une erreur est survenue. Veuillez réessayer.');
     } finally {
@@ -44,6 +49,20 @@ export default function ForgotPassword() {
                   Si ce compte existe, vous recevrez un lien de réinitialisation dans quelques minutes.
                   Vérifiez aussi vos spams.
                 </p>
+                {devResetUrl && (
+                  <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-left">
+                    <p className="text-xs font-semibold text-amber-800 mb-2">
+                      Mode dev — SMTP non configuré. Utilisez ce lien directement :
+                    </p>
+                    <a
+                      href={devResetUrl}
+                      className="flex items-center gap-1.5 text-xs text-amber-700 underline break-all hover:text-amber-900"
+                    >
+                      <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                      {devResetUrl}
+                    </a>
+                  </div>
+                )}
                 <Link
                   to="/login"
                   className="btn btn-primary w-full flex items-center justify-center"

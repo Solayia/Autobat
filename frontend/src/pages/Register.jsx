@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { UserPlus, Loader2 } from 'lucide-react';
+import { UserPlus, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -18,6 +18,19 @@ export default function Register() {
       setStripeCancelled(true);
     }
   }, []);
+  const [passwordError, setPasswordError] = useState('');
+
+  const validatePasswordRules = (pwd) => {
+    const rules = [
+      { label: '12 caractères minimum', ok: pwd.length >= 12 },
+      { label: 'Une majuscule', ok: /[A-Z]/.test(pwd) },
+      { label: 'Une minuscule', ok: /[a-z]/.test(pwd) },
+      { label: 'Un chiffre', ok: /[0-9]/.test(pwd) },
+      { label: 'Un caractère spécial (!@#$%...)', ok: /[^A-Za-z0-9]/.test(pwd) }
+    ];
+    return rules;
+  };
+
   const [formData, setFormData] = useState({
     // Entreprise
     entreprise_nom: '',
@@ -51,10 +64,13 @@ export default function Register() {
       return;
     }
 
-    if (formData.password.length < 8) {
-      toast.error('Le mot de passe doit faire au moins 8 caractères');
+    const rules = validatePasswordRules(formData.password);
+    const failedRules = rules.filter(r => !r.ok);
+    if (failedRules.length > 0) {
+      setPasswordError(`Mot de passe invalide : ${failedRules.map(r => r.label.toLowerCase()).join(', ')}`);
       return;
     }
+    setPasswordError('');
 
     try {
       const { password_confirm, ...registerData } = formData;
@@ -303,9 +319,27 @@ export default function Register() {
                       value={formData.password}
                       onChange={handleChange}
                       className="input"
-                      placeholder="Min. 8 caractères"
+                      placeholder="Min. 12 caractères"
                       required
                     />
+                    {/* Règles du mot de passe */}
+                    <div className="mt-2 space-y-1">
+                      {validatePasswordRules(formData.password).map((rule) => (
+                        <div key={rule.label} className="flex items-center gap-1.5">
+                          {rule.ok ? (
+                            <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                          ) : (
+                            <XCircle className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                          )}
+                          <span className={`text-xs ${rule.ok ? 'text-green-600' : 'text-gray-400'}`}>
+                            {rule.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {passwordError && (
+                      <p className="mt-1 text-xs text-red-600">{passwordError}</p>
+                    )}
                   </div>
 
                   <div>

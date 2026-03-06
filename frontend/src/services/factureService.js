@@ -69,7 +69,8 @@ const factureService = {
    */
   downloadPDF: async (id) => {
     const response = await api.get(`/factures/${id}/pdf`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      timeout: 60000 // 60s for Puppeteer PDF generation
     });
     return response.data;
   },

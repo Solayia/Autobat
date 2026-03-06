@@ -43,6 +43,12 @@ const chantierService = {
     return response.data;
   },
 
+  // Rouvrir un chantier terminé
+  reopenChantier: async (id) => {
+    const response = await api.post(`/chantiers/${id}/reopen`);
+    return response.data;
+  },
+
   // Assigner des employés
   assignEmployees: async (chantierId, employeeIds) => {
     const response = await api.post(`/chantiers/${chantierId}/assign`, { employee_ids: employeeIds });

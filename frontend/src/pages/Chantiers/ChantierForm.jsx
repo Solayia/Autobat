@@ -280,10 +280,11 @@ export default function ChantierForm() {
   const handleSelectAddressSuggestion = (feature) => {
     const props = feature.properties;
 
-    // Extraire l'adresse (nom de la rue/voie)
-    const streetName = props.name || '';
+    // Extraire l'adresse — utiliser props.street (sans numéro) pour éviter la duplication
+    // props.name peut déjà contenir le numéro (ex: "15 Rue Villeneuve"), props.street = "Rue Villeneuve"
+    const streetOnly = props.street || props.name || '';
     const houseNumber = props.housenumber || '';
-    const fullAddress = houseNumber ? `${houseNumber} ${streetName}` : streetName;
+    const fullAddress = houseNumber ? `${houseNumber} ${streetOnly}` : streetOnly;
 
     setFormData(prev => ({
       ...prev,
@@ -1068,7 +1069,16 @@ export default function ChantierForm() {
               {clientsList.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
                   <User className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p>Aucun client trouvé</p>
+                  <p className="font-medium text-gray-700 mb-1">Aucun client trouvé</p>
+                  <p className="text-sm text-gray-500 mb-4">Créez d'abord un client pour pouvoir créer un chantier.</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/clients/new')}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                  >
+                    <User className="w-4 h-4" />
+                    Créer un client
+                  </button>
                 </div>
               )}
             </div>

@@ -7,6 +7,7 @@ import {
   startChantier,
   completeChantier,
   cancelChantier,
+  reopenChantier,
   assignEmployees,
   getMesChantiers
 } from '../controllers/chantierController.js';
@@ -71,6 +72,13 @@ router.post('/:id/complete', requireRole(['MANAGER', 'COMPANY_ADMIN']), complete
  * @access  MANAGER, COMPANY_ADMIN
  */
 router.post('/:id/cancel', requireRole(['MANAGER', 'COMPANY_ADMIN']), cancelChantier);
+
+/**
+ * @route   POST /api/chantiers/:id/reopen
+ * @desc    Rouvrir un chantier terminé (TERMINE -> EN_COURS)
+ * @access  MANAGER, COMPANY_ADMIN
+ */
+router.post('/:id/reopen', requireRole(['MANAGER', 'COMPANY_ADMIN']), reopenChantier);
 
 /**
  * @route   POST /api/chantiers/:id/assign

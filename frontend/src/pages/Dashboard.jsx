@@ -201,7 +201,38 @@ export default function Dashboard() {
       </div>
 
       {/* Stats détaillées - 2 colonnes */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6 mb-4 sm:mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-6 mb-4 sm:mb-8">
+        {/* Heures badgées */}
+        <div
+          onClick={() => navigate('/chantiers')}
+          className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 cursor-pointer hover:shadow-xl transition-all"
+        >
+          <div className="flex items-center gap-3 mb-3 sm:mb-6">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-5 h-5 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Heures équipe</h3>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">
+            {(kpis.heures_totales || 0).toFixed(1)} <span className="text-lg text-gray-500 font-normal">h</span>
+          </p>
+          <p className="text-xs text-gray-400 mt-1">présence badgée sur la période</p>
+          <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Devis envoyés</span>
+              <span className="font-semibold text-gray-900">{kpis.nb_devis_envoyes || 0}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Taux acceptation</span>
+              <span className="font-semibold text-blue-600">{kpis.taux_acceptation_devis || 0} %</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Chantiers terminés</span>
+              <span className="font-semibold text-gray-900">{kpis.nb_chantiers_termines || 0}</span>
+            </div>
+          </div>
+        </div>
+
         {/* Factures stats */}
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-3 sm:mb-6">

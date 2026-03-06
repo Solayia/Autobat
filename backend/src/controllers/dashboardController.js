@@ -160,12 +160,15 @@ export const getDashboard = async (req, res, next) => {
     });
     const montantPaye = facturesPaye._sum.acompte_recu || 0;
 
-    // Montant en attente = reste à payer pour les factures EN_ATTENTE et PARTIEL
+    // Montant en attente = reste à payer pour les factures EN_ATTENTE/PARTIEL non encore en retard
     const facturesEnAttente = await prisma.facture.aggregate({
       where: {
         tenant_id: tenantId,
         statut_paiement: {
           in: ['EN_ATTENTE', 'PARTIEL']
+        },
+        date_echeance: {
+          gte: now
         }
       },
       _sum: {

@@ -16,7 +16,8 @@ import {
   Activity,
   Info,
   Plus,
-  ListChecks
+  ListChecks,
+  RefreshCw
 } from 'lucide-react';
 import chantierService from '../../services/chantierService';
 import TachesTab from './TachesTab';
@@ -33,6 +34,7 @@ export default function ChantierDetail() {
   const [showStartModal, setShowStartModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showReopenModal, setShowReopenModal] = useState(false);
 
   useEffect(() => {
     loadChantier();
@@ -92,6 +94,25 @@ export default function ChantierDetail() {
 
   const handleCancelChantier = () => {
     setShowCancelModal(true);
+  };
+
+  const handleReopenChantier = () => {
+    setShowReopenModal(true);
+  };
+
+  const handleConfirmReopen = async () => {
+    try {
+      setActionLoading(true);
+      setShowReopenModal(false);
+      await chantierService.reopenChantier(id);
+      await loadChantier();
+      toast.success('Chantier rouvert avec succès');
+    } catch (error) {
+      console.error('Erreur réouverture chantier:', error);
+      toast.error('Erreur lors de la réouverture du chantier');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleConfirmCancel = async () => {
@@ -246,6 +267,16 @@ export default function ChantierDetail() {
                     <span className="hidden sm:inline">Modifier</span>
                   </button>
                 </>
+              )}
+              {chantier.statut === 'TERMINE' && (
+                <button
+                  onClick={handleReopenChantier}
+                  disabled={actionLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 text-white border border-white/30 rounded-lg text-sm font-medium hover:bg-white/20 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span className="hidden sm:inline">Rouvrir</span>
+                </button>
               )}
             </div>
           </div>
@@ -454,6 +485,31 @@ export default function ChantierDetail() {
                       </div>
                     )}
 
+                    {/* Facturation */}
+                    <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Facturation</h3>
+                      {chantier.statut === 'TERMINE' ? (
+                        <div className="space-y-3">
+                          <p className="text-sm text-gray-600">Ce chantier est terminé. Vous pouvez créer une facture.</p>
+                          <button
+                            onClick={() => navigate('/factures/new')}
+                            className="flex items-center gap-2 w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium justify-center"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Créer une facture
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                          <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-amber-800">
+                            La facturation est disponible uniquement une fois le chantier <strong>terminé</strong>.
+                            Cliquez sur "Terminer" dans l'en-tête pour clôturer le chantier.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Localisation GPS */}
                     {chantier.latitude && chantier.longitude && (
                       <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
@@ -607,6 +663,34 @@ export default function ChantierDetail() {
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Annuler le chantier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Confirmation Réouverture */}
+      {showReopenModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Rouvrir le chantier
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Ce chantier sera remis en statut "En cours". Vous pourrez continuer à y travailler et à créer de nouvelles factures.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowReopenModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleConfirmReopen}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Rouvrir
               </button>
             </div>
           </div>

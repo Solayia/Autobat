@@ -570,6 +570,57 @@ export const completeChantier = async (req, res, next) => {
 };
 
 /**
+ * POST /api/chantiers/:id/reopen - Rouvrir un chantier terminé
+ */
+export const reopenChantier = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const tenantId = req.tenantId;
+
+    const chantier = await prisma.chantier.findFirst({
+      where: { id, tenant_id: tenantId }
+    });
+
+    if (!chantier) {
+      return res.status(404).json({
+        code: 'CHANTIER_NOT_FOUND',
+        message: 'Chantier introuvable'
+      });
+    }
+
+    if (chantier.statut !== 'TERMINE') {
+      return res.status(400).json({
+        code: 'INVALID_STATUS',
+        message: 'Seul un chantier terminé peut être rouvert'
+      });
+    }
+
+    const updatedChantier = await prisma.chantier.update({
+      where: { id },
+      data: {
+        statut: 'EN_COURS',
+        date_fin_reelle: null
+      },
+      include: {
+        client: true,
+        devis: true,
+        employes_assignes: {
+          include: {
+            employe: { include: { user: true } }
+          }
+        }
+      }
+    });
+
+    logger.info(`Chantier rouvert: ${updatedChantier.nom} (${updatedChantier.id})`);
+    res.json(updatedChantier);
+  } catch (error) {
+    logger.error('Erreur réouverture chantier:', error);
+    next(error);
+  }
+};
+
+/**
  * POST /api/chantiers/:id/cancel - Annuler un chantier
  */
 export const cancelChantier = async (req, res, next) => {

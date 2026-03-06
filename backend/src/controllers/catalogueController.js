@@ -164,7 +164,8 @@ export const createOuvrage = async (req, res, next) => {
         prix_unitaire_ht,
         temps_estime_minutes: temps_estime_minutes || 60,
         temps_reel_moyen: 0,
-        nb_chantiers_realises: 0
+        nb_chantiers_realises: 0,
+        personnalise: true
       }
     });
 
@@ -606,7 +607,8 @@ export const importCSV = async (req, res, next) => {
             temps_estime_minutes: tempsEstime,
             notes: record['Description'] || null,
             temps_reel_moyen: 0,
-            nb_chantiers_realises: 0
+            nb_chantiers_realises: 0,
+            personnalise: true
           }
         });
 

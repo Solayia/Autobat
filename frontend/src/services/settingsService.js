@@ -26,11 +26,7 @@ const settingsService = {
   async uploadLogo(file) {
     const formData = new FormData();
     formData.append('logo', file);
-    const response = await api.post('/settings/logo', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    const response = await api.post('/settings/logo', formData);
     return response.data;
   },
 

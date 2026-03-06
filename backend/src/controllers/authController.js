@@ -486,6 +486,11 @@ export const forgotPassword = async (req, res, next) => {
       resetUrl
     }).catch(err => logger.error('[Auth] Erreur envoi email reset:', err.message));
 
+    // En dev sans SMTP configuré : retourner l'URL directement pour permettre le test
+    if (process.env.NODE_ENV !== 'production') {
+      return res.json({ message: successMsg, dev_reset_url: resetUrl });
+    }
+
     res.json({ message: successMsg });
   } catch (error) {
     next(error);

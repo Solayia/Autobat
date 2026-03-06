@@ -295,16 +295,20 @@ export default function FactureForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Acompte demandé (€)
+                Acompte déjà versé par le client (€)
               </label>
               <input
                 type="number"
                 step="0.01"
+                min="0"
                 value={formData.acompte_demande}
                 onChange={(e) => setFormData({ ...formData, acompte_demande: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="0.00"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Si un acompte a déjà été encaissé, indiquez le montant ici — il sera déduit du solde.
+              </p>
             </div>
 
             <div>
