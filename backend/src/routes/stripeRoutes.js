@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authenticatePending } from '../middleware/auth.js';
 import { authorize } from '../middleware/authorize.js';
 import {
   createSubscriptionCheckout,
@@ -14,7 +14,7 @@ const router = express.Router();
  * Créer une session d'abonnement Stripe avec trial 7j (appelée après inscription)
  * COMPANY_ADMIN uniquement
  */
-router.post('/create-subscription-checkout', authenticate, authorize(['COMPANY_ADMIN']), createSubscriptionCheckout);
+router.post('/create-subscription-checkout', authenticatePending, authorize(['COMPANY_ADMIN']), createSubscriptionCheckout);
 
 /**
  * POST /api/stripe/portal

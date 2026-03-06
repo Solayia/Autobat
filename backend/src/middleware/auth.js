@@ -95,6 +95,60 @@ export const requireRole = (allowedRoles) => {
 };
 
 /**
+ * Middleware authenticate étendu: autorise aussi les tenants PENDING
+ * Utilisé uniquement pour la route de création d'abonnement Stripe
+ */
+export const authenticatePending = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Token manquant ou invalide' });
+    }
+
+    const token = authHeader.substring(7);
+    global.currentTenantId = null;
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'Token expiré', code: 'TOKEN_EXPIRED' });
+      }
+      return res.status(401).json({ error: 'Token invalide' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.user_id },
+      include: { tenant: true, employe: true }
+    });
+
+    if (!user || !user.actif) {
+      return res.status(401).json({ error: 'Utilisateur introuvable ou inactif' });
+    }
+
+    // Autorise ACTIF, TRIAL et PENDING (en attente de paiement)
+    const statutsAutorises = ['ACTIF', 'TRIAL', 'PENDING'];
+    if (!statutsAutorises.includes(user.tenant.statut)) {
+      return res.status(403).json({
+        error: 'Compte suspendu ou résilié. Contactez le support.',
+        code: 'ACCOUNT_SUSPENDED',
+        statut: user.tenant.statut
+      });
+    }
+
+    req.user = user;
+    req.tenantId = user.tenant_id;
+    global.currentTenantId = user.tenant_id;
+
+    next();
+  } catch (error) {
+    logger.error('Erreur middleware authenticatePending:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
+/**
  * Middleware optionnel: authentifier si token présent, sinon continuer
  */
 export const optionalAuth = async (req, res, next) => {

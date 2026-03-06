@@ -82,7 +82,7 @@ export const register = async (req, res, next) => {
           telephone: entreprise_telephone,
           email: entreprise_email,
           plan: 'STARTER',
-          statut: 'ACTIF'
+          statut: 'PENDING'
         }
       });
 
@@ -203,8 +203,8 @@ export const login = async (req, res, next) => {
       });
     }
 
-    // Vérifier tenant actif ou en trial
-    const statutsAutorises = ['ACTIF', 'TRIAL'];
+    // Vérifier tenant actif, en trial ou en attente de paiement
+    const statutsAutorises = ['ACTIF', 'TRIAL', 'PENDING'];
     if (!user.tenant || !statutsAutorises.includes(user.tenant.statut)) {
       return res.status(403).json({
         error: 'Compte suspendu ou résilié. Contactez le support.'

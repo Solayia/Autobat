@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { UserPlus, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { UserPlus, Loader2, CheckCircle, XCircle, CreditCard } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 export default function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { register, loading, error, clearError } = useAuthStore();
+  const { register, loading, error, clearError, tenant, isAuthenticated } = useAuthStore();
   const [stripeLoading, setStripeLoading] = useState(false);
   const [acceptCGU, setAcceptCGU] = useState(false);
   const [stripeCancelled, setStripeCancelled] = useState(false);
@@ -18,6 +18,20 @@ export default function Register() {
       setStripeCancelled(true);
     }
   }, []);
+
+  // Si l'user est déjà authentifié avec statut PENDING, afficher l'écran de relance paiement
+  const isPendingUser = isAuthenticated && tenant?.statut === 'PENDING';
+
+  const handleRelaunchStripe = async () => {
+    setStripeLoading(true);
+    try {
+      const response = await api.post('/stripe/create-subscription-checkout');
+      window.location.href = response.data.url;
+    } catch (err) {
+      setStripeLoading(false);
+      toast.error('Erreur lors de la redirection vers le paiement');
+    }
+  };
   const [passwordError, setPasswordError] = useState('');
 
   const validatePasswordRules = (pwd) => {
@@ -91,6 +105,44 @@ export default function Register() {
       [e.target.name]: e.target.value
     });
   };
+
+  // Écran de relance paiement pour les comptes PENDING
+  if (isPendingUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4">
+              <CreditCard className="w-8 h-8 text-primary-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-white">Autobat</h1>
+            <p className="text-primary-100 mt-2">Finaliser votre abonnement</p>
+          </div>
+          <div className="card">
+            <div className="card-body p-8 text-center">
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">
+                Votre compte est créé !
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Il ne vous reste plus qu'à activer votre essai gratuit de 7 jours en renseignant vos informations de paiement. Vous ne serez débité qu'à l'issue de la période d'essai.
+              </p>
+              <button
+                onClick={handleRelaunchStripe}
+                disabled={stripeLoading}
+                className="btn btn-primary w-full flex items-center justify-center"
+              >
+                {stripeLoading ? (
+                  <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Redirection...</>
+                ) : (
+                  <><CreditCard className="w-5 h-5 mr-2" />Activer mon essai gratuit 7 jours</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center p-4">

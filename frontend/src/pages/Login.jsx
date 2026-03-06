@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, Loader2 } from 'lucide-react';
 
 import useAuthStore from '../stores/authStore';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 export default function Login() {
@@ -22,6 +23,10 @@ export default function Login() {
       toast.success('Connexion réussie !');
       if (data.user?.role === 'SUPER_ADMIN') {
         navigate('/super-admin');
+      } else if (data.tenant?.statut === 'PENDING') {
+        // Compte créé mais abonnement non complété — relancer Stripe
+        const response = await api.post('/stripe/create-subscription-checkout');
+        window.location.href = response.data.url;
       } else {
         navigate('/dashboard');
       }
