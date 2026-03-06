@@ -46,9 +46,12 @@ export const authenticate = async (req, res, next) => {
     // Vérifier que le tenant est actif (ACTIF ou TRIAL autorisés)
     const statutsAutorises = ['ACTIF', 'TRIAL'];
     if (!statutsAutorises.includes(user.tenant.statut)) {
+      const isPending = user.tenant.statut === 'PENDING';
       return res.status(403).json({
-        error: 'Compte suspendu ou résilié. Contactez le support.',
-        code: 'ACCOUNT_SUSPENDED',
+        error: isPending
+          ? 'Abonnement non activé. Veuillez finaliser votre paiement.'
+          : 'Compte suspendu ou résilié. Contactez le support.',
+        code: isPending ? 'PAYMENT_REQUIRED' : 'ACCOUNT_SUSPENDED',
         statut: user.tenant.statut
       });
     }
