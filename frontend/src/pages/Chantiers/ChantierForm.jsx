@@ -97,7 +97,7 @@ export default function ChantierForm() {
 
   const loadClients = async () => {
     try {
-      const data = await clientService.getClients({ limit: 200 });
+      const data = await clientService.getClients({ limit: 100 });
       setClientsList(data.clients || data.data || []);
     } catch (error) {
       console.error('Erreur chargement clients:', error);
