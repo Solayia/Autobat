@@ -46,11 +46,15 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          envs: STRIPE_WEBHOOK_SECRET
           script: |
             cd /var/www/autobat/backend
             npm ci --production
             npx prisma generate
             npx prisma db push
             node prisma/create-super-admin.js
+            sed -i "s|STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET|" /var/www/autobat/backend/.env
             pm2 reload ecosystem.config.cjs --env production
             pm2 save
+        env:
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
