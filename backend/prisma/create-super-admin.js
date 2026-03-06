@@ -13,23 +13,23 @@ const SUPER_ADMINS = [
 const PASSWORD = 'Autobat2026!';
 
 async function main() {
-  // Si un compte legacy superadmin@autobat.fr existe, le renommer en adrien
-  const legacy = await prisma.user.findUnique({ where: { email: 'superadmin@autobat.fr' } });
+  // Renommer le compte legacy superadmin@autobat.fr si présent
+  const legacy = await prisma.user.findFirst({ where: { email: 'superadmin@autobat.fr' } });
   if (legacy) {
     const passwordHash = await bcrypt.hash(PASSWORD, 10);
     await prisma.user.update({
       where: { id: legacy.id },
       data: { email: 'adrien.lechevalier@solayia.fr', prenom: 'Adrien', nom: 'Lechevalier', password_hash: passwordHash }
     });
-    console.log('✅ Legacy superadmin renamed to adrien.lechevalier@solayia.fr');
+    console.log('✅ Legacy superadmin renamed to adrien.lechevalier@solayia.fr with Autobat2026!');
+    return;
   }
 
   // Vérifier si les comptes officiels existent déjà
-  const existing = await prisma.user.findFirst({
-    where: { email: { in: SUPER_ADMINS.map(a => a.email) } }
-  });
+  const adrienExists = await prisma.user.findFirst({ where: { email: 'adrien.lechevalier@solayia.fr' } });
+  const kevinExists = await prisma.user.findFirst({ where: { email: 'kevin.dolie@solayia.fr' } });
 
-  if (existing) {
+  if (adrienExists && kevinExists) {
     console.log('✅ Super admins déjà configurés — aucune modification.');
     return;
   }
@@ -59,21 +59,24 @@ async function main() {
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
 
   for (const admin of SUPER_ADMINS) {
-    await prisma.user.upsert({
-      where: { email: admin.email },
-      update: { password_hash: passwordHash, actif: true, email_verified: true },
-      create: {
-        tenant_id: platformTenant.id,
-        email: admin.email,
-        password_hash: passwordHash,
-        role: 'SUPER_ADMIN',
-        prenom: admin.prenom,
-        nom: admin.nom,
-        actif: true,
-        email_verified: true
-      }
-    });
-    console.log('✅ Super admin configuré:', admin.email);
+    const exists = await prisma.user.findFirst({ where: { email: admin.email } });
+    if (!exists) {
+      await prisma.user.create({
+        data: {
+          tenant_id: platformTenant.id,
+          email: admin.email,
+          password_hash: passwordHash,
+          role: 'SUPER_ADMIN',
+          prenom: admin.prenom,
+          nom: admin.nom,
+          actif: true,
+          email_verified: true
+        }
+      });
+      console.log('✅ Super admin créé:', admin.email);
+    } else {
+      console.log('✅ Super admin existe déjà:', admin.email);
+    }
   }
 
   console.log('Mot de passe:', PASSWORD);
