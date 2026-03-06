@@ -13,6 +13,17 @@ const SUPER_ADMINS = [
 const PASSWORD = 'Autobat2026!';
 
 async function main() {
+  // Si un compte legacy superadmin@autobat.fr existe, le renommer en adrien
+  const legacy = await prisma.user.findUnique({ where: { email: 'superadmin@autobat.fr' } });
+  if (legacy) {
+    const passwordHash = await bcrypt.hash(PASSWORD, 10);
+    await prisma.user.update({
+      where: { id: legacy.id },
+      data: { email: 'adrien.lechevalier@solayia.fr', prenom: 'Adrien', nom: 'Lechevalier', password_hash: passwordHash }
+    });
+    console.log('✅ Legacy superadmin renamed to adrien.lechevalier@solayia.fr');
+  }
+
   // Vérifier si les comptes officiels existent déjà
   const existing = await prisma.user.findFirst({
     where: { email: { in: SUPER_ADMINS.map(a => a.email) } }
