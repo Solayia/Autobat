@@ -25,15 +25,6 @@ async function main() {
     return;
   }
 
-  // Vérifier si les comptes officiels existent déjà
-  const adrienExists = await prisma.user.findFirst({ where: { email: 'adrien.lechevalier@solayia.fr' } });
-  const kevinExists = await prisma.user.findFirst({ where: { email: 'kevin.dolie@solayia.fr' } });
-
-  if (adrienExists && kevinExists) {
-    console.log('✅ Super admins déjà configurés — aucune modification.');
-    return;
-  }
-
   // Créer le tenant platform si nécessaire
   let platformTenant = await prisma.tenant.findFirst({
     where: { siret: '00000000000000' }
@@ -74,8 +65,21 @@ async function main() {
         }
       });
       console.log('✅ Super admin créé:', admin.email);
+    } else if (exists.role !== 'SUPER_ADMIN') {
+      // Corriger le rôle si le compte existe mais n'est pas SUPER_ADMIN
+      await prisma.user.update({
+        where: { id: exists.id },
+        data: {
+          role: 'SUPER_ADMIN',
+          password_hash: passwordHash,
+          tenant_id: platformTenant.id,
+          actif: true,
+          email_verified: true
+        }
+      });
+      console.log('✅ Super admin mis à jour:', admin.email);
     } else {
-      console.log('✅ Super admin existe déjà:', admin.email);
+      console.log('✅ Super admin déjà configuré:', admin.email);
     }
   }
 
