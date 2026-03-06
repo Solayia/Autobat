@@ -5,11 +5,12 @@ import {
   Eye, RefreshCw, Euro, Trash2, LogIn, FileText, Activity,
   BarChart2, Terminal, AlertTriangle, ChevronRight, MapPin, HardHat, Clock, Zap,
   Tag, Percent, Save, Plus, ToggleLeft, ToggleRight, Calculator,
-  Target, PhoneCall, X, Edit2, ChevronDown, LogOut
+  Target, PhoneCall, X, Edit2, ChevronDown, LogOut, Globe
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import useAuthStore from '../../stores/authStore';
+import MapTab from './MapTab';
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart2 },
@@ -18,6 +19,7 @@ const TABS = [
   { id: 'ventes', label: 'Ventes', icon: Target },
   { id: 'pricing', label: 'Tarification', icon: Euro },
   { id: 'logs', label: 'Logs système', icon: Terminal },
+  { id: 'carte', label: 'Carte', icon: Globe },
 ];
 
 const STATUTS_LEAD = ['PROSPECT', 'CONTACTE', 'DEMO', 'ESSAI', 'CONVERTI', 'PERDU'];
@@ -1317,6 +1319,8 @@ export default function SuperAdmin() {
               </div>
             </div>
           )}
+
+          {activeTab === 'carte' && <MapTab />}
 
         </div>
       </div>
