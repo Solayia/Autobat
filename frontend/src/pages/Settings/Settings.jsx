@@ -398,7 +398,7 @@ export default function Settings() {
 
         {/* Onglets */}
         <div className="bg-white rounded-2xl shadow-lg p-2 mb-4 sm:mb-6">
-          <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+          <div className="grid grid-cols-7 gap-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -406,14 +406,14 @@ export default function Settings() {
                 <button
                   key={tab.id}
                   onClick={() => setSearchParams({ tab: tab.id })}
-                  className={`flex-shrink-0 flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-2 sm:px-5 sm:py-3 rounded-xl font-medium transition-all duration-200 text-xs sm:text-sm ${
+                  className={`flex flex-col items-center justify-center gap-1 px-1 py-2 rounded-xl font-medium transition-all duration-200 text-xs ${
                     isActive
                       ? 'bg-green-600 text-white shadow-md'
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" />
-                  <span className="whitespace-nowrap">{tab.label}</span>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <span className="text-center leading-tight">{tab.label}</span>
                 </button>
               );
             })}
@@ -1054,7 +1054,7 @@ export default function Settings() {
                 <button
                   type="submit"
                   disabled={savingObjectifs}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
                   {savingObjectifs ? 'Enregistrement...' : 'Enregistrer les objectifs'}
@@ -1426,7 +1426,7 @@ export default function Settings() {
                       }
                     }}
                     disabled={updatingSubscription}
-                    className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 font-medium"
+                    className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
                   >
                     {updatingSubscription ? (
                       <><Loader2 className="w-5 h-5 animate-spin" /> Redirection...</>
