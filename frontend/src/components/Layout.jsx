@@ -93,12 +93,6 @@ export default function Layout({ children }) {
               {' '}({Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / (1000*60*60*24)))} jours restants)
             </span>
           </div>
-          <button
-            onClick={() => navigate('/settings?tab=abonnement')}
-            className="flex items-center gap-1.5 px-3 py-1 bg-white text-amber-600 rounded font-semibold hover:bg-amber-50 transition-colors text-xs"
-          >
-            Activer mon compte
-          </button>
         </div>
       )}
 
