@@ -1,4 +1,4 @@
-// Script de création du compte SUPER_ADMIN pour l'équipe Autobat
+// Script de création des comptes SUPER_ADMIN pour l'équipe Autobat
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
@@ -6,24 +6,24 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 global.currentTenantId = null;
 
+const SUPER_ADMINS = [
+  { email: 'adrien.lechevalier@solayia.fr', prenom: 'Adrien', nom: 'Lechevalier' },
+  { email: 'kevin.dolie@solayia.fr', prenom: 'Kevin', nom: 'Dolie' },
+];
+const PASSWORD = 'Autobat2026!';
+
 async function main() {
-  // Vérifier si le SUPER_ADMIN existe déjà
+  // Vérifier si les comptes officiels existent déjà
   const existing = await prisma.user.findFirst({
-    where: { role: 'SUPER_ADMIN' }
+    where: { email: { in: SUPER_ADMINS.map(a => a.email) } }
   });
 
   if (existing) {
-    console.log('SUPER_ADMIN trouvé (email:', existing.email, ') — reset du mot de passe et email...');
-    const passwordHash = await bcrypt.hash('SuperAutobat2026!', 10);
-    await prisma.user.update({
-      where: { id: existing.id },
-      data: { email: 'superadmin@autobat.fr', password_hash: passwordHash, actif: true }
-    });
-    console.log('✅ SUPER_ADMIN mis à jour: superadmin@autobat.fr / SuperAutobat2026!');
+    console.log('✅ Super admins déjà configurés — aucune modification.');
     return;
   }
 
-  // Créer un tenant platform (interne Autobat)
+  // Créer le tenant platform si nécessaire
   let platformTenant = await prisma.tenant.findFirst({
     where: { siret: '00000000000000' }
   });
@@ -45,27 +45,27 @@ async function main() {
     console.log('Tenant platform créé:', platformTenant.id);
   }
 
-  // Hasher le mot de passe
-  const passwordHash = await bcrypt.hash('SuperAutobat2026!', 10);
+  const passwordHash = await bcrypt.hash(PASSWORD, 10);
 
-  // Créer le SUPER_ADMIN
-  const superAdmin = await prisma.user.create({
-    data: {
-      tenant_id: platformTenant.id,
-      email: 'superadmin@autobat.fr',
-      password_hash: passwordHash,
-      role: 'SUPER_ADMIN',
-      prenom: 'Super',
-      nom: 'Admin',
-      actif: true,
-      email_verified: true
-    }
-  });
+  for (const admin of SUPER_ADMINS) {
+    await prisma.user.upsert({
+      where: { email: admin.email },
+      update: { password_hash: passwordHash, actif: true, email_verified: true },
+      create: {
+        tenant_id: platformTenant.id,
+        email: admin.email,
+        password_hash: passwordHash,
+        role: 'SUPER_ADMIN',
+        prenom: admin.prenom,
+        nom: admin.nom,
+        actif: true,
+        email_verified: true
+      }
+    });
+    console.log('✅ Super admin configuré:', admin.email);
+  }
 
-  console.log('\n✅ SUPER_ADMIN créé avec succès !');
-  console.log('Email:    superadmin@autobat.fr');
-  console.log('Password: SuperAutobat2026!');
-  console.log('ID:', superAdmin.id);
+  console.log('Mot de passe:', PASSWORD);
 }
 
 main()
