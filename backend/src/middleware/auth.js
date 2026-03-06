@@ -58,6 +58,8 @@ export const authenticate = async (req, res, next) => {
 
     // Injecter user et tenant_id dans req
     req.user = user;
+    req.userId = user.id;
+    req.userRole = user.role;
     req.tenantId = user.tenant_id;
 
     // CRITIQUE: Injecter tenant_id dans le contexte global pour Prisma middleware
@@ -141,6 +143,8 @@ export const authenticatePending = async (req, res, next) => {
     }
 
     req.user = user;
+    req.userId = user.id;
+    req.userRole = user.role;
     req.tenantId = user.tenant_id;
     global.currentTenantId = user.tenant_id;
 
