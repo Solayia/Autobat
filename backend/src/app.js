@@ -4,8 +4,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import logger from './config/logger.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Routes
 import authRoutes from './routes/authRoutes.js';
@@ -88,7 +92,8 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
 }
 
 // Fichiers uploadés : montés sous /api/uploads (Nginx proxie déjà /api → Node.js)
-app.use('/api/uploads', express.static(process.env.UPLOADS_PATH || 'uploads'));
+const uploadsDir = process.env.UPLOADS_PATH || path.join(__dirname, '..', 'uploads');
+app.use('/api/uploads', express.static(uploadsDir));
 
 // ═══════════════════════════════════════════════════════════════
 // ROUTES
