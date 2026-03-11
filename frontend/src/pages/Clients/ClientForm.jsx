@@ -292,18 +292,16 @@ export default function ClientForm() {
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   <Mail className="w-4 h-4 text-gray-400" />
                   Email
-                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  required
                   className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
                     isEntreprise ? 'focus:ring-blue-500' : 'focus:ring-purple-500'
                   }`}
-                  placeholder={isEntreprise ? 'contact@entreprise.fr' : 'jean.dupont@email.fr'}
+                  placeholder={isEntreprise ? 'contact@entreprise.fr (optionnel)' : 'jean.dupont@email.fr (optionnel)'}
                 />
               </div>
 
@@ -312,18 +310,16 @@ export default function ClientForm() {
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   <Phone className="w-4 h-4 text-gray-400" />
                   Téléphone
-                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
                   name="telephone"
                   value={formData.telephone}
                   onChange={handleChange}
-                  required
                   className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent transition-all ${
                     isEntreprise ? 'focus:ring-blue-500' : 'focus:ring-purple-500'
                   }`}
-                  placeholder="06 12 34 56 78"
+                  placeholder="06 12 34 56 78 (optionnel)"
                 />
               </div>
             </div>
