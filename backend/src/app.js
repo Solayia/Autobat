@@ -87,11 +87,8 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   }));
 }
 
-app.use('/uploads', cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  credentials: true,
-  methods: ['GET']
-}), express.static(process.env.UPLOADS_PATH || 'uploads'));
+// Fichiers uploadés : montés sous /api/uploads pour passer par Nginx → Node (pas direct)
+app.use('/api/uploads', express.static(process.env.UPLOADS_PATH || 'uploads'));
 
 // ═══════════════════════════════════════════════════════════════
 // ROUTES

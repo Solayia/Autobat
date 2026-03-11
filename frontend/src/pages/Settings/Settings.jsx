@@ -64,15 +64,19 @@ export default function Settings() {
     badgeage_par_tache_defaut: false
   });
 
-  const tabs = [
+  const isEmployee = user?.role === 'EMPLOYEE';
+
+  const allTabs = [
     { id: 'profil', label: 'Mon profil', icon: User },
-    { id: 'general', label: 'Général', icon: SettingsIcon },
-    { id: 'chantier', label: 'Chantier', icon: HardHat },
-    { id: 'objectifs', label: 'Objectifs', icon: Target },
+    { id: 'general', label: 'Général', icon: SettingsIcon, adminOnly: true },
+    { id: 'chantier', label: 'Chantier', icon: HardHat, adminOnly: true },
+    { id: 'objectifs', label: 'Objectifs', icon: Target, adminOnly: true },
     { id: 'securite', label: 'Sécurité', icon: Lock },
-    { id: 'email', label: 'Email', icon: Mail },
-    { id: 'abonnement', label: 'Abonnement', icon: CreditCard }
+    { id: 'email', label: 'Email', icon: Mail, adminOnly: true },
+    { id: 'abonnement', label: 'Abonnement', icon: CreditCard, adminOnly: true }
   ];
+
+  const tabs = isEmployee ? allTabs.filter(t => !t.adminOnly) : allTabs;
 
   useEffect(() => {
     // Rafraîchir les données du tenant depuis l'API
@@ -122,6 +126,10 @@ export default function Settings() {
   }, []);
 
   const loadSettings = async () => {
+    if (user?.role === 'EMPLOYEE') {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const [data, gmail, smtp] = await Promise.all([

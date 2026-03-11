@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import logger from '../config/logger.js';
+import { updatePrixAutoLearning } from './catalogueController.js';
 
 /**
  * @desc    Lister les badgeages d'un chantier
@@ -212,6 +213,37 @@ export const createBadgeage = async (req, res, next) => {
     });
 
     logger.info(`Badgeage manuel créé: ${badgeage.type} pour employé ${employe.id} sur chantier ${chantierId}`);
+
+    // ── Auto-learning : déclencher sur TACHE_FIN si la tâche a un ouvrage lié ──
+    if (type === 'TACHE_FIN' && tache_id) {
+      try {
+        const tache = await prisma.tache.findUnique({ where: { id: tache_id } });
+        if (tache?.ouvrage_id) {
+          // Calculer le temps réel travaillé (somme des cycles DEBUT/REPRISE → PAUSE/FIN)
+          const tacheBadges = await prisma.badgeage.findMany({
+            where: { tache_id, chantier_id: chantierId },
+            orderBy: { timestamp: 'asc' }
+          });
+          let tempsReelMinutes = 0;
+          let debutCycle = null;
+          for (const b of tacheBadges) {
+            if (b.type === 'TACHE_DEBUT' || b.type === 'TACHE_REPRISE') {
+              debutCycle = new Date(b.timestamp);
+            } else if ((b.type === 'TACHE_PAUSE' || b.type === 'TACHE_FIN') && debutCycle) {
+              tempsReelMinutes += (new Date(b.timestamp) - debutCycle) / 60000;
+              debutCycle = null;
+            }
+          }
+          if (tempsReelMinutes > 0) {
+            await updatePrixAutoLearning(tache.ouvrage_id, tempsReelMinutes);
+          }
+        }
+      } catch (autoErr) {
+        logger.error('Erreur auto-learning après TACHE_FIN:', autoErr);
+        // Ne pas bloquer la réponse pour une erreur d'auto-learning
+      }
+    }
+
     res.status(201).json(badgeage);
   } catch (error) {
     logger.error('Erreur création badgeage:', error);

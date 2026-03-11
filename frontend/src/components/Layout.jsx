@@ -342,7 +342,7 @@ export default function Layout({ children }) {
       </div>
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'} ${isImpersonating && tenant?.statut === 'TRIAL' ? 'pt-[72px]' : isImpersonating || tenant?.statut === 'TRIAL' ? 'pt-9' : ''}`}>
+      <main className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'} ${isImpersonating ? 'pt-9' : ''}`}>
         {children}
       </main>
     </div>
