@@ -56,6 +56,15 @@ export const authenticate = async (req, res, next) => {
       });
     }
 
+    // Vérifier que la période d'essai n'a pas expiré
+    if (user.tenant.statut === 'TRIAL' && user.tenant.trial_ends_at && user.tenant.trial_ends_at < new Date()) {
+      return res.status(402).json({
+        code: 'TRIAL_EXPIRED',
+        message: 'Votre période d\'essai a expiré. Veuillez souscrire à un abonnement pour continuer.',
+        trial_ends_at: user.tenant.trial_ends_at
+      });
+    }
+
     // Injecter user et tenant_id dans req
     req.user = user;
     req.userId = user.id;

@@ -36,6 +36,17 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Trial expiré ou compte suspendu → redirection page abonnement
+    if (error.response?.status === 402) {
+      const code = error.response?.data?.code;
+      if (code === 'TRIAL_EXPIRED' || code === 'ACCOUNT_SUSPENDED') {
+        if (!window.location.pathname.includes('/settings')) {
+          window.location.href = '/settings?tab=abonnement';
+        }
+      }
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
