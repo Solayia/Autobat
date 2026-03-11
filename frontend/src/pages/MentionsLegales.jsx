@@ -19,25 +19,24 @@ export default function MentionsLegales() {
             <Scale className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Mentions légales</h1>
-          <p className="text-sm text-gray-500 mt-1">Dernière mise à jour : mars 2026</p>
+          <p className="text-sm text-gray-500 mt-1">Dernière mise à jour : 9 mars 2026</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
 
           <Section title="Éditeur du site">
             <p>
-              Le site <strong>app.autobat.fr</strong> est édité par :
+              Le site <strong>autobat.pro</strong> est édité par :
             </p>
             <div className="mt-3 bg-gray-50 rounded-lg p-4 space-y-1">
-              <p><strong>Raison sociale :</strong> [NOM SOCIÉTÉ]</p>
-              <p><strong>Forme juridique :</strong> [SAS / SARL / EI / …]</p>
-              <p><strong>Capital social :</strong> [MONTANT] €</p>
-              <p><strong>SIRET :</strong> [SIRET — 14 chiffres]</p>
-              <p><strong>RCS :</strong> [Ville] [NUMÉRO RCS]</p>
-              <p><strong>Siège social :</strong> [ADRESSE COMPLÈTE]</p>
-              <p><strong>Téléphone :</strong> [TÉLÉPHONE]</p>
-              <p><strong>Email :</strong> [EMAIL]</p>
-              <p><strong>Directeur de la publication :</strong> [PRÉNOM NOM]</p>
+              <p><strong>Raison sociale :</strong> SOLAYIA</p>
+              <p><strong>Forme juridique :</strong> Société par Actions Simplifiée (SAS)</p>
+              <p><strong>Capital social :</strong> 500 €</p>
+              <p><strong>RCS :</strong> Paris 992 983 569</p>
+              <p><strong>TVA intracommunautaire :</strong> FR15992983569</p>
+              <p><strong>Siège social :</strong> 60 rue François 1er, 75008 Paris, FRANCE</p>
+              <p><strong>Email :</strong> adrien.lechevalier@solayia.fr</p>
+              <p><strong>Directeur de la publication :</strong> Adrien LECHEVALIER, Président</p>
             </div>
           </Section>
 
@@ -47,25 +46,24 @@ export default function MentionsLegales() {
               <p><strong>Hébergeur :</strong> Hostinger International Ltd</p>
               <p><strong>Adresse :</strong> 61 Lordou Vironos Street, 6023 Larnaca, Chypre</p>
               <p><strong>Site web :</strong> https://www.hostinger.fr</p>
+              <p><strong>Données hébergées dans l'Union Européenne</strong></p>
             </div>
           </Section>
 
           <Section title="Propriété intellectuelle">
             <p>
-              L'ensemble du contenu du site Autobat (interface, textes, graphismes, logo, icônes,
-              code source) est la propriété exclusive de [NOM SOCIÉTÉ] ou de ses partenaires,
-              et est protégé par les lois françaises et internationales relatives à la propriété
-              intellectuelle.
+              L'ensemble du contenu du site AUTOBAT (interface, textes, graphismes, logo, icônes,
+              code source) est la propriété exclusive de SOLAYIA et est protégé par les lois
+              françaises et internationales relatives à la propriété intellectuelle.
             </p>
             <p>
               Toute reproduction, représentation, modification, publication ou adaptation de tout
               ou partie des éléments du site, quel que soit le moyen ou le procédé utilisé,
-              est interdite sans autorisation écrite préalable de [NOM SOCIÉTÉ].
+              est interdite sans autorisation écrite préalable de SOLAYIA.
             </p>
             <p>
-              Le catalogue de prix intégré à la plateforme (bibliothèque Syla) est utilisé
-              sous licence. Toute extraction ou réutilisation de ce catalogue en dehors
-              de la plateforme est strictement interdite.
+              Le catalogue de prix intégré à la plateforme est utilisé sous licence.
+              Toute extraction ou réutilisation en dehors de la plateforme est strictement interdite.
             </p>
           </Section>
 
@@ -73,12 +71,12 @@ export default function MentionsLegales() {
             <p>
               Le traitement des données personnelles est décrit dans notre{' '}
               <Link to="/confidentialite" className="text-primary-600 hover:underline font-medium">
-                Politique de confidentialité
+                Politique de confidentialité & RGPD
               </Link>.
             </p>
             <p>
               Pour exercer vos droits (accès, rectification, suppression, portabilité),
-              contactez-nous à : <strong>[EMAIL DPO]</strong>
+              contactez-nous à : <strong>adrien.lechevalier@solayia.fr</strong>
             </p>
           </Section>
 
@@ -100,8 +98,8 @@ export default function MentionsLegales() {
           <Section title="Contact">
             <p>
               Pour toute question ou signalement :<br />
-              Email : <strong>[EMAIL CONTACT]</strong><br />
-              Courrier : <strong>[ADRESSE]</strong>
+              Email : <strong>adrien.lechevalier@solayia.fr</strong><br />
+              Courrier : <strong>SOLAYIA, 60 rue François 1er, 75008 Paris, FRANCE</strong>
             </p>
           </Section>
         </div>
@@ -114,6 +112,7 @@ export default function MentionsLegales() {
           </Link>
           <div className="flex gap-4 text-gray-500">
             <Link to="/cgu" className="hover:text-primary-600">CGU</Link>
+            <Link to="/cgv" className="hover:text-primary-600">CGV</Link>
             <Link to="/confidentialite" className="hover:text-primary-600">Confidentialité</Link>
           </div>
         </div>

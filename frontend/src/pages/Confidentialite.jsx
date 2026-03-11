@@ -18,9 +18,9 @@ export default function Confidentialite() {
           <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-600 rounded-full mb-4">
             <Shield className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Politique de confidentialité</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Politique de confidentialité & RGPD</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Dernière mise à jour : mars 2026 — conforme au RGPD (Règlement UE 2016/679)
+            Version 1.0 — Dernière mise à jour : 9 mars 2026 — Conforme au RGPD (Règlement UE 2016/679)
           </p>
         </div>
 
@@ -29,13 +29,16 @@ export default function Confidentialite() {
           <Section title="1. Responsable du traitement">
             <p>
               Le responsable du traitement des données personnelles collectées via la plateforme
-              Autobat est :
+              AUTOBAT est :
             </p>
             <div className="mt-3 bg-gray-50 rounded-lg p-4 space-y-1">
-              <p><strong>[NOM SOCIÉTÉ]</strong></p>
-              <p>SIRET : [SIRET]</p>
-              <p>Adresse : [ADRESSE]</p>
-              <p>Email DPO / contact RGPD : <strong>[EMAIL DPO]</strong></p>
+              <p><strong>SOLAYIA</strong> — Société par Actions Simplifiée (SAS)</p>
+              <p>Capital social : 500 €</p>
+              <p>RCS Paris 992 983 569</p>
+              <p>Siège social : 60 rue François 1er, 75008 Paris, FRANCE</p>
+              <p>TVA intracommunautaire : FR15992983569</p>
+              <p>Représentant légal : Adrien LECHEVALIER, Président</p>
+              <p>Email DPO / contact RGPD : <strong>adrien.lechevalier@solayia.fr</strong></p>
             </div>
           </Section>
 
@@ -55,6 +58,7 @@ export default function Confidentialite() {
                   <li>Prénom, nom, adresse email, numéro de téléphone</li>
                   <li>Identifiants de connexion (email + mot de passe haché)</li>
                   <li>Date et heure de dernière connexion</li>
+                  <li>Date d'acceptation des CGU et CGV</li>
                 </ul>
               </div>
               <div>
@@ -94,6 +98,7 @@ export default function Confidentialite() {
                   ['Support client et assistance technique', 'Intérêt légitime'],
                   ['Envoi d\'emails transactionnels (devis, factures, alertes)', 'Exécution du contrat'],
                   ['Amélioration du service (analytics agrégées)', 'Intérêt légitime'],
+                  ['Conservation des dates d\'acceptation CGU/CGV', 'Obligation légale + contrat'],
                 ].map(([fin, base], i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="border border-gray-200 px-3 py-2">{fin}</td>
@@ -114,7 +119,7 @@ export default function Confidentialite() {
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li><strong>Hostinger</strong> — hébergement des données (serveurs en Europe)</li>
               <li><strong>Stripe</strong> — traitement des paiements (certifié PCI-DSS)</li>
-              <li><strong>Resend / [SMTP]</strong> — envoi des emails transactionnels</li>
+              <li><strong>Resend</strong> — envoi des emails transactionnels</li>
             </ul>
             <p className="mt-2">
               Ces sous-traitants sont liés par un accord de traitement des données (DPA)
@@ -149,6 +154,7 @@ export default function Confidentialite() {
                   ['Données de badgeage GPS', '3 ans après la fin du chantier'],
                   ['Logs de sécurité', '12 mois'],
                   ['Données de paiement (Stripe)', 'Selon politique Stripe (13 mois)'],
+                  ['Dates d\'acceptation CGU/CGV', 'Durée du contrat + 5 ans (preuve contractuelle)'],
                 ].map(([type, duree], i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="border border-gray-200 px-3 py-2">{type}</td>
@@ -170,7 +176,7 @@ export default function Confidentialite() {
               <li><strong>Droit à la limitation</strong> — restreindre temporairement un traitement</li>
             </ul>
             <p className="mt-3">
-              Pour exercer ces droits, contactez-nous à : <strong>[EMAIL DPO]</strong><br />
+              Pour exercer ces droits, contactez-nous à : <strong>adrien.lechevalier@solayia.fr</strong><br />
               Nous répondrons dans un délai maximum de <strong>30 jours</strong>.
             </p>
             <p className="mt-2">
@@ -212,6 +218,10 @@ export default function Confidentialite() {
               En cas de modification substantielle, vous serez informé par email
               au moins 30 jours avant l'entrée en vigueur des changements.
             </p>
+            <p>
+              Contact : <strong>adrien.lechevalier@solayia.fr</strong><br />
+              SOLAYIA, 60 rue François 1er, 75008 Paris, FRANCE
+            </p>
           </Section>
         </div>
 
@@ -223,6 +233,7 @@ export default function Confidentialite() {
           </Link>
           <div className="flex gap-4 text-gray-500">
             <Link to="/cgu" className="hover:text-primary-600">CGU</Link>
+            <Link to="/cgv" className="hover:text-primary-600">CGV</Link>
             <Link to="/mentions-legales" className="hover:text-primary-600">Mentions légales</Link>
           </div>
         </div>

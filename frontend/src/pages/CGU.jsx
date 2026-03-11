@@ -32,7 +32,7 @@ export default function CGU() {
             <p>Siège social : 60 rue François 1er, 75008 Paris, FRANCE</p>
             <p>TVA intracommunautaire : FR15992983569</p>
             <p>Représentant légal : Adrien LECHEVALIER, Président</p>
-            <p>Contact : <strong>contact@solayia.fr</strong></p>
+            <p>Contact : <strong>adrien.lechevalier@solayia.fr</strong></p>
             <p className="mt-2 font-semibold text-gray-900">Hébergement :</p>
             <p>Hostinger International Ltd — 61 Lordou Vironos Street, 6023 Larnaca, Chypre</p>
             <p>Données hébergées dans l'Union Européenne</p>
@@ -215,7 +215,7 @@ export default function CGU() {
             </p>
             <p>
               Pour toute question relative aux présentes CGU :<br />
-              Email : <strong>contact@solayia.fr</strong><br />
+              Email : <strong>adrien.lechevalier@solayia.fr</strong><br />
               Adresse : <strong>SOLAYIA, 60 rue François 1er, 75008 Paris, FRANCE</strong>
             </p>
           </Section>

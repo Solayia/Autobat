@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { UserPlus, Loader2, CheckCircle, XCircle, CreditCard } from 'lucide-react';
+import { UserPlus, Loader2, CheckCircle, XCircle, CreditCard, ExternalLink } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -10,8 +10,17 @@ export default function Register() {
   const [searchParams] = useSearchParams();
   const { register, loading, error, clearError, tenant, isAuthenticated } = useAuthStore();
   const [stripeLoading, setStripeLoading] = useState(false);
-  const [acceptCGU, setAcceptCGU] = useState(false);
   const [stripeCancelled, setStripeCancelled] = useState(false);
+
+  // Suivi ouverture + acceptation de chaque document
+  const [docsOpened, setDocsOpened] = useState({ cgu: false, cgv: false, confidentialite: false });
+  const [docsAccepted, setDocsAccepted] = useState({ cgu: false, cgv: false, confidentialite: false });
+  const allAccepted = docsAccepted.cgu && docsAccepted.cgv && docsAccepted.confidentialite;
+
+  const openDoc = (key, url) => {
+    window.open(url, '_blank');
+    setDocsOpened(prev => ({ ...prev, [key]: true }));
+  };
 
   useEffect(() => {
     if (searchParams.get('stripe_cancel') === '1') {
@@ -68,8 +77,8 @@ export default function Register() {
     clearError();
 
     // Validation
-    if (!acceptCGU) {
-      toast.error('Vous devez accepter les CGU et la Politique de confidentialité');
+    if (!allAccepted) {
+      toast.error('Vous devez lire et accepter les CGU, CGV et la Politique de confidentialité');
       return;
     }
 
@@ -411,36 +420,52 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Case à cocher CGU — obligatoire */}
-              <div className="flex items-start gap-3 pt-2">
-                <input
-                  id="accept_cgu"
-                  type="checkbox"
-                  checked={acceptCGU}
-                  onChange={(e) => setAcceptCGU(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-                />
-                <label htmlFor="accept_cgu" className="text-sm text-gray-600 cursor-pointer">
-                  J'ai lu et j'accepte les{' '}
-                  <Link to="/cgu" target="_blank" className="text-primary-600 hover:text-primary-700 font-medium underline">
-                    Conditions Générales d'Utilisation
-                  </Link>
-                  , les{' '}
-                  <Link to="/cgv" target="_blank" className="text-primary-600 hover:text-primary-700 font-medium underline">
-                    Conditions Générales de Vente
-                  </Link>{' '}
-                  et la{' '}
-                  <Link to="/confidentialite" target="_blank" className="text-primary-600 hover:text-primary-700 font-medium underline">
-                    Politique de confidentialité
-                  </Link>{' '}
-                  d'Autobat. *
-                </label>
+              {/* Documents légaux — lecture obligatoire avant acceptation */}
+              <div className="space-y-3 pt-2">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  Documents à lire et accepter *
+                </p>
+                {[
+                  { key: 'cgu', label: 'Conditions Générales d\'Utilisation', url: '/cgu' },
+                  { key: 'cgv', label: 'Conditions Générales de Vente', url: '/cgv' },
+                  { key: 'confidentialite', label: 'Politique de confidentialité & RGPD', url: '/confidentialite' },
+                ].map(({ key, label, url }) => (
+                  <div key={key} className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${docsAccepted[key] ? 'bg-green-50 border-green-200' : docsOpened[key] ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
+                    {/* Bouton ouvrir */}
+                    <button
+                      type="button"
+                      onClick={() => openDoc(key, url)}
+                      className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-primary-400 transition-colors whitespace-nowrap flex-shrink-0"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Lire
+                    </button>
+                    {/* Label */}
+                    <span className="text-sm text-gray-700 flex-1">{label}</span>
+                    {/* Checkbox acceptation — désactivée tant que doc pas ouvert */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {docsAccepted[key] ? (
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      ) : !docsOpened[key] ? (
+                        <span className="text-xs text-gray-400 italic">Lisez d'abord</span>
+                      ) : null}
+                      <input
+                        type="checkbox"
+                        id={`accept_${key}`}
+                        checked={docsAccepted[key]}
+                        disabled={!docsOpened[key]}
+                        onChange={(e) => setDocsAccepted(prev => ({ ...prev, [key]: e.target.checked }))}
+                        className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <button
                 type="submit"
                 className="btn btn-primary w-full flex items-center justify-center"
-                disabled={loading || stripeLoading || !acceptCGU}
+                disabled={loading || stripeLoading || !allAccepted}
               >
                 {stripeLoading ? (
                   <>

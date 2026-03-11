@@ -32,7 +32,7 @@ export default function CGV() {
             <p>Siège social : 60 rue François 1er, 75008 Paris, FRANCE</p>
             <p>TVA intracommunautaire : FR15992983569</p>
             <p>Représentant légal : Adrien LECHEVALIER, Président</p>
-            <p>Contact : <strong>contact@solayia.fr</strong></p>
+            <p>Contact : <strong>adrien.lechevalier@solayia.fr</strong></p>
           </div>
 
           <div className="mb-8 text-sm text-gray-700 space-y-2">
@@ -112,7 +112,7 @@ export default function CGV() {
               <li>Clients UE avec n° TVA valide : autoliquidation</li>
               <li>Clients hors UE : facture HT, TVA non applicable</li>
             </ul>
-            <p className="mt-2">Toute contestation de facture doit être adressée à contact@solayia.fr
+            <p className="mt-2">Toute contestation de facture doit être adressée à adrien.lechevalier@solayia.fr
               dans un délai de <strong>15 jours</strong> à compter de son émission.</p>
           </Section>
 
@@ -204,7 +204,7 @@ export default function CGV() {
           <Section title="Article 15 — Données personnelles">
             <p>Le traitement des données personnelles est régi par les CGU (article 10) et la
               Politique de Confidentialité disponible sur www.solayia.fr.</p>
-            <p>Contact : contact@solayia.fr</p>
+            <p>Contact : adrien.lechevalier@solayia.fr</p>
           </Section>
 
           <Section title="Article 16 — Règlement des litiges">
@@ -222,7 +222,7 @@ export default function CGV() {
             <p>Les modifications des CGV sont notifiées par email au moins 30 jours avant leur entrée
               en vigueur. L'Utilisateur est invité à les accepter lors de sa connexion ; en cas de refus,
               résiliation possible sans pénalité.</p>
-            <p>Contact : <strong>contact@solayia.fr</strong> — SOLAYIA, 60 rue François 1er, 75008 Paris</p>
+            <p>Contact : <strong>adrien.lechevalier@solayia.fr</strong> — SOLAYIA, 60 rue François 1er, 75008 Paris</p>
           </Section>
 
           {/* Annexe tarifaire */}
