@@ -186,8 +186,8 @@ export const validateSearch = () =>
  */
 export const validateCreateClient = [
   validateName('nom', 1, 100),
-  validateEmail(),
-  validatePhone('telephone'),
+  body('email').optional({ checkFalsy: true }).trim().isEmail().withMessage('Email invalide').normalizeEmail().isLength({ max: 255 }),
+  validatePhone('telephone', false),
   validateEnum('type', ['PARTICULIER', 'ENTREPRISE']),
   body('siret').optional({ checkFalsy: true }).trim().isLength({ min: 14, max: 14 }).withMessage('SIRET invalide (14 chiffres)').isNumeric(),
   // Adresse optionnelle (peut être renseignée plus tard)
