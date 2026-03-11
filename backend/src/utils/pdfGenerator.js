@@ -1,13 +1,14 @@
 import puppeteer from 'puppeteer';
 import { getPuppeteerConfig } from './puppeteerLaunch.js';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Génère le HTML d'une facture
  */
-function generateFactureHTML(facture) {
+function generateFactureHTML(facture, logoDataUrl = null) {
   const brandColor = facture.couleur_primaire || '#10B981';
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('fr-FR');
@@ -166,7 +167,7 @@ function generateFactureHTML(facture) {
 <body>
   <div class="header">
     <div class="company-info">
-      ${facture.logo_url ? `<img src="file://${path.join(__dirname, '../..', facture.logo_url)}" alt="${facture.entreprise_nom}" style="max-width:150px;max-height:60px;object-fit:contain;display:block;margin-bottom:8px;" />` : ''}
+      ${logoDataUrl ? `<img src="${logoDataUrl}" alt="${facture.entreprise_nom}" style="max-width:150px;max-height:60px;object-fit:contain;display:block;margin-bottom:8px;" />` : ''}
       <div class="company-name">${facture.entreprise_nom}</div>
       <div>SIRET: ${facture.entreprise_siret}</div>
       <div>${facture.entreprise_adresse}</div>
@@ -281,11 +282,22 @@ function generateFactureHTML(facture) {
  * Génère un PDF à partir d'une facture
  */
 export async function generateFacturePDF(facture) {
+  // Convertir le logo en base64 pour l'embarquer dans le PDF
+  let logoDataUrl = null;
+  if (facture.logo_url) {
+    try {
+      const logoPath = path.join(__dirname, '../..', facture.logo_url);
+      const logoBuffer = fs.readFileSync(logoPath);
+      const ext = path.extname(facture.logo_url).slice(1).toLowerCase().replace('jpg', 'jpeg');
+      logoDataUrl = `data:image/${ext};base64,${logoBuffer.toString('base64')}`;
+    } catch (e) { /* logo file not found, skip */ }
+  }
+
   const browser = await puppeteer.launch(getPuppeteerConfig());
 
   try {
     const page = await browser.newPage();
-    const html = generateFactureHTML(facture);
+    const html = generateFactureHTML(facture, logoDataUrl);
 
     await page.setContent(html, {
       waitUntil: 'networkidle0'

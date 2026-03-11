@@ -4,6 +4,7 @@ import puppeteer from 'puppeteer';
 import { getPuppeteerConfig } from '../utils/puppeteerLaunch.js';
 import { sendDevisEmail } from '../services/emailService.js';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -746,7 +747,7 @@ export const refuseDevis = async (req, res, next) => {
 /**
  * Génère le HTML pour le PDF du devis
  */
-function generateDevisPDFHTML(devis, tenant) {
+function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
   const brandColor = tenant.couleur_primaire || '#FF9F43';
 
   // Utiliser l'ordre défini par l'utilisateur (champ ordre)
@@ -871,9 +872,9 @@ function generateDevisPDFHTML(devis, tenant) {
         <!-- En-tête -->
         <div class="header">
           <div>
-            ${tenant.logo_url ? `
+            ${logoDataUrl ? `
             <div style="margin-bottom: 10px;">
-              <img src="file://${path.join(__dirname, '../..', tenant.logo_url)}" alt="${tenant.nom}" style="max-width: 150px; max-height: 60px; object-fit: contain;" />
+              <img src="${logoDataUrl}" alt="${tenant.nom}" style="max-width: 150px; max-height: 60px; object-fit: contain;" />
             </div>
             ` : `
             <div class="logo">${tenant.nom}</div>
@@ -1020,8 +1021,19 @@ export const downloadPDF = async (req, res, next) => {
       where: { id: tenantId }
     });
 
+    // Convertir le logo en base64 pour l'embarquer dans le PDF
+    let logoDataUrl = null;
+    if (tenant.logo_url) {
+      try {
+        const logoPath = path.join(__dirname, '../..', tenant.logo_url);
+        const logoBuffer = fs.readFileSync(logoPath);
+        const ext = path.extname(tenant.logo_url).slice(1).toLowerCase().replace('jpg', 'jpeg');
+        logoDataUrl = `data:image/${ext};base64,${logoBuffer.toString('base64')}`;
+      } catch (e) { /* logo file not found, skip */ }
+    }
+
     // Générer le HTML du PDF
-    const html = generateDevisPDFHTML(devis, tenant);
+    const html = generateDevisPDFHTML(devis, tenant, logoDataUrl);
 
     // Générer le PDF avec Puppeteer
     const browser = await puppeteer.launch(getPuppeteerConfig());
