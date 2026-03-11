@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import settingsService from '../services/settingsService';
 import useAuthStore from '../stores/authStore';
@@ -9,12 +8,10 @@ const STEPS = [
   { id: 2, titre: 'Votre entreprise', icon: '🏢' },
   { id: 3, titre: 'Logo', icon: '🎨' },
   { id: 4, titre: 'Informations légales', icon: '📋' },
-  { id: 5, titre: 'Premier client', icon: '👤' },
-  { id: 6, titre: "C'est parti !", icon: '🚀' }
+  { id: 5, titre: "C'est parti !", icon: '🚀' }
 ];
 
 export default function OnboardingWizard({ onClose }) {
-  const navigate = useNavigate();
   const { tenant, setTenant } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -85,8 +82,8 @@ export default function OnboardingWizard({ onClose }) {
   const handleFinish = async () => {
     setLoading(true);
     try {
-      await settingsService.updateOnboarding({ completed: true, step: 6 });
-      setTenant({ ...tenant, onboarding_completed: true, onboarding_step: 6 });
+      await settingsService.updateOnboarding({ completed: true, step: 5 });
+      setTenant({ ...tenant, onboarding_completed: true, onboarding_step: 5 });
       toast.success('Configuration terminée ! Bienvenue sur Autobat 🎉');
       onClose();
     } catch {
@@ -98,8 +95,8 @@ export default function OnboardingWizard({ onClose }) {
 
   const handleSkip = async () => {
     try {
-      await settingsService.updateOnboarding({ completed: true, step: 6 });
-      setTenant({ ...tenant, onboarding_completed: true, onboarding_step: 6 });
+      await settingsService.updateOnboarding({ completed: true, step: 5 });
+      setTenant({ ...tenant, onboarding_completed: true, onboarding_step: 5 });
     } catch {
       // Non bloquant
     }
@@ -168,8 +165,7 @@ export default function OnboardingWizard({ onClose }) {
           {currentStep === 4 && (
             <StepLegal values={legal} onChange={setLegal} />
           )}
-          {currentStep === 5 && <StepPremierClient navigate={navigate} />}
-          {currentStep === 6 && <StepFinal />}
+          {currentStep === 5 && <StepFinal />}
         </div>
 
         {/* Footer navigation */}
@@ -325,7 +321,8 @@ function StepLogo() {
     setUploading(true);
     try {
       const result = await settingsService.uploadLogo(file);
-      const url = `http://localhost:3000${result.logo_url}`;
+      const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+      const url = `${baseUrl}${result.logo_url}`;
       setPreview(url);
       setTenant({ ...tenant, logo_url: result.logo_url });
       toast.success('Logo uploadé !');
@@ -427,30 +424,6 @@ function StepLegal({ values, onChange }) {
       <p className="text-xs text-orange-600 mt-4 bg-orange-50 p-3 rounded-lg">
         💡 Ces informations peuvent être complétées plus tard dans Paramètres → Entreprise
       </p>
-    </div>
-  );
-}
-
-function StepPremierClient({ navigate }) {
-  return (
-    <div className="text-center py-4">
-      <div className="text-5xl mb-4">👤</div>
-      <h3 className="text-lg font-bold text-gray-900 mb-3">Votre premier client</h3>
-      <p className="text-gray-500 mb-6 text-sm">
-        Pour créer votre premier devis, vous aurez besoin d'un client. Voulez-vous en
-        créer un maintenant, ou le faire plus tard ?
-      </p>
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <button
-          onClick={() => navigate('/clients/new')}
-          className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition-colors"
-        >
-          Créer un client maintenant
-        </button>
-        <button className="px-6 py-3 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-          Je le ferai plus tard
-        </button>
-      </div>
     </div>
   );
 }
