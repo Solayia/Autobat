@@ -192,7 +192,8 @@ export default function BadgeagesTab({ chantierId, chantier }) {
     const hours = isWithinBadgingHours();
     if (dist <= rayon && !isEnCours && hours) {
       triggerAutoBadge('PRESENCE_DEBUT', position);
-    } else if (dist > rayon * 2 && isEnCours) {
+    } else if (dist > rayon * 2 && isEnCours && activePresenceBadge?.methode !== 'MANUEL') {
+      // Ne pas auto-sortir si l'arrivée a été saisie manuellement (GPS imprécis)
       triggerAutoBadge('PRESENCE_FIN', position);
     }
   }, [position]); // eslint-disable-line react-hooks/exhaustive-deps
