@@ -56,8 +56,9 @@ jobs:
               libxdamage1 libxrandr2 libgbm1 libxss1 libxtst6 \
               libasound2t64 libx11-xcb1 libxcb-dri3-0 libxfixes3 \
               libpangocairo-1.0-0 fonts-liberation xdg-utils || true
-            # Créer le dossier uploads dans backend
+            # Créer les dossiers uploads dans backend
             mkdir -p /var/www/autobat/backend/uploads/logos
+            mkdir -p /var/www/autobat/backend/uploads/documents
             # Nginx: proxy /uploads vers backend (plus fiable que alias statique)
             if [ -f /etc/nginx/sites-available/autobat ]; then
               if grep -q "location /uploads" /etc/nginx/sites-available/autobat; then

@@ -286,7 +286,7 @@ export default function DocumentsTab({ chantierId }) {
                 </div>
                 <div className="flex items-center gap-2">
                   <a
-                    href={`${import.meta.env.VITE_API_URL}${doc.url}`}
+                    href={`${import.meta.env.VITE_API_URL.replace('/api', '')}${doc.url}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"

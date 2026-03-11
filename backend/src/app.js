@@ -87,8 +87,8 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   }));
 }
 
-// Fichiers uploadés : montés sous /api/uploads pour passer par Nginx → Node (pas direct)
-app.use('/api/uploads', express.static(process.env.UPLOADS_PATH || 'uploads'));
+// Fichiers uploadés : montés sous /uploads (Nginx proxie /uploads → Node.js)
+app.use('/uploads', express.static(process.env.UPLOADS_PATH || 'uploads'));
 
 // ═══════════════════════════════════════════════════════════════
 // ROUTES
