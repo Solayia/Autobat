@@ -56,8 +56,17 @@ jobs:
               libxdamage1 libxrandr2 libgbm1 libxss1 libxtst6 \
               libasound2t64 libx11-xcb1 libxcb-dri3-0 libxfixes3 \
               libpangocairo-1.0-0 fonts-liberation xdg-utils || true
-            # Créer le dossier storage/uploads (servi par Nginx via alias)
-            mkdir -p /var/www/autobat/storage/uploads/logos
+            # Créer le dossier uploads dans backend
+            mkdir -p /var/www/autobat/backend/uploads/logos
+            # Nginx: proxy /uploads vers backend (plus fiable que alias statique)
+            if [ -f /etc/nginx/sites-available/autobat ]; then
+              if grep -q "location /uploads" /etc/nginx/sites-available/autobat; then
+                perl -i -0pe 's|location /uploads \{[^}]*\}|location /uploads {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host \$host;\n    }|s' /etc/nginx/sites-available/autobat
+              else
+                sed -i 's|# Backend API|location /uploads {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n    }\n\n    # Backend API|' /etc/nginx/sites-available/autobat
+              fi
+              nginx -t && nginx -s reload || true
+            fi
             cd /var/www/autobat/backend
             npm ci --production
             # Télécharger le Chrome bundlé Puppeteer si pas encore présent
@@ -67,10 +76,8 @@ jobs:
             node prisma/create-super-admin.js
             node prisma/seed-catalogue-all-tenants.js
             sed -i "s|STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET|" /var/www/autobat/backend/.env
-            # Définir UPLOADS_PATH pour que le backend sauvegarde dans storage/uploads (servi par Nginx)
-            grep -q "^UPLOADS_PATH=" /var/www/autobat/backend/.env && \
-              sed -i "s|^UPLOADS_PATH=.*|UPLOADS_PATH=/var/www/autobat/storage/uploads|" /var/www/autobat/backend/.env || \
-              echo "UPLOADS_PATH=/var/www/autobat/storage/uploads" >> /var/www/autobat/backend/.env
+            # Supprimer UPLOADS_PATH si présent (backend utilise son propre dossier uploads/)
+            sed -i '/^UPLOADS_PATH=/d' /var/www/autobat/backend/.env || true
             pm2 reload ecosystem.config.cjs --env production
             pm2 save
         env:
