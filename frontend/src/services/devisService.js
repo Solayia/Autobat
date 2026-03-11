@@ -46,7 +46,8 @@ const devisService = {
   // Télécharger le PDF
   downloadPDF: async (id) => {
     const response = await api.get(`/devis/${id}/pdf`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      timeout: 60000 // 60s pour la génération PDF Puppeteer
     });
     return response.data;
   },

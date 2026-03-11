@@ -79,22 +79,7 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Bannière Période d'essai */}
-      {tenant?.statut === 'TRIAL' && tenant?.trial_ends_at && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-white px-4 py-2 flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            <span className="font-semibold">Période d'essai</span>
-            <span className="text-amber-100">
-              — Expire le{' '}
-              <strong className="text-white">
-                {new Date(tenant.trial_ends_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-              </strong>
-              {' '}({Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / (1000*60*60*24)))} jours restants)
-            </span>
-          </div>
-        </div>
-      )}
+      {/* Bannière Période d'essai - affichée uniquement dans Paramètres > Abonnement */}
 
       {/* Bannière Impersonation */}
       {isImpersonating && (

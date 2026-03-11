@@ -6,6 +6,7 @@ import {
   Send, CheckCircle, XCircle, Clock, Grid3x3, List, Download, Copy
 } from 'lucide-react';
 import devisService from '../../services/devisService';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function Devis() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function Devis() {
   const [statut, setStatut] = useState('all');
   const [viewMode, setViewMode] = useState('cards');
   const [stats, setStats] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   useEffect(() => {
     loadDevis();
@@ -50,18 +52,39 @@ export default function Devis() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  const handleDelete = async (id, numero) => {
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer le devis "${numero}" ?`)) {
-      return;
-    }
+  const handleDuplicate = (e, id) => {
+    e.stopPropagation();
+    setConfirmDialog({
+      message: `Dupliquer ce devis ? Un nouveau devis BROUILLON sera créé.`,
+      confirmLabel: 'Dupliquer',
+      danger: false,
+      onConfirm: async () => {
+        try {
+          await devisService.duplicateDevis(id);
+          toast.success('Devis dupliqué avec succès');
+          loadDevis();
+        } catch (error) {
+          toast.error(error.response?.data?.message || 'Erreur lors de la duplication');
+        }
+      }
+    });
+  };
 
-    try {
-      await devisService.deleteDevis(id);
-      toast.success('Devis supprimé avec succès');
-      loadDevis();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Erreur lors de la suppression');
-    }
+  const handleDelete = (id, numero) => {
+    setConfirmDialog({
+      message: `Êtes-vous sûr de vouloir supprimer le devis "${numero}" ?`,
+      confirmLabel: 'Supprimer',
+      danger: true,
+      onConfirm: async () => {
+        try {
+          await devisService.deleteDevis(id);
+          toast.success('Devis supprimé avec succès');
+          loadDevis();
+        } catch (error) {
+          toast.error(error.response?.data?.message || 'Erreur lors de la suppression');
+        }
+      }
+    });
   };
 
   const getStatusColor = (status) => {
@@ -360,10 +383,7 @@ export default function Devis() {
                             </button>
                           )}
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // TODO: Dupliquer devis
-                            }}
+                            onClick={(e) => handleDuplicate(e, devis.id)}
                             className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-all duration-200"
                             title="Dupliquer"
                           >
@@ -530,6 +550,8 @@ export default function Devis() {
           </>
         )}
       </div>
+
+      <ConfirmDialog confirm={confirmDialog} onClose={() => setConfirmDialog(null)} />
     </div>
   );
 }

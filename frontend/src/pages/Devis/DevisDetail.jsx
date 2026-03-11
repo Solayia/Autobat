@@ -147,7 +147,7 @@ export default function DevisDetail() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `devis-${devis.numero}.pdf`;
+      a.download = `devis-${devis.numero_devis}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -268,7 +268,7 @@ export default function DevisDetail() {
                   <FileText className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-white mb-1">{devis.numero}</h1>
+                  <h1 className="text-3xl font-bold text-white mb-1">{devis.numero_devis}</h1>
                   <p className="text-green-100 text-lg">{devis.objet || 'Sans objet'}</p>
                 </div>
               </div>

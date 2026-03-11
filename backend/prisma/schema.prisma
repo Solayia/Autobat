@@ -140,8 +140,8 @@ model Client {
   type        String   @default("ENTREPRISE") // ENTREPRISE ou PARTICULIER
   prenom      String?  // Pour les particuliers
   nom         String   // Nom entreprise OU nom de famille
-  email       String
-  telephone   String
+  email       String?
+  telephone   String?
   adresse     String?
   code_postal String?
   ville       String?

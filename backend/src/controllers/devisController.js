@@ -1,6 +1,7 @@
 import prisma from '../config/database.js';
 import logger from '../config/logger.js';
 import puppeteer from 'puppeteer';
+import { getPuppeteerConfig } from '../utils/puppeteerLaunch.js';
 import { sendDevisEmail } from '../services/emailService.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -1023,31 +1024,30 @@ export const downloadPDF = async (req, res, next) => {
     const html = generateDevisPDFHTML(devis, tenant);
 
     // Générer le PDF avec Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    const browser = await puppeteer.launch(getPuppeteerConfig());
 
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '20mm',
-        right: '15mm',
-        bottom: '20mm',
-        left: '15mm'
-      }
-    });
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm'
+        }
+      });
 
-    await browser.close();
-
-    // Retourner le PDF
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=devis-${devis.numero_devis}.pdf`);
-    res.send(pdfBuffer);
+      // Retourner le PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=devis-${devis.numero_devis}.pdf`);
+      res.send(pdfBuffer);
+    } finally {
+      await browser.close();
+    }
   } catch (error) {
     next(error);
   }
@@ -1116,10 +1116,17 @@ export const duplicateDevis = async (req, res, next) => {
         statut: 'BROUILLON',
         lignes: {
           create: originalDevis.lignes.map(ligne => ({
+            type: ligne.type,
             ouvrage_id: ligne.ouvrage_id,
+            parent_ligne_id: null, // Les hiérarchies parent/enfant ne peuvent pas être copiées directement ici
+            description: ligne.description,
             quantite: ligne.quantite,
+            unite: ligne.unite,
             prix_unitaire_ht: ligne.prix_unitaire_ht,
-            montant_ht: ligne.montant_ht
+            montant_ht: ligne.montant_ht,
+            tva_pourcent: ligne.tva_pourcent,
+            montant_ttc: ligne.montant_ttc,
+            ordre: ligne.ordre
           }))
         }
       },

@@ -98,17 +98,17 @@ export default function Dashboard() {
             </div>
             {/* Période selector */}
             <div className="flex gap-2 flex-wrap">
-              {['JOUR', 'SEMAINE', 'MOIS', 'ANNEE'].map((p) => (
+              {[['JOUR', 'Jour'], ['SEMAINE', 'Semaine'], ['MOIS', 'Mois'], ['ANNEE', 'Année']].map(([val, label]) => (
                 <button
-                  key={p}
-                  onClick={() => setPeriode(p)}
+                  key={val}
+                  onClick={() => setPeriode(val)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    periode === p
+                    periode === val
                       ? 'bg-white text-primary-600'
                       : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
                   }`}
                 >
-                  {p.charAt(0) + p.slice(1).toLowerCase()}
+                  {label}
                 </button>
               ))}
             </div>

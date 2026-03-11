@@ -170,7 +170,7 @@ export default function FactureForm() {
                 <option value="">Sélectionner un chantier</option>
                 {chantiersTermines.map((chantier) => (
                   <option key={chantier.id} value={chantier.id}>
-                    {chantier.reference} - {chantier.nom} ({chantier.client?.nom})
+                    {chantier.reference ? `${chantier.reference} - ` : ''}{chantier.nom} ({chantier.client?.nom})
                   </option>
                 ))}
               </select>

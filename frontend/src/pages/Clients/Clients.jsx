@@ -7,6 +7,7 @@ import {
   Grid3x3, List
 } from 'lucide-react';
 import clientService from '../../services/clientService';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function Clients() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function Clients() {
   const [search, setSearch] = useState('');
   const [actif, setActif] = useState('true');
   const [viewMode, setViewMode] = useState('cards'); // 'cards' ou 'table'
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   useEffect(() => {
     loadClients();
@@ -49,11 +51,16 @@ export default function Clients() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  const handleDelete = async (id, nom) => {
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer le client "${nom}" ?`)) {
-      return;
-    }
+  const handleDelete = (id, nom) => {
+    setConfirmDialog({
+      message: `Êtes-vous sûr de vouloir supprimer le client "${nom}" ?`,
+      confirmLabel: 'Supprimer',
+      danger: true,
+      onConfirm: () => doDelete(id)
+    });
+  };
 
+  const doDelete = async (id) => {
     try {
       const result = await clientService.deleteClient(id);
 
@@ -294,7 +301,7 @@ export default function Clients() {
                               e.stopPropagation();
                               navigate(`/clients/${client.id}`);
                             }}
-                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r ${isParticulier ? 'from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800' : 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'} text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg`}
+                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r ${isParticulier ? 'from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800' : 'from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700'} text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg`}
                           >
                             <Eye className="w-4 h-4" />
                             Voir
@@ -464,7 +471,7 @@ export default function Clients() {
                                     e.stopPropagation();
                                     navigate(`/clients/${client.id}`);
                                   }}
-                                  className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-all duration-200"
+                                  className="p-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-600 rounded-lg transition-all duration-200"
                                   title="Voir"
                                 >
                                   <Eye className="w-4 h-4" />
@@ -531,6 +538,8 @@ export default function Clients() {
           </>
         )}
       </div>
+
+      <ConfirmDialog confirm={confirmDialog} onClose={() => setConfirmDialog(null)} />
     </div>
   );
 }

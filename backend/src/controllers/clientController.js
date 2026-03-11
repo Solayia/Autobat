@@ -11,10 +11,10 @@ export const createClient = async (req, res, next) => {
     const tenantId = req.tenantId;
 
     // Validation
-    if (!nom || !email || !telephone) {
+    if (!nom) {
       return res.status(400).json({
         code: 'VALIDATION_ERROR',
-        message: 'Les champs nom, email et téléphone sont obligatoires'
+        message: 'Le champ nom est obligatoire'
       });
     }
 
@@ -26,19 +26,21 @@ export const createClient = async (req, res, next) => {
       });
     }
 
-    // Vérifier email unique pour ce tenant
-    const existingClient = await prisma.client.findFirst({
-      where: {
-        tenant_id: tenantId,
-        email: email
-      }
-    });
-
-    if (existingClient) {
-      return res.status(409).json({
-        code: 'EMAIL_EXISTS',
-        message: 'Un client avec cet email existe déjà'
+    // Vérifier email unique pour ce tenant (seulement si email fourni)
+    if (email) {
+      const existingClient = await prisma.client.findFirst({
+        where: {
+          tenant_id: tenantId,
+          email: email
+        }
       });
+
+      if (existingClient) {
+        return res.status(409).json({
+          code: 'EMAIL_EXISTS',
+          message: 'Un client avec cet email existe déjà'
+        });
+      }
     }
 
     // Créer le client

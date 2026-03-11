@@ -78,13 +78,13 @@ export default function ClientForm() {
 
     // Validation selon le type
     if (formData.type === 'ENTREPRISE') {
-      if (!formData.nom || !formData.email || !formData.telephone) {
-        toast.error('Les champs nom d\'entreprise, email et téléphone sont obligatoires');
+      if (!formData.nom) {
+        toast.error('Le nom d\'entreprise est obligatoire');
         return;
       }
     } else {
-      if (!formData.prenom || !formData.nom || !formData.email || !formData.telephone) {
-        toast.error('Les champs prénom, nom, email et téléphone sont obligatoires');
+      if (!formData.prenom || !formData.nom) {
+        toast.error('Les champs prénom et nom sont obligatoires');
         return;
       }
     }

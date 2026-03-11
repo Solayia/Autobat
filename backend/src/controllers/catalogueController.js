@@ -164,8 +164,7 @@ export const createOuvrage = async (req, res, next) => {
         prix_unitaire_ht,
         temps_estime_minutes: temps_estime_minutes || 60,
         temps_reel_moyen: 0,
-        nb_chantiers_realises: 0,
-        personnalise: true
+        nb_chantiers_realises: 0
       }
     });
 
@@ -208,21 +207,12 @@ export const updateOuvrage = async (req, res, next) => {
       });
     }
 
-    // Seuls les ouvrages personnalisés peuvent être modifiés
-    if (!ouvrage.personnalise) {
-      return res.status(400).json({
-        code: 'OUVRAGE_NOT_EDITABLE',
-        message: 'Seuls les ouvrages personnalisés peuvent être modifiés'
-      });
-    }
-
     const updatedOuvrage = await prisma.ouvrage.update({
       where: { id },
       data: {
         ...(code && { code }),
         ...(categorie && { categorie }),
         ...(denomination && { denomination }),
-        ...(description !== undefined && { description }),
         ...(unite && { unite }),
         ...(prix_unitaire_ht !== undefined && { prix_unitaire_ht }),
         ...(temps_estime_minutes !== undefined && { temps_estime_minutes })

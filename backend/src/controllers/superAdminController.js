@@ -42,6 +42,7 @@ export const getStats = async (req, res, next) => {
     const [
       totalTenants,
       tenantsActifs,
+      tenantsSuspendus,
       newTenantsThisMonth,
       newTenantsLastMonth,
       nouveaux7j,
@@ -60,6 +61,7 @@ export const getStats = async (req, res, next) => {
       Promise.all([
         prisma.tenant.count({ where: { siret: { not: '00000000000000' } } }),
         prisma.tenant.count({ where: { statut: 'ACTIF', siret: { not: '00000000000000' } } }),
+        prisma.tenant.count({ where: { statut: 'SUSPENDU', siret: { not: '00000000000000' } } }),
         prisma.tenant.count({ where: { date_inscription: { gte: startOfMonth }, siret: { not: '00000000000000' } } }),
         prisma.tenant.count({ where: { date_inscription: { gte: startOfLastMonth, lte: endOfLastMonth }, siret: { not: '00000000000000' } } }),
         prisma.tenant.count({ where: { date_inscription: { gte: last7Days }, siret: { not: '00000000000000' } } }),
@@ -93,7 +95,12 @@ export const getStats = async (req, res, next) => {
     const facturesAgg = await withSuperAdmin(() =>
       prisma.facture.aggregate({
         _sum: { montant_ttc: true },
-        where: { statut_facture: { in: ['ENVOYEE', 'PAYEE'] } }
+        where: {
+          OR: [
+            { statut_facture: { in: ['ENVOYEE', 'PAYEE'] } },
+            { statut_paiement: { in: ['PARTIEL', 'PAYE'] } }
+          ]
+        }
       })
     );
 
@@ -173,7 +180,7 @@ export const getStats = async (req, res, next) => {
       tenants: {
         total: totalTenants,
         actifs: tenantsActifs,
-        suspendus: totalTenants - tenantsActifs,
+        suspendus: tenantsSuspendus,
         nouveaux_ce_mois: newTenantsThisMonth,
         nouveaux_mois_dernier: newTenantsLastMonth,
         nouveaux_7j: nouveaux7j,

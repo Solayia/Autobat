@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Package, Hash, Tag, FileText, DollarSign, Clock, Save, X, TrendingUp, TrendingDown, Activity, Loader2, Trash2, History } from 'lucide-react';
 import catalogueService from '../../services/catalogueService';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function CatalogueForm() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function CatalogueForm() {
   const [loading, setLoading] = useState(false);
   const [loadingOuvrage, setLoadingOuvrage] = useState(isEdit);
   const [ouvrageData, setOuvrageData] = useState(null); // données auto-learning
+  const [confirmDialog, setConfirmDialog] = useState(null);
   const [formData, setFormData] = useState({
     code: '',
     categorie: '',
@@ -104,15 +106,21 @@ export default function CatalogueForm() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Supprimer cet ouvrage ? Cette action est irréversible.')) return;
-    try {
-      await catalogueService.deleteOuvrage(id);
-      toast.success('Ouvrage supprimé');
-      navigate('/catalogue');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Erreur lors de la suppression');
-    }
+  const handleDelete = () => {
+    setConfirmDialog({
+      message: 'Supprimer cet ouvrage ? Cette action est irréversible.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+      onConfirm: async () => {
+        try {
+          await catalogueService.deleteOuvrage(id);
+          toast.success('Ouvrage supprimé');
+          navigate('/catalogue');
+        } catch (error) {
+          toast.error(error.response?.data?.message || 'Erreur lors de la suppression');
+        }
+      }
+    });
   };
 
   // Calcul info auto-learning
@@ -455,6 +463,8 @@ export default function CatalogueForm() {
           </button>
         </div>
       </form>
+
+      <ConfirmDialog confirm={confirmDialog} onClose={() => setConfirmDialog(null)} />
     </div>
   );
 }

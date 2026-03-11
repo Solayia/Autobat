@@ -48,11 +48,20 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           envs: STRIPE_WEBHOOK_SECRET
           script: |
+            # Installer Chrome si absent (requis pour Puppeteer PDF)
+            if ! which google-chrome-stable &>/dev/null; then
+              apt-get update -qq
+              apt-get install -y -q google-chrome-stable \
+                libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+                libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 \
+                libxrandr2 libgbm1 libasound2 || true
+            fi
             cd /var/www/autobat/backend
             npm ci --production
             npx prisma generate
             npx prisma db push
             node prisma/create-super-admin.js
+            node prisma/seed-catalogue-all-tenants.js
             sed -i "s|STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET|" /var/www/autobat/backend/.env
             pm2 reload ecosystem.config.cjs --env production
             pm2 save

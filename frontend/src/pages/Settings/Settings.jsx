@@ -202,7 +202,8 @@ export default function Settings() {
 
     try {
       setSaving(true);
-      await settingsService.updateSettings(settings);
+      const updatedTenant = await settingsService.updateSettings(settings);
+      setTenant(updatedTenant); // Mettre à jour le store pour refléter dans la sidebar
       toast.success('Paramètres enregistrés avec succès');
     } catch (error) {
       console.error('Erreur sauvegarde paramètres:', error);
@@ -534,6 +535,8 @@ export default function Settings() {
                 </label>
                 <input
                   type="text"
+                  name="organization"
+                  autoComplete="organization"
                   value={settings.nom}
                   onChange={(e) => setSettings({ ...settings, nom: e.target.value })}
                   required
@@ -547,6 +550,8 @@ export default function Settings() {
                 </label>
                 <input
                   type="text"
+                  name="siret"
+                  autoComplete="off"
                   value={settings.siret}
                   onChange={(e) => setSettings({ ...settings, siret: e.target.value })}
                   required
@@ -561,6 +566,8 @@ export default function Settings() {
                 </label>
                 <input
                   type="email"
+                  name="company-email"
+                  autoComplete="email"
                   value={settings.email}
                   onChange={(e) => setSettings({ ...settings, email: e.target.value })}
                   required

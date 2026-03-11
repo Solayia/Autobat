@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import api from '../../services/api';
 import useAuthStore from '../../stores/authStore';
 import MapTab from './MapTab';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart2 },
@@ -50,6 +51,7 @@ export default function SuperAdmin() {
   const [statutFilter, setStatutFilter] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   // Pricing
   const [pricing, setPricing] = useState({ prix_base: 100, prix_par_compte: 20, exemples: [] });
@@ -122,27 +124,39 @@ export default function SuperAdmin() {
     } catch { toast.error('Erreur détail tenant'); }
   };
 
-  const toggleStatut = async (tenant) => {
+  const toggleStatut = (tenant) => {
     const newStatut = tenant.statut === 'ACTIF' ? 'SUSPENDU' : 'ACTIF';
-    if (!window.confirm(`${newStatut === 'SUSPENDU' ? 'Suspendre' : 'Réactiver'} "${tenant.nom}" ?`)) return;
-    try {
-      await api.patch(`/super-admin/tenants/${tenant.id}/statut`, { statut: newStatut });
-      toast.success(`Compte ${newStatut === 'ACTIF' ? 'réactivé' : 'suspendu'}`);
-      loadTenants();
-      if (selectedTenant?.id === tenant.id) setSelectedTenant(t => ({ ...t, statut: newStatut }));
-    } catch { toast.error('Erreur'); }
+    setConfirmDialog({
+      message: `${newStatut === 'SUSPENDU' ? 'Suspendre' : 'Réactiver'} "${tenant.nom}" ?`,
+      confirmLabel: newStatut === 'SUSPENDU' ? 'Suspendre' : 'Réactiver',
+      danger: newStatut === 'SUSPENDU',
+      onConfirm: async () => {
+        try {
+          await api.patch(`/super-admin/tenants/${tenant.id}/statut`, { statut: newStatut });
+          toast.success(`Compte ${newStatut === 'ACTIF' ? 'réactivé' : 'suspendu'}`);
+          loadTenants();
+          if (selectedTenant?.id === tenant.id) setSelectedTenant(t => ({ ...t, statut: newStatut }));
+        } catch { toast.error('Erreur'); }
+      }
+    });
   };
 
-  const handleDelete = async (tenant) => {
-    if (!window.confirm(`⚠️ SUPPRIMER DÉFINITIVEMENT "${tenant.nom}" ?\n\nToutes les données seront perdues. Action IRRÉVERSIBLE.`)) return;
-    const confirm2 = window.prompt(`Tapez exactement : "${tenant.nom}"`);
-    if (confirm2 !== tenant.nom) { toast.error('Nom incorrect — suppression annulée'); return; }
-    try {
-      await api.delete(`/super-admin/tenants/${tenant.id}`);
-      toast.success('Compte supprimé');
-      setSelectedTenant(null);
-      loadTenants(); loadStats();
-    } catch { toast.error('Erreur suppression'); }
+  const handleDelete = (tenant) => {
+    setConfirmDialog({
+      title: 'Suppression définitive',
+      message: `⚠️ Supprimer définitivement "${tenant.nom}" ? Toutes les données seront perdues. Action IRRÉVERSIBLE.`,
+      confirmLabel: 'Supprimer définitivement',
+      danger: true,
+      requireText: tenant.nom,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/super-admin/tenants/${tenant.id}`);
+          toast.success('Compte supprimé');
+          setSelectedTenant(null);
+          loadTenants(); loadStats();
+        } catch { toast.error('Erreur suppression'); }
+      }
+    });
   };
 
   const handleImpersonate = async (tenant) => {
@@ -170,12 +184,18 @@ export default function SuperAdmin() {
     }
   };
 
-  const clearLogs = async () => {
-    if (!window.confirm('Vider les logs ?')) return;
-    try {
-      await api.delete('/super-admin/logs', { params: { type: logsType } });
-      toast.success('Logs vidés'); setLogs([]);
-    } catch { toast.error('Erreur'); }
+  const clearLogs = () => {
+    setConfirmDialog({
+      message: 'Vider les logs système ?',
+      confirmLabel: 'Vider',
+      danger: false,
+      onConfirm: async () => {
+        try {
+          await api.delete('/super-admin/logs', { params: { type: logsType } });
+          toast.success('Logs vidés'); setLogs([]);
+        } catch { toast.error('Erreur'); }
+      }
+    });
   };
 
   const loadPricing = async () => {
@@ -230,13 +250,19 @@ export default function SuperAdmin() {
     } catch { toast.error('Erreur'); }
   };
 
-  const deletePromoCode = async (id, code) => {
-    if (!window.confirm(`Supprimer le code "${code}" ?`)) return;
-    try {
-      await api.delete(`/super-admin/promo-codes/${id}`);
-      toast.success('Code supprimé');
-      setPromoCodes(prev => prev.filter(c => c.id !== id));
-    } catch { toast.error('Erreur'); }
+  const deletePromoCode = (id, code) => {
+    setConfirmDialog({
+      message: `Supprimer le code promo "${code}" ?`,
+      confirmLabel: 'Supprimer',
+      danger: true,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/super-admin/promo-codes/${id}`);
+          toast.success('Code supprimé');
+          setPromoCodes(prev => prev.filter(c => c.id !== id));
+        } catch { toast.error('Erreur'); }
+      }
+    });
   };
 
   // ─── Ventes / CRM ───────────────────────────────────────────
@@ -288,13 +314,19 @@ export default function SuperAdmin() {
     } catch { toast.error('Erreur'); }
   };
 
-  const deleteLead = async (id, nom) => {
-    if (!window.confirm(`Supprimer "${nom}" ?`)) return;
-    try {
-      await api.delete(`/super-admin/sales/leads/${id}`);
-      toast.success('Lead supprimé');
-      loadLeads(); loadSalesStats();
-    } catch { toast.error('Erreur'); }
+  const deleteLead = (id, nom) => {
+    setConfirmDialog({
+      message: `Supprimer le lead "${nom}" ?`,
+      confirmLabel: 'Supprimer',
+      danger: true,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/super-admin/sales/leads/${id}`);
+          toast.success('Lead supprimé');
+          loadLeads(); loadSalesStats();
+        } catch { toast.error('Erreur'); }
+      }
+    });
   };
 
   const openEditLead = (lead) => {
@@ -1324,6 +1356,8 @@ export default function SuperAdmin() {
 
         </div>
       </div>
+
+      <ConfirmDialog confirm={confirmDialog} onClose={() => setConfirmDialog(null)} />
     </div>
   );
 }

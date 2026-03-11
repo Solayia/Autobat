@@ -10,6 +10,7 @@ import {
   verifyRefreshToken
 } from '../utils/jwt.js';
 import { validatePassword } from '../utils/passwordValidator.js';
+import { seedCatalogueForTenant } from '../utils/seedCatalogue.js';
 
 /**
  * POST /api/auth/register
@@ -115,6 +116,9 @@ export const register = async (req, res, next) => {
 
     // Restaurer le tenant_id global
     global.currentTenantId = tempTenantId;
+
+    // Seeder le catalogue Syla pour le nouveau tenant (async, non bloquant)
+    seedCatalogueForTenant(result.tenant.id).catch(() => {});
 
     logger.info('Nouvelle inscription:', {
       tenant_id: result.tenant.id,

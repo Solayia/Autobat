@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import { getPuppeteerConfig } from './puppeteerLaunch.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -279,10 +280,7 @@ function generateFactureHTML(facture) {
  * Génère un PDF à partir d'une facture
  */
 export async function generateFacturePDF(facture) {
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  const browser = await puppeteer.launch(getPuppeteerConfig());
 
   try {
     const page = await browser.newPage();
