@@ -108,7 +108,13 @@ export default function ClientForm() {
 
       navigate('/clients');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Erreur lors de l\'enregistrement');
+      const data = error.response?.data;
+      const details = data?.details;
+      if (details?.length) {
+        toast.error(details.map(d => d.message).join(' · '));
+      } else {
+        toast.error(data?.message || data?.error || 'Erreur lors de l\'enregistrement');
+      }
     } finally {
       setLoading(false);
     }

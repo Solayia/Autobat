@@ -185,7 +185,7 @@ export const validateSearch = () =>
  * Validation création client
  */
 export const validateCreateClient = [
-  validateName('nom', 1, 100),
+  body('nom').trim().isLength({ min: 1, max: 100 }).withMessage('Le nom est obligatoire (max 100 caractères)').escape(),
   body('email').optional({ checkFalsy: true }).trim().isEmail().withMessage('Email invalide').normalizeEmail().isLength({ max: 255 }),
   validatePhone('telephone', false),
   validateEnum('type', ['PARTICULIER', 'ENTREPRISE']),
