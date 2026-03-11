@@ -49,7 +49,7 @@ export const validatePhone = (field = 'telephone', required = true) => {
     .withMessage('Numéro de téléphone français invalide')
     .customSanitizer(value => value.replace(/[\s.-]/g, ''));
 
-  return required ? validator : validator.optional();
+  return required ? validator : validator.optional({ checkFalsy: true });
 };
 
 /**
