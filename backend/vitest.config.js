@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    include: ['tests/**/*.test.js'],
     globalSetup: './tests/globalSetup.js',
     setupFiles: ['./tests/envSetup.js'],
     fileParallelism: false,

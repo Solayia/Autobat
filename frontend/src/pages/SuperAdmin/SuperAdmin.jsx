@@ -1409,11 +1409,16 @@ export default function SuperAdmin() {
 
               {testResults?.results && (() => {
                 const r = testResults.results;
-                const passed = r.numPassedTests ?? 0;
-                const failed = r.numFailedTests ?? 0;
-                const total = r.numTotalTests ?? 0;
-                const allPassed = failed === 0;
+                // Vitest uses 'name' (not 'testFilePath') and may report 0 counts for skipped suites
+                // Compute counts from assertionResults for accuracy
+                const allAssertions = (r.testResults || []).flatMap(s => s.assertionResults || []);
+                const passed = allAssertions.filter(t => t.status === 'passed').length || r.numPassedTests || 0;
+                const failed = allAssertions.filter(t => t.status === 'failed').length || r.numFailedTests || 0;
+                const total = allAssertions.length || r.numTotalTests || 0;
+                const allPassed = failed === 0 && total > 0;
                 const duration = testResults.duration ? `${(testResults.duration / 1000).toFixed(1)}s` : '';
+                // Only show suites that have assertions
+                const suitesWithTests = (r.testResults || []).filter(s => (s.assertionResults || []).length > 0);
                 return (
                   <div className="space-y-3">
                     <div className={`rounded-xl p-4 border flex items-center gap-4 ${allPassed ? 'bg-green-900/20 border-green-800' : 'bg-red-900/20 border-red-800'}`}>
@@ -1423,15 +1428,16 @@ export default function SuperAdmin() {
                       }
                       <div className="flex-1">
                         <p className={`font-semibold ${allPassed ? 'text-green-300' : 'text-red-300'}`}>
-                          {allPassed ? 'Tous les tests passent ✓' : `${failed} test(s) échoué(s)`}
+                          {allPassed ? 'Tous les tests passent ✓' : failed > 0 ? `${failed} test(s) échoué(s)` : 'Aucun test exécuté'}
                         </p>
                         <p className="text-sm text-gray-400">{passed}/{total} tests réussis {duration && `• ${duration}`}</p>
                       </div>
                     </div>
 
-                    {(r.testResults || []).map((suite, si) => {
-                      const suiteName = suite.testFilePath?.split('/').pop()?.replace('.test.js', '') || `Suite ${si + 1}`;
-                      const suiteFailed = suite.status === 'failed';
+                    {suitesWithTests.map((suite, si) => {
+                      // Vitest JSON uses 'name' field (not 'testFilePath')
+                      const suiteName = (suite.name || suite.testFilePath || '').split('/').pop()?.replace('.test.js', '') || `Suite ${si + 1}`;
+                      const suiteFailed = (suite.assertionResults || []).some(t => t.status === 'failed');
                       return (
                         <div key={si} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
                           <div className={`px-4 py-2.5 flex items-center gap-2 border-b border-gray-800 ${suiteFailed ? 'bg-red-900/10' : 'bg-green-900/10'}`}>
