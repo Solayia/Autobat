@@ -3,10 +3,11 @@ import toast from 'react-hot-toast';
 import {
   Activity, MapPin, Clock, User, Plus, Navigation,
   Wifi, WifiOff, RefreshCw, AlertCircle, CheckCircle2,
-  ChevronLeft, Loader2, PauseCircle, StopCircle, X, LogOut
+  ChevronLeft, Loader2, PauseCircle, StopCircle, X, LogOut, PlayCircle
 } from 'lucide-react';
 import badgeageService from '../../services/badgeageService';
 import tacheService from '../../services/tacheService';
+import useAuthStore from '../../stores/authStore';
 
 // ─── Utilitaires ───────────────────────────────────────────────────────────────
 
@@ -37,6 +38,9 @@ function formatHeure(isoString) {
 // ─── Composant principal ───────────────────────────────────────────────────────
 
 export default function BadgeagesTab({ chantierId, chantier }) {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'COMPANY_ADMIN' || user?.role === 'MANAGER';
+
   // ── État GPS & réseau ──────────────────────────────────────────────────────
   const [position, setPosition] = useState(null);
   const [positionError, setPositionError] = useState(null);
@@ -72,10 +76,11 @@ export default function BadgeagesTab({ chantierId, chantier }) {
       const data = await badgeageService.getBadgeagesByChantier(chantierId, filters);
       const list = data.badgeages || [];
       setBadgeages(list);
-      // Détecter si présence en cours
-      const lastPresence = [...list]
-        .filter(b => b.type === 'PRESENCE_DEBUT' || b.type === 'PRESENCE_FIN')
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+      // Détecter si présence en cours (basé sur les badges de l'utilisateur courant)
+      const myPresenceBadges = [...list]
+        .filter(b => (b.type === 'PRESENCE_DEBUT' || b.type === 'PRESENCE_FIN') && b.employe?.user?.id === user?.id)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const lastPresence = myPresenceBadges[0];
       if (lastPresence?.type === 'PRESENCE_DEBUT') {
         setBadgeActuel('PRESENCE_DEBUT');
         setHeureDebut(lastPresence.timestamp);
@@ -88,7 +93,7 @@ export default function BadgeagesTab({ chantierId, chantier }) {
     } finally {
       setLoadingHistory(false);
     }
-  }, [chantierId, filters]);
+  }, [chantierId, filters, user?.id]);
 
   const loadTaches = useCallback(async () => {
     try {
@@ -129,7 +134,6 @@ export default function BadgeagesTab({ chantierId, chantier }) {
       }
       await loadBadgeages();
     } catch { /* silencieux */ } finally {
-      // Cooldown 15s pour éviter les déclenchements répétés
       setTimeout(() => { autobaggingRef.current = false; }, 15000);
     }
   }, [chantierId, loadBadgeages, updatePendingCount]);
@@ -142,7 +146,6 @@ export default function BadgeagesTab({ chantierId, chantier }) {
     if (!position || !chantier?.latitude || !chantier?.longitude) return;
     const dist = haversineDistance(position.latitude, position.longitude, chantier.latitude, chantier.longitude);
     const hours = isWithinBadgingHours();
-
     if (dist <= rayon && !isEnCours && hours) {
       triggerAutoBadge('PRESENCE_DEBUT', position);
     } else if (dist > rayon * 2 && isEnCours) {
@@ -176,19 +179,13 @@ export default function BadgeagesTab({ chantierId, chantier }) {
     loadTaches();
     updatePendingCount();
 
-    // Horloge horaires
     const hourInterval = setInterval(() => setWithinHours(isWithinBadgingHours()), 60000);
 
-    // Géolocalisation continue (watchPosition pour l'auto-badge)
     let watchId = null;
     if (navigator.geolocation) {
       watchId = navigator.geolocation.watchPosition(
         (pos) => {
-          setPosition({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            precision: Math.round(pos.coords.accuracy)
-          });
+          setPosition({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, precision: Math.round(pos.coords.accuracy) });
           setPositionError(null);
         },
         () => setPositionError('Position GPS indisponible'),
@@ -215,21 +212,48 @@ export default function BadgeagesTab({ chantierId, chantier }) {
     if (isOnline && pendingCount > 0) handleSync();
   }, [isOnline]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Présence & tâche actives ──────────────────────────────────────────────
+  // ── Calcul des tâches actives/pausées ─────────────────────────────────────
 
+  // Dernière action tâche par employé (id → badge)
+  const lastTacheBadgeByEmployee = useMemo(() => {
+    const byEmployee = {};
+    [...badgeages]
+      .filter(b => b.type.startsWith('TACHE_'))
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .forEach(b => {
+        const eId = b.employe?.user?.id;
+        if (eId && !byEmployee[eId]) byEmployee[eId] = b;
+      });
+    return byEmployee;
+  }, [badgeages]);
+
+  // Ma tâche active (DEBUT ou REPRISE)
+  const myActiveTacheBadge = useMemo(() => {
+    const last = lastTacheBadgeByEmployee[user?.id];
+    if (!last) return null;
+    return (last.type === 'TACHE_DEBUT' || last.type === 'TACHE_REPRISE') ? last : null;
+  }, [lastTacheBadgeByEmployee, user?.id]);
+
+  // Ma tâche en pause
+  const myPausedTacheBadge = useMemo(() => {
+    const last = lastTacheBadgeByEmployee[user?.id];
+    if (!last) return null;
+    return last.type === 'TACHE_PAUSE' ? last : null;
+  }, [lastTacheBadgeByEmployee, user?.id]);
+
+  // Présence active de l'utilisateur courant
   const activePresenceBadge = useMemo(() => {
     if (!isEnCours || !heureDebut) return null;
-    return badgeages.find(b => b.type === 'PRESENCE_DEBUT' && b.timestamp === heureDebut) || null;
-  }, [isEnCours, heureDebut, badgeages]);
+    return badgeages.find(b => b.type === 'PRESENCE_DEBUT' && b.timestamp === heureDebut && b.employe?.user?.id === user?.id) || null;
+  }, [isEnCours, heureDebut, badgeages, user?.id]);
 
-  const activeTacheBadge = useMemo(() => {
-    const tacheBadges = badgeages
-      .filter(b => b.type.startsWith('TACHE_'))
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    if (!tacheBadges.length) return null;
-    const last = tacheBadges[0];
-    return (last.type === 'TACHE_DEBUT' || last.type === 'TACHE_REPRISE') ? last : null;
-  }, [badgeages]);
+  // Toutes les tâches actives ou en pause (pour vue admin)
+  const allActiveTachesByEmployee = useMemo(() => {
+    if (!isAdmin) return [];
+    return Object.values(lastTacheBadgeByEmployee).filter(
+      b => b.type === 'TACHE_DEBUT' || b.type === 'TACHE_REPRISE' || b.type === 'TACHE_PAUSE'
+    );
+  }, [isAdmin, lastTacheBadgeByEmployee]);
 
   // ── Handlers modal ────────────────────────────────────────────────────────
 
@@ -240,6 +264,11 @@ export default function BadgeagesTab({ chantierId, chantier }) {
   };
 
   const submitBadge = async (type, tacheId = null) => {
+    // Bloquer le départ si une tâche est en cours
+    if (type === 'PRESENCE_FIN' && myActiveTacheBadge) {
+      toast.error('Terminez ou mettez en pause votre tâche avant de quitter le chantier');
+      return;
+    }
     setSubmitting(true);
     try {
       await badgeageService.createBadgeage(chantierId, {
@@ -267,6 +296,33 @@ export default function BadgeagesTab({ chantierId, chantier }) {
     }
   };
 
+  // Admin : agir sur le badge d'un autre employé
+  const adminSubmitBadge = async (type, employeId, tacheId = null) => {
+    setSubmitting(true);
+    try {
+      await badgeageService.adminCreateBadgeage(chantierId, {
+        type,
+        employe_id: employeId,
+        tache_id: tacheId || '',
+        latitude: position?.latitude?.toFixed(6) || '',
+        longitude: position?.longitude?.toFixed(6) || '',
+        precision_metres: position?.precision || ''
+      });
+      const labels = {
+        PRESENCE_FIN: 'Départ enregistré',
+        TACHE_PAUSE: 'Pause enregistrée',
+        TACHE_FIN: 'Fin de tâche enregistrée',
+        TACHE_REPRISE: 'Reprise enregistrée',
+      };
+      toast.success(labels[type] || 'Badgeage enregistré');
+      await loadBadgeages();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Erreur');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSelectExistingTache = async (tacheId) => {
     await submitBadge('TACHE_DEBUT', tacheId);
   };
@@ -282,13 +338,6 @@ export default function BadgeagesTab({ chantierId, chantier }) {
       toast.error(error.response?.data?.message || 'Erreur lors de la création de la tâche');
       setSubmitting(false);
     }
-  };
-
-  // ── Handlers actions inline ───────────────────────────────────────────────
-
-  const handleTacheAction = async (type) => {
-    if (!activeTacheBadge) return;
-    await submitBadge(type, activeTacheBadge.tache?.id || activeTacheBadge.tache_id || null);
   };
 
   // ── Helpers affichage ─────────────────────────────────────────────────────
@@ -324,7 +373,6 @@ export default function BadgeagesTab({ chantierId, chantier }) {
     <div>
       {/* ─── Barre de statut compacte ─── */}
       <div className="flex flex-wrap items-center gap-3 mb-5 p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs">
-        {/* En cours */}
         {isEnCours ? (
           <div className="flex items-center gap-1.5 text-green-700 font-medium">
             <CheckCircle2 className="w-4 h-4" />
@@ -339,7 +387,6 @@ export default function BadgeagesTab({ chantierId, chantier }) {
 
         <div className="h-4 w-px bg-gray-300" />
 
-        {/* GPS */}
         <div className="flex items-center gap-1 text-gray-500">
           <MapPin className="w-3.5 h-3.5" />
           {positionError ? (
@@ -353,13 +400,11 @@ export default function BadgeagesTab({ chantierId, chantier }) {
 
         <div className="h-4 w-px bg-gray-300" />
 
-        {/* Online/offline */}
         <div className={`flex items-center gap-1 font-medium ${isOnline ? 'text-green-700' : 'text-red-600'}`}>
           {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
           {isOnline ? 'En ligne' : 'Hors ligne'}
         </div>
 
-        {/* Badges offline */}
         {pendingCount > 0 && (
           <>
             <div className="h-4 w-px bg-gray-300" />
@@ -371,7 +416,6 @@ export default function BadgeagesTab({ chantierId, chantier }) {
           </>
         )}
 
-        {/* Horaires hors plage */}
         {!withinHours && (
           <>
             <div className="h-4 w-px bg-gray-300" />
@@ -382,26 +426,126 @@ export default function BadgeagesTab({ chantierId, chantier }) {
           </>
         )}
 
-        {/* Tâche active */}
-        {activeTacheBadge && (
+        {/* Ma tâche active dans la barre */}
+        {myActiveTacheBadge && (
           <>
             <div className="h-4 w-px bg-gray-300" />
             <div className="flex items-center gap-2">
               <span className="text-blue-700 font-medium">
-                ▶ {activeTacheBadge.tache?.nom || 'Tâche en cours'}
+                ▶ {myActiveTacheBadge.tache?.nom || 'Tâche en cours'}
               </span>
-              <button onClick={() => handleTacheAction('TACHE_PAUSE')} disabled={submitting}
+              <button onClick={() => submitBadge('TACHE_PAUSE', myActiveTacheBadge.tache?.id || myActiveTacheBadge.tache_id)} disabled={submitting}
                 className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full hover:bg-orange-200 disabled:opacity-50">
                 <PauseCircle className="w-3 h-3" /> Pause
               </button>
-              <button onClick={() => handleTacheAction('TACHE_FIN')} disabled={submitting}
+              <button onClick={() => submitBadge('TACHE_FIN', myActiveTacheBadge.tache?.id || myActiveTacheBadge.tache_id)} disabled={submitting}
                 className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 disabled:opacity-50">
                 <StopCircle className="w-3 h-3" /> Fin
               </button>
             </div>
           </>
         )}
+
+        {/* Ma tâche en pause dans la barre */}
+        {myPausedTacheBadge && !myActiveTacheBadge && (
+          <>
+            <div className="h-4 w-px bg-gray-300" />
+            <div className="flex items-center gap-2">
+              <span className="text-orange-600 font-medium">
+                ⏸ {myPausedTacheBadge.tache?.nom || 'Tâche en pause'}
+              </span>
+              <button onClick={() => submitBadge('TACHE_REPRISE', myPausedTacheBadge.tache?.id || myPausedTacheBadge.tache_id)} disabled={submitting}
+                className="flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 disabled:opacity-50">
+                <PlayCircle className="w-3 h-3" /> Reprendre
+              </button>
+              <button onClick={() => submitBadge('TACHE_FIN', myPausedTacheBadge.tache?.id || myPausedTacheBadge.tache_id)} disabled={submitting}
+                className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 disabled:opacity-50">
+                <StopCircle className="w-3 h-3" /> Terminer
+              </button>
+            </div>
+          </>
+        )}
       </div>
+
+      {/* ─── Vue admin : toutes les tâches actives ─── */}
+      {isAdmin && allActiveTachesByEmployee.length > 0 && (
+        <div className="mb-5 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+          <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Tâches en cours — tous les employés ({allActiveTachesByEmployee.length})
+          </h3>
+          <div className="space-y-2">
+            {allActiveTachesByEmployee.map(badge => {
+              const isThisMyBadge = badge.employe?.user?.id === user?.id;
+              const isPaused = badge.type === 'TACHE_PAUSE';
+              const employeId = badge.employe?.id;
+              const tacheId = badge.tache?.id || badge.tache_id;
+              return (
+                <div key={badge.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-blue-200">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className={`text-lg ${isPaused ? 'text-orange-500' : 'text-blue-600'}`}>
+                      {isPaused ? '⏸' : '▶'}
+                    </span>
+                    <span className="font-medium text-gray-800">{badge.tache?.nom || 'Tâche'}</span>
+                    <span className="text-gray-400">·</span>
+                    <span className="text-gray-600">
+                      {badge.employe?.user?.prenom} {badge.employe?.user?.nom}
+                    </span>
+                    {isPaused && (
+                      <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-xs">En pause</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {isPaused ? (
+                      <>
+                        <button
+                          onClick={() => isThisMyBadge
+                            ? submitBadge('TACHE_REPRISE', tacheId)
+                            : adminSubmitBadge('TACHE_REPRISE', employeId, tacheId)
+                          }
+                          disabled={submitting}
+                          className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 disabled:opacity-50">
+                          <PlayCircle className="w-3 h-3" /> Reprendre
+                        </button>
+                        <button
+                          onClick={() => isThisMyBadge
+                            ? submitBadge('TACHE_FIN', tacheId)
+                            : adminSubmitBadge('TACHE_FIN', employeId, tacheId)
+                          }
+                          disabled={submitting}
+                          className="flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs hover:bg-purple-200 disabled:opacity-50">
+                          <StopCircle className="w-3 h-3" /> Terminer
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => isThisMyBadge
+                            ? submitBadge('TACHE_PAUSE', tacheId)
+                            : adminSubmitBadge('TACHE_PAUSE', employeId, tacheId)
+                          }
+                          disabled={submitting}
+                          className="flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs hover:bg-orange-200 disabled:opacity-50">
+                          <PauseCircle className="w-3 h-3" /> Pause
+                        </button>
+                        <button
+                          onClick={() => isThisMyBadge
+                            ? submitBadge('TACHE_FIN', tacheId)
+                            : adminSubmitBadge('TACHE_FIN', employeId, tacheId)
+                          }
+                          disabled={submitting}
+                          className="flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs hover:bg-purple-200 disabled:opacity-50">
+                          <StopCircle className="w-3 h-3" /> Terminer
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ─── Historique ─── */}
       <div className="flex items-center justify-between mb-4">
@@ -469,11 +613,24 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                 {badges.map((badge) => {
                   const tb = getTypeBadge(badge.type);
                   const mb = getMethodeBadge(badge.methode);
-                  const isActiveTache = activeTacheBadge?.id === badge.id;
+                  const badgeUserId = badge.employe?.user?.id;
+                  const isMyBadge = badgeUserId === user?.id;
+                  // Déterminer si ce badge est "actif" pour cet employé
+                  const lastForThisEmployee = lastTacheBadgeByEmployee[badgeUserId];
+                  const isActiveTache = badge.type.startsWith('TACHE_') && lastForThisEmployee?.id === badge.id
+                    && (badge.type === 'TACHE_DEBUT' || badge.type === 'TACHE_REPRISE');
+                  const isPausedTache = badge.type === 'TACHE_PAUSE' && lastForThisEmployee?.id === badge.id;
                   const isActivePresence = activePresenceBadge?.id === badge.id;
+
+                  // Inline actions visibles : pour mes badges OU admin sur n'importe quel badge
+                  const canActOnTache = isActiveTache && (isMyBadge || isAdmin);
+                  const canActOnPause = isPausedTache && (isMyBadge || isAdmin);
+                  const canActOnPresence = isActivePresence && isMyBadge;
+
                   return (
                     <div key={badge.id} className={`bg-white border rounded-lg p-4 transition-colors ${
                       isActiveTache ? 'border-blue-300 bg-blue-50'
+                      : isPausedTache ? 'border-orange-300 bg-orange-50'
                       : isActivePresence ? 'border-green-300 bg-green-50'
                       : 'border-gray-200 hover:border-gray-300'
                     }`}>
@@ -484,14 +641,13 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${tb.color}`}>{tb.label}</span>
                             <span className={`px-2 py-1 rounded border text-xs ${mb.color}`}>{mb.label}</span>
                             {isActiveTache && (
-                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 animate-pulse">
-                                En cours
-                              </span>
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 animate-pulse">En cours</span>
+                            )}
+                            {isPausedTache && (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">En pause</span>
                             )}
                             {isActivePresence && (
-                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 animate-pulse">
-                                En cours
-                              </span>
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 animate-pulse">En cours</span>
                             )}
                           </div>
                           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mt-2">
@@ -514,26 +670,67 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                             )}
                           </div>
 
-                          {/* Action inline pour présence active */}
-                          {isActivePresence && (
+                          {/* Action inline : quitter le chantier */}
+                          {canActOnPresence && (
                             <div className="flex items-center gap-2 mt-3">
-                              <button onClick={() => submitBadge('PRESENCE_FIN')} disabled={submitting}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 disabled:opacity-50">
-                                <LogOut className="w-3.5 h-3.5" /> Quitter le chantier
+                              {myActiveTacheBadge ? (
+                                <span className="text-xs text-red-600 flex items-center gap-1">
+                                  <AlertCircle className="w-3.5 h-3.5" />
+                                  Terminez votre tâche avant de quitter
+                                </span>
+                              ) : (
+                                <button onClick={() => submitBadge('PRESENCE_FIN')} disabled={submitting}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 disabled:opacity-50">
+                                  <LogOut className="w-3.5 h-3.5" /> Quitter le chantier
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Actions inline : tâche active */}
+                          {canActOnTache && (
+                            <div className="flex items-center gap-2 mt-3">
+                              <button
+                                onClick={() => isMyBadge
+                                  ? submitBadge('TACHE_PAUSE', badge.tache?.id || badge.tache_id)
+                                  : adminSubmitBadge('TACHE_PAUSE', badge.employe?.id, badge.tache?.id || badge.tache_id)
+                                }
+                                disabled={submitting}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-xs font-medium hover:bg-orange-200 disabled:opacity-50">
+                                <PauseCircle className="w-3.5 h-3.5" /> Mettre en pause
+                              </button>
+                              <button
+                                onClick={() => isMyBadge
+                                  ? submitBadge('TACHE_FIN', badge.tache?.id || badge.tache_id)
+                                  : adminSubmitBadge('TACHE_FIN', badge.employe?.id, badge.tache?.id || badge.tache_id)
+                                }
+                                disabled={submitting}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-200 disabled:opacity-50">
+                                <StopCircle className="w-3.5 h-3.5" /> Terminer la tâche
                               </button>
                             </div>
                           )}
 
-                          {/* Actions inline pour tâche active */}
-                          {isActiveTache && (
+                          {/* Actions inline : tâche en pause */}
+                          {canActOnPause && (
                             <div className="flex items-center gap-2 mt-3">
-                              <button onClick={() => handleTacheAction('TACHE_PAUSE')} disabled={submitting}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-xs font-medium hover:bg-orange-200 disabled:opacity-50">
-                                <PauseCircle className="w-3.5 h-3.5" /> Mettre en pause
+                              <button
+                                onClick={() => isMyBadge
+                                  ? submitBadge('TACHE_REPRISE', badge.tache?.id || badge.tache_id)
+                                  : adminSubmitBadge('TACHE_REPRISE', badge.employe?.id, badge.tache?.id || badge.tache_id)
+                                }
+                                disabled={submitting}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 disabled:opacity-50">
+                                <PlayCircle className="w-3.5 h-3.5" /> Reprendre
                               </button>
-                              <button onClick={() => handleTacheAction('TACHE_FIN')} disabled={submitting}
+                              <button
+                                onClick={() => isMyBadge
+                                  ? submitBadge('TACHE_FIN', badge.tache?.id || badge.tache_id)
+                                  : adminSubmitBadge('TACHE_FIN', badge.employe?.id, badge.tache?.id || badge.tache_id)
+                                }
+                                disabled={submitting}
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-200 disabled:opacity-50">
-                                <StopCircle className="w-3.5 h-3.5" /> Terminer la tâche
+                                <StopCircle className="w-3.5 h-3.5" /> Terminer
                               </button>
                             </div>
                           )}
@@ -552,8 +749,6 @@ export default function BadgeagesTab({ chantierId, chantier }) {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
-
-            {/* Header */}
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 {modalStep === 'tache' && (
@@ -570,10 +765,9 @@ export default function BadgeagesTab({ chantierId, chantier }) {
               </button>
             </div>
 
-            {/* Step 1: choix de l'action */}
             {modalStep === 'action' && (
               <div className="space-y-3">
-                {/* Arrivée sur chantier */}
+                {/* Arrivée */}
                 <button
                   onClick={() => submitBadge('PRESENCE_DEBUT')}
                   disabled={isEnCours || submitting}
@@ -591,20 +785,33 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                 {/* Début d'une tâche */}
                 <button
                   onClick={() => setModalStep('tache')}
-                  disabled={!isEnCours || submitting}
+                  disabled={!isEnCours || myActiveTacheBadge || submitting}
                   className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-left"
                 >
                   <span className="text-2xl">▶</span>
                   <div>
                     <p className="font-semibold text-blue-800">Début d'une tâche</p>
-                    {!isEnCours && (
-                      <p className="text-xs text-blue-600 mt-0.5">Nécessite une arrivée préalable</p>
-                    )}
-                    {activeTacheBadge && (
-                      <p className="text-xs text-orange-600 mt-0.5">Une tâche est déjà en cours</p>
-                    )}
+                    {!isEnCours && <p className="text-xs text-blue-600 mt-0.5">Nécessite une arrivée préalable</p>}
+                    {myActiveTacheBadge && <p className="text-xs text-orange-600 mt-0.5">Une tâche est déjà en cours — terminez-la d'abord</p>}
                   </div>
                 </button>
+
+                {/* Reprendre une tâche en pause */}
+                {myPausedTacheBadge && !myActiveTacheBadge && (
+                  <button
+                    onClick={() => submitBadge('TACHE_REPRISE', myPausedTacheBadge.tache?.id || myPausedTacheBadge.tache_id)}
+                    disabled={submitting}
+                    className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-orange-200 bg-orange-50 hover:bg-orange-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-left"
+                  >
+                    <span className="text-2xl">▶</span>
+                    <div>
+                      <p className="font-semibold text-orange-800">
+                        Reprendre : {myPausedTacheBadge.tache?.nom || 'Tâche en pause'}
+                      </p>
+                      <p className="text-xs text-orange-600 mt-0.5">Tâche actuellement en pause</p>
+                    </div>
+                  </button>
+                )}
 
                 {submitting && (
                   <div className="flex items-center justify-center gap-2 py-2 text-sm text-gray-500">
@@ -614,10 +821,8 @@ export default function BadgeagesTab({ chantierId, chantier }) {
               </div>
             )}
 
-            {/* Step 2: sélection/création de tâche */}
             {modalStep === 'tache' && (
               <div className="space-y-3">
-                {/* Tâches existantes */}
                 {taches.length > 0 && (
                   <div>
                     <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Tâches existantes</p>
@@ -632,8 +837,6 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                     </div>
                   </div>
                 )}
-
-                {/* Créer une nouvelle tâche */}
                 <div>
                   <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Nouvelle tâche</p>
                   <div className="flex gap-2">

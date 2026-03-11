@@ -220,6 +220,65 @@ export const createBadgeage = async (req, res, next) => {
 };
 
 /**
+ * @desc    Badgeage admin : créer un badge au nom d'un employé
+ * @route   POST /api/chantiers/:chantierId/badgeages/admin
+ * @access  MANAGER, COMPANY_ADMIN
+ */
+export const adminCreateBadgeage = async (req, res, next) => {
+  try {
+    const { chantierId } = req.params;
+    const { type, employe_id, tache_id, latitude, longitude, precision_metres } = req.body;
+    const tenantId = req.tenantId;
+    const userRole = req.userRole;
+
+    if (!['MANAGER', 'COMPANY_ADMIN'].includes(userRole)) {
+      return res.status(403).json({ code: 'FORBIDDEN', message: 'Accès réservé aux managers et admins' });
+    }
+
+    if (!type || !employe_id) {
+      return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'type et employe_id sont obligatoires' });
+    }
+
+    const typesValides = ['PRESENCE_DEBUT', 'PRESENCE_FIN', 'TACHE_DEBUT', 'TACHE_PAUSE', 'TACHE_REPRISE', 'TACHE_FIN'];
+    if (!typesValides.includes(type)) {
+      return res.status(400).json({ code: 'VALIDATION_ERROR', message: `Type invalide` });
+    }
+
+    const chantier = await prisma.chantier.findFirst({ where: { id: chantierId, tenant_id: tenantId } });
+    if (!chantier) return res.status(404).json({ code: 'CHANTIER_NOT_FOUND', message: 'Chantier introuvable' });
+
+    const employe = await prisma.employe.findFirst({ where: { id: employe_id, tenant_id: tenantId } });
+    if (!employe) return res.status(404).json({ code: 'EMPLOYE_NOT_FOUND', message: 'Employé introuvable' });
+
+    const badgeage = await prisma.badgeage.create({
+      data: {
+        tenant_id: tenantId,
+        chantier_id: chantierId,
+        employe_id: employe.id,
+        tache_id: tache_id || null,
+        type,
+        methode: 'MANUEL',
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
+        precision_metres: precision_metres ? parseInt(precision_metres) : null,
+        timestamp: new Date(),
+        synced: true
+      },
+      include: {
+        employe: { include: { user: { select: { id: true, prenom: true, nom: true, email: true } } } },
+        tache: { select: { id: true, nom: true } }
+      }
+    });
+
+    logger.info(`Badgeage admin: ${type} pour employé ${employe_id} sur chantier ${chantierId}`);
+    res.status(201).json(badgeage);
+  } catch (error) {
+    logger.error('Erreur badgeage admin:', error);
+    next(error);
+  }
+};
+
+/**
  * @desc    Synchroniser des badgeages offline (IndexedDB → API)
  * @route   POST /api/badgeages/sync
  * @access  EMPLOYEE, MANAGER, COMPANY_ADMIN

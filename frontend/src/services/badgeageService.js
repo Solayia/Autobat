@@ -14,6 +14,12 @@ const badgeageService = {
     return response.data;
   },
 
+  // Admin : créer un badge au nom d'un employé
+  adminCreateBadgeage: async (chantierId, badgeageData) => {
+    const response = await api.post(`/chantiers/${chantierId}/badgeages/admin`, badgeageData);
+    return response.data;
+  },
+
   // Récupérer les chantiers de l'employé connecté
   getMesChantiers: async () => {
     const response = await api.get('/chantiers/mes-chantiers');
