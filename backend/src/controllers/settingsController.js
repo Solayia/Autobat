@@ -11,7 +11,8 @@ const __dirname = path.dirname(__filename);
 // Configuration de multer pour l'upload de logo
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../../uploads/logos');
+    const uploadsBase = process.env.UPLOADS_PATH || path.join(__dirname, '../../uploads');
+    const uploadDir = path.join(uploadsBase, 'logos');
     // Créer le dossier s'il n'existe pas
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
