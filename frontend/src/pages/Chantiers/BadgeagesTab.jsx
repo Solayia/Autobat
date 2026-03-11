@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import {
   Activity, MapPin, Clock, User, Plus, Navigation,
   Wifi, WifiOff, RefreshCw, AlertCircle, CheckCircle2,
-  ChevronLeft, Loader2, PauseCircle, StopCircle, X
+  ChevronLeft, Loader2, PauseCircle, StopCircle, X, LogOut
 } from 'lucide-react';
 import badgeageService from '../../services/badgeageService';
 import tacheService from '../../services/tacheService';
@@ -215,7 +215,12 @@ export default function BadgeagesTab({ chantierId, chantier }) {
     if (isOnline && pendingCount > 0) handleSync();
   }, [isOnline]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Tâche active ──────────────────────────────────────────────────────────
+  // ── Présence & tâche actives ──────────────────────────────────────────────
+
+  const activePresenceBadge = useMemo(() => {
+    if (!isEnCours || !heureDebut) return null;
+    return badgeages.find(b => b.type === 'PRESENCE_DEBUT' && b.timestamp === heureDebut) || null;
+  }, [isEnCours, heureDebut, badgeages]);
 
   const activeTacheBadge = useMemo(() => {
     const tacheBadges = badgeages
@@ -465,9 +470,12 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                   const tb = getTypeBadge(badge.type);
                   const mb = getMethodeBadge(badge.methode);
                   const isActiveTache = activeTacheBadge?.id === badge.id;
+                  const isActivePresence = activePresenceBadge?.id === badge.id;
                   return (
                     <div key={badge.id} className={`bg-white border rounded-lg p-4 transition-colors ${
-                      isActiveTache ? 'border-blue-300 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                      isActiveTache ? 'border-blue-300 bg-blue-50'
+                      : isActivePresence ? 'border-green-300 bg-green-50'
+                      : 'border-gray-200 hover:border-gray-300'
                     }`}>
                       <div className="flex items-start gap-3">
                         <div className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full text-lg">{tb.icon}</div>
@@ -477,6 +485,11 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                             <span className={`px-2 py-1 rounded border text-xs ${mb.color}`}>{mb.label}</span>
                             {isActiveTache && (
                               <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 animate-pulse">
+                                En cours
+                              </span>
+                            )}
+                            {isActivePresence && (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 animate-pulse">
                                 En cours
                               </span>
                             )}
@@ -500,6 +513,16 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                               </div>
                             )}
                           </div>
+
+                          {/* Action inline pour présence active */}
+                          {isActivePresence && (
+                            <div className="flex items-center gap-2 mt-3">
+                              <button onClick={() => submitBadge('PRESENCE_FIN')} disabled={submitting}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 disabled:opacity-50">
+                                <LogOut className="w-3.5 h-3.5" /> Quitter le chantier
+                              </button>
+                            </div>
+                          )}
 
                           {/* Actions inline pour tâche active */}
                           {isActiveTache && (
