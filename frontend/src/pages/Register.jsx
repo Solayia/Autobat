@@ -88,7 +88,7 @@ export default function Register() {
 
     try {
       const { password_confirm, ...registerData } = formData;
-      await register({ ...registerData, accept_cgu: true });
+      await register({ ...registerData, accept_cgu: true, accept_cgv: true });
       // Rediriger vers Stripe Checkout pour l'abonnement (trial 7j)
       setStripeLoading(true);
       const response = await api.post('/stripe/create-subscription-checkout');
@@ -424,6 +424,10 @@ export default function Register() {
                   J'ai lu et j'accepte les{' '}
                   <Link to="/cgu" target="_blank" className="text-primary-600 hover:text-primary-700 font-medium underline">
                     Conditions Générales d'Utilisation
+                  </Link>
+                  , les{' '}
+                  <Link to="/cgv" target="_blank" className="text-primary-600 hover:text-primary-700 font-medium underline">
+                    Conditions Générales de Vente
                   </Link>{' '}
                   et la{' '}
                   <Link to="/confidentialite" target="_blank" className="text-primary-600 hover:text-primary-700 font-medium underline">

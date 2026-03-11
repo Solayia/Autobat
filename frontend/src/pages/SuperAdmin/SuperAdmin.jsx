@@ -684,6 +684,7 @@ export default function SuperAdmin() {
                         <p className="text-xs text-gray-400 mt-0.5">SIRET: {selectedTenant.siret}</p>
                         <p className="text-xs text-gray-500">Inscrit: {fmt(selectedTenant.date_inscription)}</p>
                         <p className="text-xs text-gray-500">CGU acceptées: {selectedTenant.cgu_accepted_at ? fmt(selectedTenant.cgu_accepted_at) : <span className="text-yellow-400">Non enregistrée</span>}</p>
+                        <p className="text-xs text-gray-500">CGV acceptées: {selectedTenant.cgv_accepted_at ? fmt(selectedTenant.cgv_accepted_at) : <span className="text-yellow-400">Non enregistrée</span>}</p>
                         {selectedTenant.stripe_customer_id && (
                           <a
                             href={`https://dashboard.stripe.com/customers/${selectedTenant.stripe_customer_id}`}

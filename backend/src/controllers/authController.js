@@ -33,7 +33,8 @@ export const register = async (req, res, next) => {
       email,
       password,
       telephone,
-      accept_cgu
+      accept_cgu,
+      accept_cgv
     } = req.body;
 
     // Validation basique
@@ -85,7 +86,8 @@ export const register = async (req, res, next) => {
           email: entreprise_email,
           plan: 'STARTER',
           statut: 'PENDING',
-          cgu_accepted_at: accept_cgu ? new Date() : null
+          cgu_accepted_at: accept_cgu ? new Date() : null,
+          cgv_accepted_at: accept_cgv ? new Date() : null
         }
       });
 
