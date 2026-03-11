@@ -46,7 +46,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: STRIPE_WEBHOOK_SECRET
+          envs: STRIPE_WEBHOOK_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
           script: |
             # Installer les dépendances système pour Chrome (Ubuntu 24.04 - libasound2t64 requis)
             apt-get update -qq || true
@@ -76,9 +76,27 @@ jobs:
             node prisma/create-super-admin.js
             node prisma/seed-catalogue-all-tenants.js
             sed -i "s|STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET|" /var/www/autobat/backend/.env
+            # Google OAuth2 credentials
+            if grep -q "GOOGLE_CLIENT_ID=" /var/www/autobat/backend/.env; then
+              sed -i "s|GOOGLE_CLIENT_ID=.*|GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID|" /var/www/autobat/backend/.env
+            else
+              echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> /var/www/autobat/backend/.env
+            fi
+            if grep -q "GOOGLE_CLIENT_SECRET=" /var/www/autobat/backend/.env; then
+              sed -i "s|GOOGLE_CLIENT_SECRET=.*|GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET|" /var/www/autobat/backend/.env
+            else
+              echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> /var/www/autobat/backend/.env
+            fi
+            if grep -q "APP_URL=" /var/www/autobat/backend/.env; then
+              sed -i "s|APP_URL=.*|APP_URL=https://autobat.pro|" /var/www/autobat/backend/.env
+            else
+              echo "APP_URL=https://autobat.pro" >> /var/www/autobat/backend/.env
+            fi
             # Supprimer UPLOADS_PATH si présent (backend utilise son propre dossier uploads/)
             sed -i '/^UPLOADS_PATH=/d' /var/www/autobat/backend/.env || true
             pm2 reload ecosystem.config.cjs --env production
             pm2 save
         env:
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
