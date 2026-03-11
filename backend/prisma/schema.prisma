@@ -61,6 +61,7 @@ model Tenant {
   objectif_nb_chantiers_mois  Int?     // Nombre de chantiers terminés/mois cible
   objectif_delai_paiement     Int?     // Délai moyen de paiement cible (jours)
 
+  cgu_accepted_at   DateTime? // Date d'acceptation des CGU (null si inscrit avant cette fonctionnalité)
   date_inscription  DateTime @default(now())
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt

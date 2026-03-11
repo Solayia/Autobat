@@ -88,7 +88,7 @@ export default function Register() {
 
     try {
       const { password_confirm, ...registerData } = formData;
-      await register(registerData);
+      await register({ ...registerData, accept_cgu: true });
       // Rediriger vers Stripe Checkout pour l'abonnement (trial 7j)
       setStripeLoading(true);
       const response = await api.post('/stripe/create-subscription-checkout');
