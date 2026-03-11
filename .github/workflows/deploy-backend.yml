@@ -48,18 +48,18 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           envs: STRIPE_WEBHOOK_SECRET
           script: |
-            # Installer les dépendances système requises par le Chrome bundlé de Puppeteer
-            apt-get update -qq
+            # Installer les dépendances système pour Chrome (Ubuntu 24.04 - libasound2t64 requis)
+            apt-get update -qq || true
             apt-get install -y -q \
-              libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-              libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 \
-              libxrandr2 libgbm1 libasound2 libx11-xcb1 libxcb-dri3-0 \
-              libgconf-2-4 libxss1 libxtst6 fonts-liberation \
-              libappindicator3-1 xdg-utils || true
+              libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
+              libcups2 libdrm2 libxkbcommon0 libxcomposite1 \
+              libxdamage1 libxrandr2 libgbm1 libxss1 libxtst6 \
+              libasound2t64 libx11-xcb1 libxcb-dri3-0 libxfixes3 \
+              libpangocairo-1.0-0 fonts-liberation xdg-utils || true
             cd /var/www/autobat/backend
             npm ci --production
-            # Forcer le téléchargement du Chrome bundlé Puppeteer (évite de dépendre du Chrome système)
-            PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false npx puppeteer browsers install chrome || true
+            # Télécharger le Chrome bundlé Puppeteer si pas encore présent
+            npx puppeteer browsers install chrome || true
             npx prisma generate
             npx prisma db push
             node prisma/create-super-admin.js
