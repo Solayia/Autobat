@@ -56,6 +56,9 @@ jobs:
               libxdamage1 libxrandr2 libgbm1 libxss1 libxtst6 \
               libasound2t64 libx11-xcb1 libxcb-dri3-0 libxfixes3 \
               libpangocairo-1.0-0 fonts-liberation xdg-utils || true
+            # Créer le dossier storage/uploads et symlink vers backend/uploads
+            mkdir -p /var/www/autobat/storage/uploads/logos
+            ln -sfn /var/www/autobat/storage/uploads /var/www/autobat/backend/uploads
             cd /var/www/autobat/backend
             npm ci --production
             # Télécharger le Chrome bundlé Puppeteer si pas encore présent
