@@ -1116,6 +1116,7 @@ export const duplicateDevis = async (req, res, next) => {
         statut: 'BROUILLON',
         lignes: {
           create: originalDevis.lignes.map(ligne => ({
+            tenant_id: tenantId, // Nécessaire: le middleware Prisma n'injecte pas tenant_id dans les nested creates
             type: ligne.type,
             ouvrage_id: ligne.ouvrage_id,
             parent_ligne_id: null, // Les hiérarchies parent/enfant ne peuvent pas être copiées directement ici
