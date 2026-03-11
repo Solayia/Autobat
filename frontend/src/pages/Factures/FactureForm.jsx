@@ -183,7 +183,7 @@ export default function FactureForm() {
                   <p><strong>Client:</strong> {chantierSelected.client?.nom}</p>
                   <p><strong>Adresse:</strong> {chantierSelected.adresse}</p>
                   {chantierSelected.devis && (
-                    <p><strong>Devis source:</strong> {chantierSelected.devis.numero}</p>
+                    <p><strong>Devis source:</strong> {chantierSelected.devis.numero_devis}</p>
                   )}
                 </div>
               </div>

@@ -211,7 +211,7 @@ export default function ChantierForm() {
     setFormData(prev => ({
       ...prev,
       devis_id: devis.id,
-      nom: `Chantier - ${devis.client?.nom || 'Client'}${devis.numero ? ` - ${devis.numero}` : ''}`,
+      nom: `Chantier - ${devis.client?.nom || 'Client'}${devis.numero_devis ? ` - ${devis.numero_devis}` : ''}`,
       adresse: devis.client?.adresse || '',
       code_postal: devis.client?.code_postal || '',
       ville: devis.client?.ville || ''
@@ -986,7 +986,7 @@ export default function ChantierForm() {
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900 mb-1">{devis.numero}</div>
+                          <div className="font-medium text-gray-900 mb-1">{devis.numero_devis}</div>
                           <div className="text-sm text-gray-600">{devis.client?.nom}</div>
                           <div className="text-xs text-gray-500 mt-1">
                             {new Date(devis.created_at).toLocaleDateString('fr-FR')}

@@ -81,7 +81,6 @@ export default function Catalogue() {
 
       if (result.errors.length > 0) {
         toast.error(`${result.skipped} ligne(s) ignorée(s) (voir console)`);
-        console.log('Erreurs d\'import:', result.errors);
       }
 
       if (result.created === 0) {

@@ -214,16 +214,8 @@ export default function Settings() {
   };
 
   const handleLogoUpload = async (e) => {
-    console.log('📸 handleLogoUpload déclenché', e);
-    console.log('📸 Fichiers:', e.target.files);
-
     const file = e.target.files[0];
-    if (!file) {
-      console.log('❌ Aucun fichier sélectionné');
-      return;
-    }
-
-    console.log('✅ Fichier sélectionné:', file.name, file.type, file.size);
+    if (!file) return;
 
     // Vérifier le type de fichier
     if (!file.type.match(/^image\/(jpeg|jpg|png|gif)$/)) {
@@ -239,9 +231,7 @@ export default function Settings() {
 
     try {
       setUploadingLogo(true);
-      console.log('🚀 Début upload...');
       const data = await settingsService.uploadLogo(file);
-      console.log('✅ Upload réussi:', data);
       setSettings({ ...settings, logo_url: data.logo_url });
       toast.success('Logo uploadé avec succès');
     } catch (error) {

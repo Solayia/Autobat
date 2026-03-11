@@ -154,8 +154,6 @@ export default function DevisForm() {
         parent_ligne_id: ligne.parent_ligne_id
       }));
 
-      console.log('📋 Devis chargé:', data);
-      console.log('📦 Lignes chargées:', loadedLignes);
       setLignes(loadedLignes);
     } catch (error) {
       console.error('Erreur chargement devis:', error);

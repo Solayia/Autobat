@@ -475,7 +475,7 @@ export default function ChantierDetail() {
                         >
                           <div className="flex items-center gap-3 mb-2">
                             <FileText className="w-5 h-5 text-blue-600" />
-                            <span className="font-medium text-blue-900">{chantier.devis.numero}</span>
+                            <span className="font-medium text-blue-900">{chantier.devis.numero_devis}</span>
                           </div>
                           <div className="text-sm text-blue-700 mb-2">
                             Montant: {formatCurrency(chantier.devis.montant_ht || 0)} HT
