@@ -152,6 +152,8 @@ export default function Login() {
           <div className="flex justify-center gap-4 text-xs">
             <Link to="/cgu" className="hover:text-white underline">CGU</Link>
             <span>·</span>
+            <Link to="/cgv" className="hover:text-white underline">CGV</Link>
+            <span>·</span>
             <Link to="/mentions-legales" className="hover:text-white underline">Mentions légales</Link>
             <span>·</span>
             <Link to="/confidentialite" className="hover:text-white underline">Confidentialité</Link>
