@@ -8,6 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * Génère le HTML d'une facture
  */
 function generateFactureHTML(facture) {
+  const brandColor = facture.couleur_primaire || '#10B981';
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('fr-FR');
   };
@@ -44,7 +45,7 @@ function generateFactureHTML(facture) {
       justify-content: space-between;
       margin-bottom: 40px;
       padding-bottom: 20px;
-      border-bottom: 3px solid #10B981;
+      border-bottom: 3px solid ${brandColor};
     }
     .company-info {
       flex: 1;
@@ -52,7 +53,7 @@ function generateFactureHTML(facture) {
     .company-name {
       font-size: 20pt;
       font-weight: bold;
-      color: #10B981;
+      color: ${brandColor};
       margin-bottom: 8px;
     }
     .invoice-info {
@@ -80,7 +81,7 @@ function generateFactureHTML(facture) {
     }
     .party-title {
       font-weight: bold;
-      color: #10B981;
+      color: ${brandColor};
       margin-bottom: 8px;
       font-size: 12pt;
     }
@@ -95,7 +96,7 @@ function generateFactureHTML(facture) {
       margin: 30px 0;
     }
     th {
-      background: #10B981;
+      background: ${brandColor};
       color: white;
       padding: 12px 8px;
       text-align: left;
@@ -123,7 +124,7 @@ function generateFactureHTML(facture) {
     .total-row {
       font-size: 14pt;
       font-weight: bold;
-      border-top: 2px solid #10B981;
+      border-top: 2px solid ${brandColor};
     }
     .footer {
       margin-top: 50px;

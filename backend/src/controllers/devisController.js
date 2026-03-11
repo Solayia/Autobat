@@ -772,8 +772,8 @@ function generateDevisPDFHTML(devis, tenant) {
       numero = sectionNumber.toString();
 
       return `
-        <tr style="border-top: 2px solid #F59E0B; border-bottom: 2px solid #F59E0B; background: white;">
-          <td colspan="7" style="padding: 8px 12px; font-weight: 700; font-size: 11px; color: #F59E0B; letter-spacing: 0.8px; text-transform: uppercase;">
+        <tr style="border-top: 2px solid ${brandColor}; border-bottom: 2px solid ${brandColor}; background: white;">
+          <td colspan="7" style="padding: 8px 12px; font-weight: 700; font-size: 11px; color: ${brandColor}; letter-spacing: 0.8px; text-transform: uppercase;">
             <span style="display: inline-block; margin-right: 10px; font-size: 13px; font-weight: 700;">${numero}.</span>${ligne.description}
           </td>
         </tr>
@@ -812,21 +812,21 @@ function generateDevisPDFHTML(devis, tenant) {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; line-height: 1.5; }
         .container { padding: 25px; background: white; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #F59E0B; }
-        .logo { font-size: 22px; font-weight: 700; color: #F59E0B; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid ${brandColor}; }
+        .logo { font-size: 22px; font-weight: 700; color: ${brandColor}; }
         .devis-info { text-align: right; color: #666; }
-        .devis-number { font-size: 16px; font-weight: 700; color: #F59E0B; margin-bottom: 6px; }
+        .devis-number { font-size: 16px; font-weight: 700; color: ${brandColor}; margin-bottom: 6px; }
         .section { margin-bottom: 20px; margin-top: 15px; }
         .section-title {
           background: white;
-          color: #F59E0B;
+          color: ${brandColor};
           padding: 10px 0;
           font-weight: 700;
           margin-bottom: 0;
           font-size: 11px;
           letter-spacing: 1px;
           text-transform: uppercase;
-          border-bottom: 2px solid #F59E0B;
+          border-bottom: 2px solid ${brandColor};
         }
         table {
           width: 100%;
@@ -846,15 +846,15 @@ function generateDevisPDFHTML(devis, tenant) {
           font-weight: 700;
           letter-spacing: 0.5px;
         }
-        .totals { margin-top: 15px; padding: 10px 0; border-top: 2px solid #F59E0B; }
+        .totals { margin-top: 15px; padding: 10px 0; border-top: 2px solid ${brandColor}; }
         .total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 10px; color: #333; }
         .total-final {
           font-size: 14px;
           font-weight: 700;
-          color: #F59E0B;
+          color: ${brandColor};
           padding-top: 8px;
           margin-top: 5px;
-          border-top: 2px solid #F59E0B;
+          border-top: 2px solid ${brandColor};
         }
         .info-box {
           background: #fafafa;
@@ -897,7 +897,7 @@ function generateDevisPDFHTML(devis, tenant) {
 
         <!-- Client -->
         <div class="info-box">
-          <div style="font-weight: bold; margin-bottom: 5px; font-size: 9px; color: #F59E0B;">CLIENT</div>
+          <div style="font-weight: bold; margin-bottom: 5px; font-size: 9px; color: ${brandColor};">CLIENT</div>
           <div class="info-row">
             <div class="info-label">Nom :</div>
             <div>${devis.client.nom}</div>
@@ -921,7 +921,7 @@ function generateDevisPDFHTML(devis, tenant) {
         <!-- Détails du devis -->
         ${devis.objet ? `
         <div class="info-box">
-          <div style="font-weight: bold; margin-bottom: 5px; font-size: 9px; color: #F59E0B;">OBJET</div>
+          <div style="font-weight: bold; margin-bottom: 5px; font-size: 9px; color: ${brandColor};">OBJET</div>
           <div style="font-size: 9px;">${devis.objet}</div>
         </div>` : ''}
 
@@ -964,7 +964,7 @@ function generateDevisPDFHTML(devis, tenant) {
 
         <!-- Conditions -->
         <div style="margin-top: 20px; page-break-inside: avoid;">
-          <div style="font-weight: bold; margin-bottom: 5px; font-size: 9px; color: #F59E0B;">CONDITIONS</div>
+          <div style="font-weight: bold; margin-bottom: 5px; font-size: 9px; color: ${brandColor};">CONDITIONS</div>
           <div style="font-size: 9px; line-height: 1.5;">
             <div><strong>Conditions de paiement :</strong> ${devis.conditions_paiement || 'N/A'}</div>
             <div><strong>Délai de réalisation :</strong> ${devis.delai_realisation || 'N/A'}</div>

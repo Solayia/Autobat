@@ -655,10 +655,10 @@ export const genererPDFFacture = async (req, res, next) => {
     }
 
     // Récupérer logo du tenant
-    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { logo_url: true } });
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { logo_url: true, couleur_primaire: true } });
 
     // Générer le PDF
-    const pdfBuffer = await generateFacturePDF({ ...facture, logo_url: tenant?.logo_url || null });
+    const pdfBuffer = await generateFacturePDF({ ...facture, logo_url: tenant?.logo_url || null, couleur_primaire: tenant?.couleur_primaire || null });
 
     // Envoyer le PDF
     res.setHeader('Content-Type', 'application/pdf');
