@@ -35,6 +35,50 @@ function formatHeure(isoString) {
   return new Date(isoString).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
+function formatDuration(ms) {
+  if (!ms || ms <= 0) return null;
+  const totalMin = Math.round(ms / 60000);
+  if (totalMin < 1) return null;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h === 0) return `${m}min`;
+  return m === 0 ? `${h}h` : `${h}h${m.toString().padStart(2, '0')}`;
+}
+
+// Durée de présence : pour PRESENCE_FIN, cherche le PRESENCE_DEBUT précédent du même employé
+function computePresenceDuration(badge, allBadges) {
+  if (badge.type !== 'PRESENCE_FIN') return null;
+  const empId = badge.employe?.user?.id;
+  const debut = [...allBadges]
+    .filter(b => b.type === 'PRESENCE_DEBUT' && b.employe?.user?.id === empId && new Date(b.timestamp) < new Date(badge.timestamp))
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+  if (!debut) return null;
+  return formatDuration(new Date(badge.timestamp) - new Date(debut.timestamp));
+}
+
+// Durée nette d'une tâche (somme cycles DEBUT/REPRISE → PAUSE/FIN) pour TACHE_FIN ou TACHE_PAUSE
+function computeTacheDuration(badge, allBadges) {
+  if (!badge.type.startsWith('TACHE_') || badge.type === 'TACHE_DEBUT' || badge.type === 'TACHE_REPRISE') return null;
+  const tacheId = badge.tache?.id || badge.tache_id;
+  const empId = badge.employe?.user?.id;
+  if (!tacheId) return null;
+  const tacheBadges = allBadges
+    .filter(b => (b.tache?.id || b.tache_id) === tacheId && b.employe?.user?.id === empId)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  let total = 0;
+  let debutCycle = null;
+  for (const b of tacheBadges) {
+    if (b.type === 'TACHE_DEBUT' || b.type === 'TACHE_REPRISE') {
+      debutCycle = new Date(b.timestamp);
+    } else if ((b.type === 'TACHE_PAUSE' || b.type === 'TACHE_FIN') && debutCycle) {
+      total += new Date(b.timestamp) - debutCycle;
+      debutCycle = null;
+    }
+    if (b.id === badge.id) break; // ne compter que jusqu'à ce badge
+  }
+  return formatDuration(total);
+}
+
 // ─── Composant principal ───────────────────────────────────────────────────────
 
 export default function BadgeagesTab({ chantierId, chantier }) {
@@ -622,6 +666,9 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                   const isPausedTache = badge.type === 'TACHE_PAUSE' && lastForThisEmployee?.id === badge.id;
                   const isActivePresence = activePresenceBadge?.id === badge.id;
 
+                  const presenceDuration = computePresenceDuration(badge, badgeages);
+                  const tacheDuration = computeTacheDuration(badge, badgeages);
+
                   // Inline actions visibles : pour mes badges OU admin sur n'importe quel badge
                   const canActOnTache = isActiveTache && (isMyBadge || isAdmin);
                   const canActOnPause = isPausedTache && (isMyBadge || isAdmin);
@@ -655,6 +702,18 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                               <Clock className="w-4 h-4" />
                               {new Date(badge.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                             </div>
+                            {presenceDuration && (
+                              <div className="flex items-center gap-1 font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full text-xs">
+                                <Clock className="w-3 h-3" />
+                                {presenceDuration} sur chantier
+                              </div>
+                            )}
+                            {tacheDuration && (
+                              <div className="flex items-center gap-1 font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full text-xs">
+                                <Clock className="w-3 h-3" />
+                                {tacheDuration} de travail
+                              </div>
+                            )}
                             {badge.employe?.user && (
                               <div className="flex items-center gap-1">
                                 <User className="w-4 h-4" />
