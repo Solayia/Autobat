@@ -2,12 +2,13 @@ import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { authorize } from '../middleware/authorize.js';
 import { getSettings, updateSettings, uploadLogo, handleUploadLogo, updateSubscription, updateObjectifs, updateOnboarding, getSmtpSettings, updateSmtpSettings, testSmtp } from '../controllers/settingsController.js';
-import { getGmailAuthUrl, handleGmailCallback, disconnectGmail, getGmailStatus } from '../controllers/gmailController.js';
+import { getGmailAuthUrl, handleGmailCallback, exchangeGmailCode, disconnectGmail, getGmailStatus } from '../controllers/gmailController.js';
 
 const router = express.Router();
 
-// ─── Route PUBLIQUE : callback OAuth2 Google (appelée par le navigateur après autorisation) ───
-router.get('/gmail/callback', handleGmailCallback);
+// ─── Routes PUBLIQUES : OAuth2 Google ───
+router.get('/gmail/callback', handleGmailCallback); // Ancienne route (conservée pour compatibilité)
+router.post('/gmail/exchange', exchangeGmailCode);  // Nouvelle route : échange depuis frontend
 
 // Toutes les routes suivantes nécessitent l'authentification
 router.use(authenticate);

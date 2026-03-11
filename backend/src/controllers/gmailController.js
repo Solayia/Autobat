@@ -5,10 +5,12 @@ import logger from '../config/logger.js';
 const SCOPES = ['https://mail.google.com/'];
 
 const getOAuth2Client = () => {
+  // Utilise la route frontend /gmail-callback pour éviter les problèmes de proxy Nginx
+  const redirectUri = `${process.env.FRONTEND_URL || process.env.APP_URL}/gmail-callback`;
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.APP_URL}/api/settings/gmail/callback`
+    redirectUri
   );
 };
 
@@ -136,6 +138,64 @@ export const disconnectGmail = async (req, res, next) => {
     logger.info(`[Gmail OAuth] Gmail déconnecté pour tenant ${tenantId}`);
     res.json({ message: 'Gmail déconnecté avec succès' });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/settings/gmail/exchange
+ * Échange le code OAuth2 contre des tokens et les stocke en DB.
+ * Appelé par la page frontend /gmail-callback après redirection Google.
+ */
+export const exchangeGmailCode = async (req, res, next) => {
+  try {
+    const { code, state } = req.body;
+
+    if (!code || !state) {
+      return res.status(400).json({ message: 'Code ou state manquant' });
+    }
+
+    // Décoder le tenantId depuis le state
+    let tenantId;
+    try {
+      ({ tenantId } = JSON.parse(Buffer.from(state, 'base64url').toString()));
+    } catch {
+      return res.status(400).json({ message: 'State invalide' });
+    }
+
+    if (!tenantId) {
+      return res.status(400).json({ message: 'tenantId manquant dans le state' });
+    }
+
+    // Échanger le code contre les tokens
+    const oauth2Client = getOAuth2Client();
+    const { tokens } = await oauth2Client.getToken(code);
+
+    if (!tokens.refresh_token) {
+      return res.status(400).json({ message: 'Aucun refresh_token reçu. Révoquez l\'accès depuis votre compte Google et réessayez.' });
+    }
+
+    // Récupérer l'adresse Gmail
+    oauth2Client.setCredentials(tokens);
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    const gmailEmail = profile.data.emailAddress;
+
+    // Stocker en DB
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data: {
+        gmail_email: gmailEmail,
+        gmail_refresh_token: tokens.refresh_token,
+        smtp_user: gmailEmail,
+        smtp_configured: true
+      }
+    });
+
+    logger.info(`[Gmail OAuth] Gmail connecté via exchange: ${gmailEmail} pour tenant ${tenantId}`);
+    res.json({ ok: true, email: gmailEmail });
+  } catch (error) {
+    logger.error(`[Gmail OAuth] Erreur exchange: ${error.message}`);
     next(error);
   }
 };
