@@ -13,7 +13,9 @@
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "seed": "node src/scripts/seed.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "autobat",
@@ -44,8 +46,11 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
     "nodemon": "^3.0.3",
-    "prisma": "^5.9.1"
+    "prisma": "^5.9.1",
+    "supertest": "^7.2.2",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=20.0.0"

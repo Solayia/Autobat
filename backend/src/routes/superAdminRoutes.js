@@ -4,7 +4,7 @@ import { authorize } from '../middleware/authorize.js';
 import {
   getStats, getTenants, getTenantById,
   updateTenantStatut, deleteTenant, impersonateTenant,
-  getLogs, clearLogs, searchUsers
+  getLogs, clearLogs, searchUsers, runTests
 } from '../controllers/superAdminController.js';
 
 const router = express.Router();
@@ -28,5 +28,8 @@ router.delete('/logs', clearLogs);
 
 // Users
 router.get('/users', searchUsers);
+
+// Tests
+router.post('/run-tests', runTests);
 
 export default router;

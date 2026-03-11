@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
+import { spawn } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -610,4 +611,53 @@ export const searchUsers = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+/**
+ * POST /api/super-admin/run-tests
+ * Lance la suite de tests Vitest et retourne les résultats
+ */
+export const runTests = (req, res) => {
+  const backendRoot = path.resolve(__dirname, '../..');
+  const outputFile = path.resolve(backendRoot, '.vitest-results-tmp.json');
+
+  if (fs.existsSync(outputFile)) {
+    try { fs.unlinkSync(outputFile); } catch {}
+  }
+
+  let stderr = '';
+  const startedAt = Date.now();
+
+  const child = spawn(
+    'npx',
+    ['vitest', 'run', '--reporter=json', `--outputFile=${outputFile}`],
+    {
+      cwd: backendRoot,
+      env: { ...process.env, NODE_ENV: 'test', FORCE_COLOR: '0' },
+      shell: true
+    }
+  );
+
+  child.stderr.on('data', d => { stderr += d.toString(); });
+
+  const timeout = setTimeout(() => {
+    child.kill('SIGTERM');
+    res.status(500).json({ error: 'Test run timed out after 90s' });
+  }, 90000);
+
+  child.on('close', () => {
+    clearTimeout(timeout);
+    const duration = Date.now() - startedAt;
+
+    try {
+      if (!fs.existsSync(outputFile)) {
+        return res.status(500).json({ error: 'Aucun fichier de résultats généré', logs: stderr.slice(-2000) });
+      }
+      const results = JSON.parse(fs.readFileSync(outputFile, 'utf-8'));
+      try { fs.unlinkSync(outputFile); } catch {}
+      res.json({ results, duration });
+    } catch (e) {
+      res.status(500).json({ error: e.message, logs: stderr.slice(-2000) });
+    }
+  });
 };

@@ -5,7 +5,7 @@ import {
   Eye, RefreshCw, Euro, Trash2, LogIn, FileText, Activity,
   BarChart2, Terminal, AlertTriangle, ChevronRight, MapPin, HardHat, Clock, Zap,
   Tag, Percent, Save, Plus, ToggleLeft, ToggleRight, Calculator,
-  Target, PhoneCall, X, Edit2, ChevronDown, LogOut, Globe
+  Target, PhoneCall, X, Edit2, ChevronDown, LogOut, Globe, Play, FlaskConical
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
@@ -20,6 +20,7 @@ const TABS = [
   { id: 'ventes', label: 'Ventes', icon: Target },
   { id: 'pricing', label: 'Tarification', icon: Euro },
   { id: 'logs', label: 'Logs système', icon: Terminal },
+  { id: 'tests', label: 'Tests', icon: FlaskConical },
   { id: 'carte', label: 'Carte', icon: Globe },
 ];
 
@@ -59,6 +60,10 @@ export default function SuperAdmin() {
   const [promoCodes, setPromoCodes] = useState([]);
   const [newPromo, setNewPromo] = useState({ code: '', description: '', type: 'PERCENT', valeur: '', max_uses: '', expires_at: '' });
   const [showPromoForm, setShowPromoForm] = useState(false);
+
+  // Tests
+  const [testResults, setTestResults] = useState(null);
+  const [testRunning, setTestRunning] = useState(false);
 
   // Ventes / CRM
   const [salesStats, setSalesStats] = useState(null);
@@ -196,6 +201,20 @@ export default function SuperAdmin() {
         } catch { toast.error('Erreur'); }
       }
     });
+  };
+
+  const runTestSuite = async () => {
+    setTestRunning(true);
+    setTestResults(null);
+    try {
+      const res = await api.post('/super-admin/run-tests', {}, { timeout: 120000 });
+      setTestResults(res.data);
+    } catch (e) {
+      toast.error('Erreur lors de l\'exécution des tests');
+      setTestResults({ error: e.response?.data?.error || e.message });
+    } finally {
+      setTestRunning(false);
+    }
   };
 
   const loadPricing = async () => {
@@ -1351,6 +1370,95 @@ export default function SuperAdmin() {
                   ))}
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'tests' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Tests automatiques</h2>
+                  <p className="text-sm text-gray-400 mt-0.5">Suite Vitest — Auth, Multi-Tenant, Numérotation</p>
+                </div>
+                <button
+                  onClick={runTestSuite}
+                  disabled={testRunning}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  {testRunning ? (
+                    <><RefreshCw className="w-4 h-4 animate-spin" /> Tests en cours...</>
+                  ) : (
+                    <><Play className="w-4 h-4" /> Lancer les tests</>
+                  )}
+                </button>
+              </div>
+
+              {testRunning && (
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
+                  <RefreshCw className="w-8 h-8 text-green-400 animate-spin mx-auto mb-3" />
+                  <p className="text-gray-300 text-sm">Exécution des tests en cours (~15s)...</p>
+                </div>
+              )}
+
+              {testResults?.error && (
+                <div className="bg-red-900/20 border border-red-800 rounded-xl p-4">
+                  <p className="text-red-400 text-sm font-medium">Erreur : {testResults.error}</p>
+                  {testResults.logs && <pre className="mt-2 text-xs text-red-300 overflow-auto max-h-48">{testResults.logs}</pre>}
+                </div>
+              )}
+
+              {testResults?.results && (() => {
+                const r = testResults.results;
+                const passed = r.numPassedTests ?? 0;
+                const failed = r.numFailedTests ?? 0;
+                const total = r.numTotalTests ?? 0;
+                const allPassed = failed === 0;
+                const duration = testResults.duration ? `${(testResults.duration / 1000).toFixed(1)}s` : '';
+                return (
+                  <div className="space-y-3">
+                    <div className={`rounded-xl p-4 border flex items-center gap-4 ${allPassed ? 'bg-green-900/20 border-green-800' : 'bg-red-900/20 border-red-800'}`}>
+                      {allPassed
+                        ? <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
+                        : <XCircle className="w-6 h-6 text-red-400 flex-shrink-0" />
+                      }
+                      <div className="flex-1">
+                        <p className={`font-semibold ${allPassed ? 'text-green-300' : 'text-red-300'}`}>
+                          {allPassed ? 'Tous les tests passent ✓' : `${failed} test(s) échoué(s)`}
+                        </p>
+                        <p className="text-sm text-gray-400">{passed}/{total} tests réussis {duration && `• ${duration}`}</p>
+                      </div>
+                    </div>
+
+                    {(r.testResults || []).map((suite, si) => {
+                      const suiteName = suite.testFilePath?.split('/').pop()?.replace('.test.js', '') || `Suite ${si + 1}`;
+                      const suiteFailed = suite.status === 'failed';
+                      return (
+                        <div key={si} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                          <div className={`px-4 py-2.5 flex items-center gap-2 border-b border-gray-800 ${suiteFailed ? 'bg-red-900/10' : 'bg-green-900/10'}`}>
+                            {suiteFailed ? <XCircle className="w-4 h-4 text-red-400" /> : <CheckCircle className="w-4 h-4 text-green-400" />}
+                            <span className="text-sm font-medium text-white">{suiteName}</span>
+                            <span className="ml-auto text-xs text-gray-500">{(suite.assertionResults || []).filter(t => t.status === 'passed').length}/{(suite.assertionResults || []).length}</span>
+                          </div>
+                          <div className="divide-y divide-gray-800/40">
+                            {(suite.assertionResults || []).map((test, ti) => (
+                              <div key={ti} className="px-4 py-2 flex items-center gap-3">
+                                {test.status === 'passed'
+                                  ? <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                                  : <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+                                }
+                                <span className={`text-xs ${test.status === 'passed' ? 'text-gray-300' : 'text-red-300'}`}>
+                                  {[...(test.ancestorTitles || []).slice(1), test.title].join(' › ')}
+                                </span>
+                                {test.duration != null && <span className="ml-auto text-xs text-gray-600">{test.duration}ms</span>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           )}
 

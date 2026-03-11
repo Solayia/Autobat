@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 export default function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { register, loading, error, clearError, tenant, isAuthenticated } = useAuthStore();
+  const { register, loading, error, clearError, tenant, isAuthenticated, refreshUser } = useAuthStore();
   const [stripeLoading, setStripeLoading] = useState(false);
   const [stripeCancelled, setStripeCancelled] = useState(false);
 
@@ -30,6 +30,18 @@ export default function Register() {
 
   // Si l'user est déjà authentifié avec statut PENDING, afficher l'écran de relance paiement
   const isPendingUser = isAuthenticated && tenant?.statut === 'PENDING';
+
+  // Quand on arrive sur Register avec un compte PENDING (ex: retour de Stripe après paiement),
+  // vérifier si le webhook a mis à jour le statut → rediriger vers le dashboard si c'est le cas
+  useEffect(() => {
+    if (!isPendingUser) return;
+    refreshUser().then(() => {
+      const currentTenant = useAuthStore.getState().tenant;
+      if (currentTenant?.statut && currentTenant.statut !== 'PENDING') {
+        navigate('/dashboard');
+      }
+    });
+  }, [isPendingUser]);
 
   const handleRelaunchStripe = async () => {
     setStripeLoading(true);

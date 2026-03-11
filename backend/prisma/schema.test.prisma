@@ -1,0 +1,503 @@
+// Prisma Schema - Autobat PostgreSQL (Production)
+// Dev local : utiliser schema.sqlite.prisma (provider = "sqlite")
+// VPS : DATABASE_URL="postgresql://autobat:PASSWORD@localhost:5432/autobat_prod"
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id                String   @id @default(cuid())
+  nom               String
+  siret             String   @unique
+  adresse           String
+  code_postal       String
+  ville             String
+  telephone         String
+  email             String
+  logo_url          String?
+  rib               String?
+  capital           String?
+  rcs               String?
+  tva_intra         String?
+  couleur_primaire  String   @default("#FF9F43") // Couleur de marque pour les devis
+  plan              String   @default("STARTER")
+  statut            String   @default("ACTIF") // TRIAL | ACTIF | SUSPENDU | RESILIE
+  trial_ends_at     DateTime? // Date de fin de la période d'essai (null si ACTIF)
+  employes_max      Int      @default(1) // Nombre max d'employés autorisés (payés)
+  badgeage_par_tache_defaut Boolean @default(false) // Mode de badgeage par défaut pour nouveaux chantiers
+
+  // Stripe
+  stripe_customer_id     String?
+  stripe_subscription_id String?
+
+  // Onboarding
+  onboarding_completed  Boolean  @default(false)
+  onboarding_step       Int      @default(0)
+
+  // Configuration SMTP (emails envoyés depuis l'adresse du gérant)
+  smtp_host     String?  // Ex: smtp.gmail.com
+  smtp_port     Int?     // Ex: 587
+  smtp_secure   Boolean  @default(false) // true = SSL (port 465), false = TLS (port 587)
+  smtp_user     String?  // Adresse email expéditeur
+  smtp_password String?  // Mot de passe ou app password (stocké en clair, pas de données sensibles légales)
+  smtp_from     String?  // Ex: "Plomberie Martin <contact@plomberie-martin.fr>"
+  smtp_configured Boolean @default(false) // true si le gérant a validé la config
+
+  // Gmail OAuth2 (connexion via "Se connecter avec Google")
+  gmail_email         String?  // Adresse Gmail connectée
+  gmail_refresh_token String?  // OAuth2 refresh token (permet d'envoyer sans mot de passe)
+
+  // Objectifs de pilotage
+  objectif_ca_annuel          Float?   // CA annuel cible (€ HT)
+  objectif_ca_mensuel         Float?   // CA mensuel cible (€ HT)
+  objectif_taux_acceptation   Float?   // Taux d'acceptation devis cible (%)
+  objectif_taux_encaissement  Float?   // Taux d'encaissement cible (%)
+  objectif_nb_chantiers_mois  Int?     // Nombre de chantiers terminés/mois cible
+  objectif_delai_paiement     Int?     // Délai moyen de paiement cible (jours)
+
+  cgu_accepted_at   DateTime? // Date d'acceptation des CGU (null si inscrit avant cette fonctionnalité)
+  cgv_accepted_at   DateTime? // Date d'acceptation des CGV
+  date_inscription  DateTime @default(now())
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  users             User[]
+  clients           Client[]
+  devis             Devis[]
+  lignes_devis      LigneDevis[]
+  chantiers         Chantier[]
+  factures          Facture[]
+  catalogue         Ouvrage[]
+  employes          Employe[]
+}
+
+model User {
+  id            String   @id @default(cuid())
+  tenant_id     String
+  email         String
+  password_hash String
+  role          String
+  prenom        String
+  nom           String
+  telephone     String?
+  avatar_url    String?
+  actif         Boolean  @default(true)
+  email_verified Boolean @default(false)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  last_login    DateTime?
+
+  tenant        Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  refresh_tokens         RefreshToken[]
+  password_reset_tokens  PasswordResetToken[]
+  employe                Employe?
+
+  @@unique([tenant_id, email])
+}
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  user_id    String
+  token      String   @unique
+  expires_at DateTime
+  created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  user_id    String
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model Employe {
+  id                String   @id @default(cuid())
+  tenant_id         String
+  user_id           String   @unique
+  quota_mensuel_heures Float?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  tenant            Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  badgeages         Badgeage[]
+  chantiers_assignes ChantierEmploye[]
+  taches_assignees  TacheEmploye[]
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  type        String   @default("ENTREPRISE") // ENTREPRISE ou PARTICULIER
+  prenom      String?  // Pour les particuliers
+  nom         String   // Nom entreprise OU nom de famille
+  email       String?
+  telephone   String?
+  adresse     String?
+  code_postal String?
+  ville       String?
+  siret       String?  // Uniquement pour les entreprises
+  actif       Boolean  @default(true)
+  notes       String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  devis       Devis[]
+  chantiers   Chantier[]
+  factures    Facture[]
+
+  @@unique([tenant_id, email])
+}
+
+model Ouvrage {
+  id                  String   @id @default(cuid())
+  tenant_id           String
+  code                String
+  categorie           String
+  denomination        String
+  unite               String
+  prix_unitaire_ht    Float
+  temps_estime_minutes Int?
+  temps_reel_moyen     Float?
+  nb_chantiers_realises Int @default(0)
+  derniere_maj_auto    DateTime?
+  notes               String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  tenant              Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  lignes_devis        LigneDevis[]
+  taches              Tache[]
+  lignes_facture      LigneFacture[]
+  historique_prix     HistoriquePrix[]
+
+  @@unique([tenant_id, code])
+}
+
+model HistoriquePrix {
+  id               String   @id @default(cuid())
+  ouvrage_id       String
+  ancien_prix      Float
+  nouveau_prix     Float
+  raison           String
+  ecart_pourcent   Float?
+  created_at       DateTime @default(now())
+
+  ouvrage          Ouvrage  @relation(fields: [ouvrage_id], references: [id], onDelete: Cascade)
+}
+
+model Devis {
+  id                    String      @id @default(cuid())
+  tenant_id             String
+  numero_devis          String
+  client_id             String
+  objet                 String?
+  conditions_paiement   String?
+  delai_realisation     String?
+  montant_ht            Float
+  montant_tva           Float
+  montant_ttc           Float
+  date_creation         DateTime    @default(now())
+  date_validite         DateTime
+  date_envoi            DateTime?
+  date_acceptation      DateTime?
+  date_refus            DateTime?
+  raison_refus          String?
+  acompte_verse         Float       @default(0)
+  statut                String      @default("BROUILLON")
+  pdf_url               String?
+  notes                 String?
+  created_at            DateTime    @default(now())
+  updated_at            DateTime    @updatedAt
+
+  tenant                Tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  client                Client      @relation(fields: [client_id], references: [id])
+  lignes                LigneDevis[]
+  chantiers             Chantier[]
+
+  @@unique([tenant_id, numero_devis])
+}
+
+model LigneDevis {
+  id                String  @id @default(cuid())
+  tenant_id         String
+  devis_id          String
+  ouvrage_id        String?
+  type              String  @default("OUVRAGE") // SECTION, OUVRAGE ou MATERIAU
+  parent_ligne_id   String? // Pour lier un matériau à un ouvrage
+  description       String
+  quantite          Float
+  unite             String
+  prix_unitaire_ht  Float
+  montant_ht        Float
+  tva_pourcent      Float   @default(20.00)
+  montant_ttc       Float
+  ordre             Int
+  created_at        DateTime @default(now())
+
+  tenant            Tenant  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  devis             Devis   @relation(fields: [devis_id], references: [id], onDelete: Cascade)
+  ouvrage           Ouvrage? @relation(fields: [ouvrage_id], references: [id])
+  parent_ligne      LigneDevis? @relation("LigneMateriau", fields: [parent_ligne_id], references: [id])
+  materiaux         LigneDevis[] @relation("LigneMateriau")
+}
+
+model Chantier {
+  id                    String          @id @default(cuid())
+  tenant_id             String
+  client_id             String
+  devis_id              String?
+  nom                   String
+  adresse               String
+  code_postal           String
+  ville                 String
+  latitude              Float
+  longitude             Float
+  rayon_gps_metres      Int             @default(100)
+  badgeage_par_tache    Boolean         @default(false)
+  date_debut            DateTime        @default(now())
+  date_fin_prevue       DateTime?
+  date_fin_reelle       DateTime?
+  statut                String          @default("EN_COURS")
+  notes                 String?
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @updatedAt
+
+  tenant                Tenant          @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  client                Client          @relation(fields: [client_id], references: [id])
+  devis                 Devis?          @relation(fields: [devis_id], references: [id])
+  taches                Tache[]
+  badgeages             Badgeage[]
+  employes_assignes     ChantierEmploye[]
+  documents             Document[]
+  factures              Facture[]
+}
+
+model ChantierEmploye {
+  id           String   @id @default(cuid())
+  chantier_id  String
+  employe_id   String
+  assigned_at  DateTime @default(now())
+
+  chantier     Chantier @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+  employe      Employe  @relation(fields: [employe_id], references: [id], onDelete: Cascade)
+
+  @@unique([chantier_id, employe_id])
+}
+
+model Tache {
+  id                String       @id @default(cuid())
+  chantier_id       String
+  ouvrage_id        String?
+  nom               String
+  description       String?
+  piece             String?
+  quantite_prevue   Float?
+  unite             String?
+  statut            String       @default("A_FAIRE")
+  ordre             Int
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+
+  chantier          Chantier     @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+  ouvrage           Ouvrage?     @relation(fields: [ouvrage_id], references: [id])
+  badgeages         Badgeage[]
+  employes_assignes TacheEmploye[]
+}
+
+model TacheEmploye {
+  id          String   @id @default(cuid())
+  tache_id    String
+  employe_id  String
+  assigned_at DateTime @default(now())
+
+  tache       Tache    @relation(fields: [tache_id], references: [id], onDelete: Cascade)
+  employe     Employe  @relation(fields: [employe_id], references: [id], onDelete: Cascade)
+
+  @@unique([tache_id, employe_id])
+}
+
+model Badgeage {
+  id                String        @id @default(cuid())
+  tenant_id         String
+  chantier_id       String
+  employe_id        String
+  tache_id          String?
+  type              String
+  methode           String
+  latitude          Float?
+  longitude         Float?
+  precision_metres  Int?
+  timestamp         DateTime      @default(now())
+  synced            Boolean       @default(true)
+  created_at        DateTime      @default(now())
+
+  chantier          Chantier      @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+  employe           Employe       @relation(fields: [employe_id], references: [id])
+  tache             Tache?        @relation(fields: [tache_id], references: [id])
+}
+
+model Document {
+  id           String       @id @default(cuid())
+  tenant_id    String
+  chantier_id  String
+  nom          String
+  type         String
+  url          String
+  taille_bytes Int
+  titre        String?
+  description  String?
+  uploaded_by  String
+  created_at   DateTime     @default(now())
+
+  chantier     Chantier     @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+}
+
+model Facture {
+  id                  String             @id @default(cuid())
+  tenant_id           String
+  numero_facture      String
+  chantier_id         String
+  devis_id            String?
+  client_id           String
+  entreprise_nom      String
+  entreprise_siret    String
+  entreprise_adresse  String
+  entreprise_tel      String
+  entreprise_email    String
+  client_nom          String
+  client_adresse      String
+  client_siret        String?
+  client_tel          String
+  client_email        String
+  montant_ht          Float
+  montant_tva         Float
+  montant_ttc         Float
+  acompte_demande     Float
+  acompte_recu        Float              @default(0)
+  reste_a_payer       Float
+  statut_paiement     String             @default("EN_ATTENTE")
+  statut_facture      String             @default("BROUILLON")
+  date_emission       DateTime           @default(now())
+  date_echeance       DateTime
+  date_envoi          DateTime?
+  date_paiement_complet DateTime?
+  pdf_url             String?
+  notes               String?
+  facture_origine_id  String?
+  facture_avoir_id    String?
+  created_at          DateTime           @default(now())
+  updated_at          DateTime           @updatedAt
+
+  tenant              Tenant             @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  chantier            Chantier           @relation(fields: [chantier_id], references: [id])
+  client              Client             @relation(fields: [client_id], references: [id])
+  lignes              LigneFacture[]
+  paiements           PaiementFacture[]
+
+  @@unique([tenant_id, numero_facture])
+}
+
+model LigneFacture {
+  id                String  @id @default(cuid())
+  facture_id        String
+  ouvrage_id        String?
+  description       String
+  quantite          Float
+  unite             String
+  prix_unitaire_ht  Float
+  montant_ht        Float
+  tva_pourcent      Float   @default(20.00)
+  montant_ttc       Float
+  ordre             Int
+  created_at        DateTime @default(now())
+
+  facture           Facture  @relation(fields: [facture_id], references: [id], onDelete: Cascade)
+  ouvrage           Ouvrage? @relation(fields: [ouvrage_id], references: [id])
+}
+
+model PaiementFacture {
+  id              String        @id @default(cuid())
+  facture_id      String
+  tenant_id       String
+  montant         Float
+  date_paiement   DateTime
+  moyen_paiement  String
+  reference       String?
+  type            String
+  valide          Boolean       @default(true)
+  valide_par      String?
+  valide_le       DateTime?
+  notes           String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  facture         Facture       @relation(fields: [facture_id], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id         String            @id @default(cuid())
+  tenant_id  String
+  user_id    String
+  type       String
+  titre      String
+  message    String
+  lien_url   String?
+  lue        Boolean           @default(false)
+  created_at DateTime          @default(now())
+}
+
+// Configuration globale de la plateforme (clé-valeur)
+model ConfigPlateforme {
+  id         String   @id @default(cuid())
+  cle        String   @unique
+  valeur     String
+  updated_at DateTime @updatedAt
+}
+
+// Codes promotionnels
+model CodePromo {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  description String?
+  type        String    // PERCENT | FIXED
+  valeur      Float
+  max_uses    Int?      // null = illimité
+  uses_count  Int       @default(0)
+  expires_at  DateTime?
+  actif       Boolean   @default(true)
+  created_at  DateTime  @default(now())
+}
+
+// Pipeline commercial (leads / prospects)
+model Lead {
+  id                   String    @id @default(cuid())
+  nom                  String
+  email                String?
+  telephone            String?
+  entreprise           String?
+  poste                String?
+  source               String    @default("MANUEL") // LINKEDIN, EMAIL, BOUCHE_A_OREILLE, COLD_CALL, SITE_WEB, PARTENAIRE, MANUEL
+  statut               String    @default("PROSPECT") // PROSPECT, CONTACTE, DEMO, ESSAI, CONVERTI, PERDU
+  nb_employes_estimes  Int?
+  mrr_estime           Float?
+  notes                String?
+  next_action          String?
+  next_action_date     DateTime?
+  raison_perte         String?
+  converted_at         DateTime?
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+}
