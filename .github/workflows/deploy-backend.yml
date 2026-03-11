@@ -76,16 +76,20 @@ jobs:
             node prisma/create-super-admin.js
             node prisma/seed-catalogue-all-tenants.js
             sed -i "s|STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET|" /var/www/autobat/backend/.env
-            # Google OAuth2 credentials
-            if grep -q "GOOGLE_CLIENT_ID=" /var/www/autobat/backend/.env; then
-              sed -i "s|GOOGLE_CLIENT_ID=.*|GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID|" /var/www/autobat/backend/.env
-            else
-              echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> /var/www/autobat/backend/.env
+            # Google OAuth2 credentials (only if secrets are set)
+            if [ -n "$GOOGLE_CLIENT_ID" ]; then
+              if grep -q "GOOGLE_CLIENT_ID=" /var/www/autobat/backend/.env; then
+                sed -i "s|GOOGLE_CLIENT_ID=.*|GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID|" /var/www/autobat/backend/.env
+              else
+                echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> /var/www/autobat/backend/.env
+              fi
             fi
-            if grep -q "GOOGLE_CLIENT_SECRET=" /var/www/autobat/backend/.env; then
-              sed -i "s|GOOGLE_CLIENT_SECRET=.*|GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET|" /var/www/autobat/backend/.env
-            else
-              echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> /var/www/autobat/backend/.env
+            if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
+              if grep -q "GOOGLE_CLIENT_SECRET=" /var/www/autobat/backend/.env; then
+                sed -i "s|GOOGLE_CLIENT_SECRET=.*|GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET|" /var/www/autobat/backend/.env
+              else
+                echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> /var/www/autobat/backend/.env
+              fi
             fi
             if grep -q "APP_URL=" /var/www/autobat/backend/.env; then
               sed -i "s|APP_URL=.*|APP_URL=https://autobat.pro|" /var/www/autobat/backend/.env
