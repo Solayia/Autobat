@@ -33,6 +33,14 @@ const documentService = {
   createFolder: async (chantierId, nom) => {
     const response = await api.post(`/chantiers/${chantierId}/documents/folders`, { nom });
     return response.data;
+  },
+
+  // Ouvrir un document protégé (envoi JWT automatique)
+  openDocument: async (url) => {
+    const response = await api.get(url, { responseType: 'blob' });
+    const blobUrl = window.URL.createObjectURL(response.data);
+    window.open(blobUrl, '_blank');
+    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
   }
 };
 

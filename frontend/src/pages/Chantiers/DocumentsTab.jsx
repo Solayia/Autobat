@@ -285,14 +285,12 @@ export default function DocumentsTab({ chantierId }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <a
-                    href={`${import.meta.env.VITE_API_URL}${doc.url}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => documentService.openDocument(doc.url)}
                     className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
                   >
                     Ouvrir
-                  </a>
+                  </button>
                   <button
                     onClick={() => handleDelete(doc.id)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

@@ -8,6 +8,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import logger from './config/logger.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
+import { authenticate } from './middleware/auth.js';
+import prisma from './config/database.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -91,9 +93,39 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   }));
 }
 
-// Fichiers uploadés : montés sous /api/uploads (Nginx proxie déjà /api → Node.js)
+// Fichiers uploadés
 const uploadsDir = process.env.UPLOADS_PATH || path.join(__dirname, '..', 'uploads');
-app.use('/api/uploads', express.static(uploadsDir));
+
+// Logos : publics (affichés sur la page de login, PDFs, etc.)
+app.use('/api/uploads/logos', express.static(path.join(uploadsDir, 'logos')));
+
+// Documents : protégés — JWT requis + vérification tenant
+app.get('/api/uploads/documents/:filename', authenticate, async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const tenantId = req.tenantId;
+
+    // Vérifier que ce document appartient bien au tenant de l'utilisateur
+    const doc = await prisma.document.findFirst({
+      where: {
+        url: { contains: filename },
+        chantier: { tenant_id: tenantId }
+      }
+    });
+
+    if (!doc) {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+
+    const filePath = path.join(uploadsDir, 'documents', filename);
+    res.sendFile(filePath, (err) => {
+      if (err) res.status(404).json({ error: 'Fichier introuvable' });
+    });
+  } catch (err) {
+    logger.error('Erreur accès document protégé:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 // ═══════════════════════════════════════════════════════════════
 // ROUTES
