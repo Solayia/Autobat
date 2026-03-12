@@ -310,6 +310,11 @@ export default function Devis() {
                           <p className="text-sm text-green-100 mt-1">
                             {devis.client?.nom}
                           </p>
+                          {devis.objet && (
+                            <p className="text-xs text-green-200 mt-0.5 italic">
+                              {devis.objet}
+                            </p>
+                          )}
                         </div>
                         <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(devis.statut)}`}>
                           {getStatusIcon(devis.statut)}
@@ -451,6 +456,7 @@ export default function Devis() {
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{devis.numero_devis}</div>
+                            {devis.objet && <div className="text-xs text-gray-500 italic">{devis.objet}</div>}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">{devis.client?.nom}</div>

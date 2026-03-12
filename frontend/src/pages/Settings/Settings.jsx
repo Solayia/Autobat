@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
-import { Save, Palette, Upload, Image as ImageIcon, Settings as SettingsIcon, CreditCard, Plus, Minus, Lock, HardHat, Target, Mail, CheckCircle, AlertCircle, Loader2, LogOut, User, Eye, EyeOff } from 'lucide-react';
+import { Save, Palette, Upload, Image as ImageIcon, Settings as SettingsIcon, CreditCard, Plus, Minus, Lock, HardHat, Target, CheckCircle, AlertCircle, Loader2, User, Eye, EyeOff } from 'lucide-react';
 import settingsService from '../../services/settingsService';
 import authService from '../../services/authService';
 import useAuthStore from '../../stores/authStore';
@@ -33,12 +33,7 @@ export default function Settings() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [updatingSubscription, setUpdatingSubscription] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
-  const [gmailStatus, setGmailStatus] = useState({ connected: false, email: null });
-  const [gmailConnecting, setGmailConnecting] = useState(false);
-  const [gmailDisconnecting, setGmailDisconnecting] = useState(false);
-  const [smtpData, setSmtpData] = useState({ smtp_host: '', smtp_port: 587, smtp_secure: false, smtp_user: '', smtp_password: '', smtp_from: '' });
-  const [savingSmtp, setSavingSmtp] = useState(false);
-  const [testingSmtp, setTestingSmtp] = useState(false);
+
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const logoInputRef = useRef(null);
   const [newEmployesMax, setNewEmployesMax] = useState(tenant?.employes_max || 1);
@@ -72,7 +67,7 @@ export default function Settings() {
     { id: 'chantier', label: 'Chantier', icon: HardHat, adminOnly: true },
     { id: 'objectifs', label: 'Objectifs', icon: Target, adminOnly: true },
     { id: 'securite', label: 'Sécurité', icon: Lock },
-    { id: 'email', label: 'Email', icon: Mail, adminOnly: true },
+
     { id: 'abonnement', label: 'Abonnement', icon: CreditCard, adminOnly: true }
   ];
 
@@ -106,24 +101,6 @@ export default function Settings() {
     setNewEmployesMax(tenant?.employes_max || 1);
   }, [tenant]);
 
-  // Gérer le retour OAuth2 Gmail (?gmail=success ou ?gmail=error)
-  useEffect(() => {
-    const gmailParam = searchParams.get('gmail');
-    if (gmailParam === 'success') {
-      toast.success('Gmail connecté avec succès !');
-      searchParams.delete('gmail');
-      setSearchParams({ tab: 'email' });
-      settingsService.getGmailStatus()
-        .then(s => setGmailStatus(s))
-        .catch(() => {});
-    } else if (gmailParam === 'error') {
-      const msg = searchParams.get('msg') || 'Erreur lors de la connexion Gmail';
-      toast.error(`Connexion Gmail échouée : ${decodeURIComponent(msg)}`);
-      searchParams.delete('gmail');
-      searchParams.delete('msg');
-      setSearchParams({ tab: 'email' });
-    }
-  }, []);
 
   const loadSettings = async () => {
     if (user?.role === 'EMPLOYEE') {
@@ -132,11 +109,7 @@ export default function Settings() {
     }
     try {
       setLoading(true);
-      const [data, gmail, smtp] = await Promise.all([
-        settingsService.getSettings(),
-        settingsService.getGmailStatus().catch(() => ({ connected: false, email: null })),
-        settingsService.getSmtpSettings().catch(() => null)
-      ]);
+      const data = await settingsService.getSettings();
       setSettings(data);
       setObjectifs({
         objectif_ca_annuel: data.objectif_ca_annuel ?? '',
@@ -145,8 +118,6 @@ export default function Settings() {
         objectif_taux_encaissement: data.objectif_taux_encaissement ?? '',
         objectif_delai_paiement: data.objectif_delai_paiement ?? ''
       });
-      setGmailStatus(gmail || { connected: false, email: null });
-      if (smtp) setSmtpData(prev => ({ ...prev, ...smtp }));
     } catch (error) {
       console.error('Erreur chargement paramètres:', error);
       toast.error('Erreur lors du chargement des paramètres');
@@ -155,55 +126,6 @@ export default function Settings() {
     }
   };
 
-  const handleConnectGmail = async () => {
-    try {
-      setGmailConnecting(true);
-      const { url } = await settingsService.getGmailAuthUrl();
-      window.location.href = url;
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Erreur lors de la connexion Gmail';
-      toast.error(msg);
-      setGmailConnecting(false);
-    }
-  };
-
-  const handleDisconnectGmail = async () => {
-    try {
-      setGmailDisconnecting(true);
-      await settingsService.disconnectGmail();
-      setGmailStatus({ connected: false, email: null });
-      toast.success('Gmail déconnecté');
-    } catch {
-      toast.error('Erreur lors de la déconnexion');
-    } finally {
-      setGmailDisconnecting(false);
-    }
-  };
-
-  const handleSaveSmtp = async (e) => {
-    e.preventDefault();
-    try {
-      setSavingSmtp(true);
-      await settingsService.updateSmtpSettings(smtpData);
-      toast.success('Configuration SMTP enregistrée');
-    } catch {
-      toast.error('Erreur lors de l\'enregistrement SMTP');
-    } finally {
-      setSavingSmtp(false);
-    }
-  };
-
-  const handleTestSmtp = async () => {
-    try {
-      setTestingSmtp(true);
-      await settingsService.testSmtp(smtpData);
-      toast.success('Email de test envoyé avec succès !');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Échec du test SMTP');
-    } finally {
-      setTestingSmtp(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1153,198 +1075,6 @@ export default function Settings() {
           </div>
         )}
 
-        {/* Onglet Email / Gmail */}
-        {activeTab === 'email' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
-              {/* En-tête */}
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none">
-                    <path d="M20 4H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" fill="#EA4335" fillOpacity="0.15" stroke="#EA4335" strokeWidth="1.5"/>
-                    <path d="M2 6l10 7 10-7" stroke="#EA4335" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold text-gray-900">Connexion Gmail</h2>
-                  <p className="text-gray-500 text-sm mt-0.5">
-                    Vos devis et factures partiront depuis votre adresse Gmail
-                  </p>
-                </div>
-                {gmailStatus.connected && (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-semibold">
-                    <CheckCircle className="w-4 h-4" />
-                    Gmail connecté
-                  </div>
-                )}
-              </div>
-
-              {/* État connecté */}
-              {gmailStatus.connected ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-5 bg-green-50 border border-green-200 rounded-xl">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-green-800">Compte Gmail connecté</p>
-                      <p className="text-sm text-green-700 mt-0.5">{gmailStatus.email}</p>
-                      <p className="text-xs text-green-600 mt-1">Les emails partent automatiquement depuis cette adresse</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleDisconnectGmail}
-                      disabled={gmailDisconnecting}
-                      className="flex items-center gap-2 px-4 py-2 text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-all text-sm font-medium disabled:opacity-50"
-                    >
-                      {gmailDisconnecting
-                        ? <Loader2 className="w-4 h-4 animate-spin" />
-                        : <LogOut className="w-4 h-4" />
-                      }
-                      Déconnecter
-                    </button>
-                  </div>
-
-                  <p className="text-sm text-gray-500">
-                    Pour changer de compte Gmail, déconnectez d'abord le compte actuel puis reconnectez-en un nouveau.
-                  </p>
-                </div>
-              ) : (
-                /* État non connecté */
-                <div className="space-y-6">
-                  <div className="p-5 bg-gray-50 border border-gray-200 rounded-xl text-center">
-                    <Mail className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600 text-sm mb-1">Aucun compte Gmail connecté</p>
-                    <p className="text-gray-400 text-xs">Les boutons d'envoi par email sont masqués jusqu'à la connexion</p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleConnectGmail}
-                    disabled={gmailConnecting}
-                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-gray-300 rounded-xl hover:border-gray-400 hover:shadow-md transition-all font-semibold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {gmailConnecting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      /* Logo Google */
-                      <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                      </svg>
-                    )}
-                    {gmailConnecting ? 'Redirection vers Google...' : 'Se connecter avec Google'}
-                  </button>
-
-                  <p className="text-xs text-gray-400 text-center">
-                    Vous serez redirigé vers Google pour autoriser l'envoi d'emails. Aucun mot de passe n'est stocké.
-                  </p>
-                </div>
-              )}
-            </div>
-
-          {/* Alternative SMTP */}
-          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                <Mail className="w-5 h-5 text-gray-600" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Configuration SMTP</h2>
-                <p className="text-sm text-gray-500">Alternative si Gmail OAuth2 ne fonctionne pas</p>
-              </div>
-            </div>
-
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl mb-6">
-              <p className="text-sm text-blue-800">
-                <strong>Pour Gmail :</strong> activez la validation 2 étapes puis créez un{' '}
-                <strong>mot de passe d'application</strong> sur{' '}
-                <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="underline">
-                  myaccount.google.com/apppasswords
-                </a>.
-                Utilisez ensuite <code className="bg-blue-100 px-1 rounded">smtp.gmail.com</code> port 587.
-              </p>
-            </div>
-
-            <form onSubmit={handleSaveSmtp} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Serveur SMTP</label>
-                  <input
-                    type="text"
-                    value={smtpData.smtp_host}
-                    onChange={e => setSmtpData({ ...smtpData, smtp_host: e.target.value })}
-                    placeholder="smtp.gmail.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
-                  <input
-                    type="number"
-                    value={smtpData.smtp_port}
-                    onChange={e => setSmtpData({ ...smtpData, smtp_port: parseInt(e.target.value) })}
-                    placeholder="587"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Adresse email (expéditeur)</label>
-                  <input
-                    type="email"
-                    value={smtpData.smtp_user}
-                    onChange={e => setSmtpData({ ...smtpData, smtp_user: e.target.value })}
-                    placeholder="contact@mon-entreprise.fr"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe SMTP</label>
-                  <input
-                    type="password"
-                    value={smtpData.smtp_password}
-                    onChange={e => setSmtpData({ ...smtpData, smtp_password: e.target.value })}
-                    placeholder="••••••••••••••••"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom affiché (from)</label>
-                  <input
-                    type="text"
-                    value={smtpData.smtp_from}
-                    onChange={e => setSmtpData({ ...smtpData, smtp_from: e.target.value })}
-                    placeholder="Mon Entreprise BTP <contact@mon-entreprise.fr>"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={handleTestSmtp}
-                  disabled={testingSmtp || !smtpData.smtp_host}
-                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  {testingSmtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                  Tester l'envoi
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingSmtp}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  {savingSmtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Enregistrer SMTP
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-        )}
 
         {/* Onglet Abonnement */}
         {activeTab === 'abonnement' && (

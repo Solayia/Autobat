@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, Plus, FileText, Calendar, Euro, Building, User, Check, Clock, X, Download, Bell, Mail } from 'lucide-react';
+import { ArrowLeft, Plus, Calendar, Building, User, Check, Clock, X, Download } from 'lucide-react';
 import factureService from '../../services/factureService';
-import settingsService from '../../services/settingsService';
 
 export default function FactureDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [facture, setFacture] = useState(null);
-  const [smtpConfigured, setSmtpConfigured] = useState(false);
+
   const [showPaiementModal, setShowPaiementModal] = useState(false);
   const [paiementData, setPaiementData] = useState({
     montant: '',
@@ -26,12 +25,8 @@ export default function FactureDetail() {
   const loadFacture = async () => {
     try {
       setLoading(true);
-      const [data, settingsData] = await Promise.all([
-        factureService.getFactureById(id),
-        settingsService.getSettings().catch(() => ({}))
-      ]);
+      const data = await factureService.getFactureById(id);
       setFacture(data);
-      setSmtpConfigured(settingsData?.smtp_configured || false);
     } catch (error) {
       console.error('Erreur chargement facture:', error);
       toast.error('Facture introuvable');
@@ -41,28 +36,6 @@ export default function FactureDetail() {
     }
   };
 
-  const handleEnvoyer = async () => {
-    if (!confirm('Envoyer cette facture au client ?')) return;
-
-    try {
-      await factureService.envoyerFacture(id);
-      toast.success('Facture envoyée avec succès !');
-      loadFacture();
-    } catch (error) {
-      console.error('Erreur envoi facture:', error);
-      toast.error(error.response?.data?.message || 'Erreur lors de l\'envoi de la facture');
-    }
-  };
-
-  const handleRappelImpaye = async () => {
-    if (!confirm(`Envoyer un rappel de paiement à ${facture?.client_email} ?`)) return;
-    try {
-      await factureService.envoyerRappel(id);
-      toast.success('Rappel de paiement envoyé !');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Erreur lors de l\'envoi du rappel');
-    }
-  };
 
   const handleDownloadPDF = async () => {
     try {
@@ -176,26 +149,6 @@ export default function FactureDetail() {
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Télécharger PDF</span>
             </button>
-            {facture.statut_facture === 'BROUILLON' && (
-              smtpConfigured ? (
-                <button
-                  onClick={handleEnvoyer}
-                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">Envoyer par email</span>
-                </button>
-              ) : (
-                <a
-                  href="/settings?tab=email"
-                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-200 text-gray-500 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
-                  title="Connectez Gmail dans Paramètres > Email pour envoyer par email"
-                >
-                  <Mail className="w-4 h-4" />
-                  <span className="hidden sm:inline">Email non configuré</span>
-                </a>
-              )
-            )}
             {facture.statut_paiement !== 'PAYE' && facture.statut_paiement !== 'ANNULE' && (
               <>
                 <button
@@ -205,16 +158,6 @@ export default function FactureDetail() {
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Ajouter un paiement</span>
                 </button>
-                {facture.statut_facture === 'ENVOYEE' && smtpConfigured && (
-                  <button
-                    onClick={handleRappelImpaye}
-                    className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
-                    title="Envoyer un email de rappel de paiement au client"
-                  >
-                    <Bell className="w-4 h-4" />
-                    <span className="hidden sm:inline">Rappel impayé</span>
-                  </button>
-                )}
               </>
             )}
           </div>

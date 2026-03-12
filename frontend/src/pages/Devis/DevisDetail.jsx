@@ -69,21 +69,6 @@ export default function DevisDetail() {
     }
   };
 
-  const handleSend = async () => {
-    if (!confirm('Envoyer ce devis par email au client ?')) return;
-
-    try {
-      setActionLoading(true);
-      await devisService.sendDevis(id);
-      toast.success('Devis envoyé avec succès');
-      await loadData();
-    } catch (error) {
-      console.error('Erreur envoi devis:', error);
-      toast.error('Erreur lors de l\'envoi du devis');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleMarkAsSent = async () => {
     try {
@@ -293,25 +278,6 @@ export default function DevisDetail() {
                       <CheckCircle className="w-4 h-4" />
                       Remis au client
                     </button>
-                    {settings?.smtp_configured ? (
-                      <button
-                        onClick={handleSend}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-all duration-200 shadow-lg"
-                        disabled={actionLoading}
-                      >
-                        <Send className="w-4 h-4" />
-                        Envoyer par email
-                      </button>
-                    ) : (
-                      <a
-                        href="/settings?tab=email"
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-500 rounded-xl font-medium cursor-pointer hover:bg-gray-300 transition-all duration-200 shadow-lg"
-                        title="Connectez Gmail dans Paramètres > Email pour envoyer par email"
-                      >
-                        <Mail className="w-4 h-4" />
-                        Email non configuré
-                      </a>
-                    )}
                   </>
                 )}
 

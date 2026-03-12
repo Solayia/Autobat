@@ -438,6 +438,9 @@ export default function ChantierForm() {
                         <div className="text-sm text-blue-700">
                           {selectedDevis.client?.nom}
                         </div>
+                        {selectedDevis.objet && (
+                          <div className="text-xs text-blue-600 italic mt-1">{selectedDevis.objet}</div>
+                        )}
                       </div>
                       <button
                         onClick={() => {
@@ -988,6 +991,7 @@ export default function ChantierForm() {
                         <div className="flex-1">
                           <div className="font-medium text-gray-900 mb-1">{devis.numero_devis}</div>
                           <div className="text-sm text-gray-600">{devis.client?.nom}</div>
+                          {devis.objet && <div className="text-xs text-blue-600 italic">{devis.objet}</div>}
                           <div className="text-xs text-gray-500 mt-1">
                             {new Date(devis.created_at).toLocaleDateString('fr-FR')}
                           </div>

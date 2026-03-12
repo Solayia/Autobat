@@ -26,7 +26,7 @@ import Pilotage from './pages/Pilotage';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import SuperAdmin from './pages/SuperAdmin/SuperAdmin';
-import GmailCallback from './pages/GmailCallback';
+
 import CGU from './pages/CGU';
 import CGV from './pages/CGV';
 import MentionsLegales from './pages/MentionsLegales';
@@ -69,7 +69,6 @@ function App() {
         <Route path="/cgv" element={<CGV />} />
         <Route path="/mentions-legales" element={<MentionsLegales />} />
         <Route path="/confidentialite" element={<Confidentialite />} />
-        <Route path="/gmail-callback" element={<GmailCallback />} />
 
         {/* Protected routes */}
         <Route
