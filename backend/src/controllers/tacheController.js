@@ -270,10 +270,10 @@ export const createTachesFromDevis = async (req, res, next) => {
       }
     });
 
-    // Filtrer uniquement les lignes de type OUVRAGE
-    // Exclut les SECTION (titres), MATERIAU (fournitures) et autres types
+    // Filtrer les lignes de type OUVRAGE et MAIN_OEUVRE (les deux deviennent des tâches)
+    // Exclut les SECTION (titres) et MATERIAU (fournitures)
     const lignesValides = chantier.devis.lignes.filter(ligne => {
-      return ligne.type === 'OUVRAGE';
+      return ligne.type === 'OUVRAGE' || ligne.type === 'MAIN_OEUVRE';
     });
 
     if (lignesValides.length === 0) {
