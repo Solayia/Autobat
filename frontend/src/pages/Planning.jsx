@@ -1,22 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, CalendarDays, Users, Building, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, Users, Building2, TrendingUp, AlertCircle } from 'lucide-react';
 import chantierService from '../services/chantierService';
 import employeService from '../services/employeService';
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const JOURS_FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
-const STATUT_COLORS = {
-  PLANIFIE: { bg: 'bg-blue-500', light: 'bg-blue-100 text-blue-800 border-blue-300', dot: 'bg-blue-500' },
-  EN_COURS: { bg: 'bg-green-500', light: 'bg-green-100 text-green-800 border-green-300', dot: 'bg-green-500' },
-  TERMINE:  { bg: 'bg-gray-400',  light: 'bg-gray-100 text-gray-600 border-gray-300',  dot: 'bg-gray-400' },
-  ANNULE:   { bg: 'bg-red-400',   light: 'bg-red-100 text-red-700 border-red-300',     dot: 'bg-red-400' },
+const STATUT_CONFIG = {
+  PLANIFIE: { label: 'Planifié',  border: 'border-l-blue-500',  bg: 'bg-blue-50',   text: 'text-blue-800',  dot: 'bg-blue-500',  badge: 'bg-blue-100 text-blue-700' },
+  EN_COURS: { label: 'En cours',  border: 'border-l-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-800', dot: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-700' },
+  TERMINE:  { label: 'Terminé',   border: 'border-l-gray-400',  bg: 'bg-gray-50',   text: 'text-gray-600',  dot: 'bg-gray-400',  badge: 'bg-gray-100 text-gray-600' },
+  ANNULE:   { label: 'Annulé',    border: 'border-l-red-400',   bg: 'bg-red-50',    text: 'text-red-700',   dot: 'bg-red-400',   badge: 'bg-red-100 text-red-700' },
 };
+
+const AVATAR_GRADIENTS = [
+  'from-violet-500 to-purple-600',
+  'from-blue-500 to-cyan-600',
+  'from-emerald-500 to-teal-600',
+  'from-orange-500 to-amber-600',
+  'from-rose-500 to-pink-600',
+  'from-indigo-500 to-blue-600',
+];
+
+function getAvatarGradient(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+}
 
 function getMondayOfWeek(date) {
   const d = new Date(date);
-  const day = d.getDay(); // 0=Sun
+  const day = d.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
   d.setHours(0, 0, 0, 0);
@@ -35,9 +49,7 @@ function isSameDay(a, b) {
     a.getDate() === b.getDate();
 }
 
-function isToday(d) {
-  return isSameDay(d, new Date());
-}
+function isToday(d) { return isSameDay(d, new Date()); }
 
 function dateInRange(day, debut, fin) {
   if (!debut) return false;
@@ -51,9 +63,7 @@ function dateInRange(day, debut, fin) {
 function formatWeekRange(monday) {
   const saturday = addDays(monday, 5);
   const opts = { day: 'numeric', month: 'short' };
-  const startStr = monday.toLocaleDateString('fr-FR', opts);
-  const endStr = saturday.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-  return `${startStr} – ${endStr}`;
+  return `${monday.toLocaleDateString('fr-FR', opts)} – ${saturday.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}`;
 }
 
 function formatMonthYear(date) {
@@ -66,11 +76,9 @@ export default function Planning() {
   const [employes, setEmployes] = useState([]);
   const [chantiers, setChantiers] = useState([]);
   const [weekStart, setWeekStart] = useState(() => getMondayOfWeek(new Date()));
-  const [viewMode, setViewMode] = useState('semaine'); // 'semaine' | 'mois'
+  const [viewMode, setViewMode] = useState('semaine');
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
@@ -88,16 +96,14 @@ export default function Planning() {
     }
   };
 
-  // Jours affichés selon le mode
   const days = viewMode === 'semaine'
     ? Array.from({ length: 6 }, (_, i) => addDays(weekStart, i))
     : (() => {
-        // Mois entier du lundi de la semaine courante
         const firstDay = new Date(weekStart.getFullYear(), weekStart.getMonth(), 1);
         const lastDay = new Date(weekStart.getFullYear(), weekStart.getMonth() + 1, 0);
         const result = [];
         for (let d = new Date(firstDay); d <= lastDay; d = addDays(d, 1)) {
-          if (d.getDay() !== 0) result.push(new Date(d)); // skip dimanche
+          if (d.getDay() !== 0) result.push(new Date(d));
         }
         return result;
       })();
@@ -112,278 +118,288 @@ export default function Planning() {
   };
   const goToToday = () => setWeekStart(getMondayOfWeek(new Date()));
 
-  // Pour un employé et un jour donné, retourne les chantiers actifs
-  const getChantiersForEmployeDay = (employe, day) => {
-    return chantiers.filter(c => {
+  const getChantiersForEmployeDay = (employe, day) =>
+    chantiers.filter(c => {
       const isAssigned = c.employes_assignes?.some(a => a.employe?.id === employe.id);
-      if (!isAssigned) return false;
-      return dateInRange(day, c.date_debut, c.date_fin_prevue || c.date_fin_reelle);
+      return isAssigned && dateInRange(day, c.date_debut, c.date_fin_prevue || c.date_fin_reelle);
     });
-  };
 
-  const periodLabel = viewMode === 'semaine'
-    ? formatWeekRange(weekStart)
-    : formatMonthYear(weekStart);
-
-  // Statistiques rapides
+  const periodLabel = viewMode === 'semaine' ? formatWeekRange(weekStart) : formatMonthYear(weekStart);
   const chantiersActifs = chantiers.filter(c => c.statut === 'EN_COURS').length;
   const chantiersPlannifies = chantiers.filter(c => c.statut === 'PLANIFIE').length;
   const employesActifs = employes.filter(emp =>
     chantiers.some(c => c.statut === 'EN_COURS' && c.employes_assignes?.some(a => a.employe?.id === emp.id))
   ).length;
 
+  const sansEmployes = chantiers.filter(
+    c => c.statut !== 'TERMINE' && c.statut !== 'ANNULE' &&
+      (!c.employes_assignes || c.employes_assignes.length === 0)
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-500 text-sm">Chargement du planning…</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white shadow-xl py-4 sm:py-5">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-2 sm:p-3 bg-white/10 rounded-xl backdrop-blur-sm">
-                <CalendarDays className="w-6 h-6 sm:w-8 sm:h-8" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-3xl font-bold">Planning</h1>
-                <p className="text-blue-100 mt-1 hidden sm:block">Emploi du temps des équipes</p>
-              </div>
+      <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white shadow-xl">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+          <div className="flex items-center gap-4">
+            <div className="p-2.5 bg-white/15 rounded-xl backdrop-blur-sm ring-1 ring-white/20">
+              <CalendarDays className="w-6 h-6 sm:w-7 sm:h-7" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Planning</h1>
+              <p className="text-primary-100 text-sm mt-0.5 hidden sm:block">Emploi du temps des équipes</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="max-w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-4 sm:space-y-5">
 
-        {/* KPIs rapides */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <div className="bg-white rounded-2xl shadow-lg p-4 flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-              <Building className="w-5 h-5 text-green-600" />
+        {/* KPIs */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{chantiersActifs}</p>
-              <p className="text-xs text-gray-500">En cours</p>
+              <p className="text-xs text-gray-500 leading-tight">En cours</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl shadow-lg p-4 flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <Clock className="w-5 h-5 text-blue-600" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-5 h-5 text-blue-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{chantiersPlannifies}</p>
-              <p className="text-xs text-gray-500">Planifiés</p>
+              <p className="text-xs text-gray-500 leading-tight">Planifiés</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl shadow-lg p-4 flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-              <Users className="w-5 h-5 text-purple-600" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
+            <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5 text-violet-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{employesActifs}</p>
-              <p className="text-xs text-gray-500">Employés actifs</p>
+              <p className="text-xs text-gray-500 leading-tight">Actifs</p>
             </div>
           </div>
         </div>
 
         {/* Barre de navigation */}
-        <div className="bg-white rounded-2xl shadow-lg p-3 sm:p-4 mb-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-3 sm:px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={prevPeriod}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-600 hover:text-gray-900"
             >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
             <button
               onClick={goToToday}
-              className="px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              className="px-3 py-1.5 text-xs sm:text-sm font-semibold text-primary-600 hover:bg-primary-50 rounded-xl transition-colors border border-primary-200"
             >
               Aujourd'hui
             </button>
             <button
               onClick={nextPeriod}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-600 hover:text-gray-900"
             >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <span className="text-sm sm:text-base font-semibold text-gray-900 ml-1 capitalize">
+            <span className="text-sm sm:text-base font-semibold text-gray-900 ml-1 capitalize hidden sm:inline">
               {periodLabel}
+            </span>
+            <span className="text-xs font-semibold text-gray-800 capitalize sm:hidden">
+              {viewMode === 'semaine'
+                ? `${weekStart.getDate()}/${weekStart.getMonth() + 1}`
+                : formatMonthYear(weekStart)}
             </span>
           </div>
 
-          {/* Toggle semaine/mois */}
-          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-            <button
-              onClick={() => setViewMode('semaine')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                viewMode === 'semaine'
-                  ? 'bg-white text-primary-600 shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Semaine
-            </button>
-            <button
-              onClick={() => setViewMode('mois')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                viewMode === 'mois'
-                  ? 'bg-white text-primary-600 shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Mois
-            </button>
+          <div className="flex items-center gap-3">
+            {/* Légende */}
+            <div className="hidden lg:flex items-center gap-3">
+              {Object.entries(STATUT_CONFIG).map(([statut, c]) => (
+                <div key={statut} className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <div className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
+                  {c.label}
+                </div>
+              ))}
+            </div>
+
+            {/* Toggle */}
+            <div className="flex items-center gap-0.5 bg-gray-100 rounded-xl p-1">
+              <button
+                onClick={() => setViewMode('semaine')}
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'semaine'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                Semaine
+              </button>
+              <button
+                onClick={() => setViewMode('mois')}
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'mois'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                Mois
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Légende */}
-        <div className="flex items-center gap-4 flex-wrap mb-4 px-1">
-          {Object.entries(STATUT_COLORS).map(([statut, c]) => (
-            <div key={statut} className="flex items-center gap-1.5 text-xs text-gray-600">
-              <div className={`w-3 h-3 rounded-full ${c.dot}`} />
-              {statut === 'PLANIFIE' ? 'Planifié' : statut === 'EN_COURS' ? 'En cours' : statut === 'TERMINE' ? 'Terminé' : 'Annulé'}
-            </div>
-          ))}
-        </div>
-
-        {/* Grille planning */}
+        {/* Grille */}
         {employes.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucun employé</h3>
-            <p className="text-gray-500">Ajoutez des employés pour visualiser leur planning</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
+            <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Users className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Aucun employé</h3>
+            <p className="text-sm text-gray-500">Ajoutez des employés pour visualiser leur planning</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full border-collapse">
                 <thead>
-                  <tr className="bg-gradient-to-r from-primary-600 to-primary-800">
-                    {/* Colonne employé */}
-                    <th className="sticky left-0 z-10 bg-primary-700 px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider w-36 min-w-[9rem] border-r border-primary-500">
-                      Employé
+                  <tr>
+                    {/* En-tête colonne employé */}
+                    <th className="sticky left-0 z-20 bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-left w-44 min-w-[11rem]">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Employé</span>
                     </th>
                     {days.map((day, i) => {
                       const today = isToday(day);
-                      const label = viewMode === 'semaine'
-                        ? JOURS[day.getDay() === 0 ? 6 : day.getDay() - 1]
-                        : day.getDate();
+                      const dayIndex = day.getDay() === 0 ? 6 : day.getDay() - 1;
                       return (
                         <th
                           key={i}
-                          className={`px-2 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider min-w-[7rem] border-r border-primary-500 last:border-r-0 ${
-                            today ? 'bg-white/20' : ''
+                          className={`px-2 py-3 text-center border-b border-r border-gray-200 last:border-r-0 min-w-[7.5rem] ${
+                            today ? 'bg-primary-50' : 'bg-gray-50'
                           }`}
                         >
-                          <div>{label}</div>
-                          {viewMode === 'semaine' && (
-                            <div className={`text-xs font-normal mt-0.5 ${today ? 'text-yellow-300 font-bold' : 'text-blue-200'}`}>
-                              {day.getDate()}/{day.getMonth() + 1}
-                            </div>
-                          )}
-                          {viewMode === 'mois' && (
-                            <div className="text-xs font-normal text-blue-200">
-                              {JOURS[day.getDay() === 0 ? 6 : day.getDay() - 1]}
-                            </div>
-                          )}
+                          <div className={`text-xs font-semibold uppercase tracking-wider ${today ? 'text-primary-600' : 'text-gray-500'}`}>
+                            {viewMode === 'semaine' ? JOURS[dayIndex] : JOURS[dayIndex]}
+                          </div>
+                          <div className={`mt-1 inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-bold ${
+                            today
+                              ? 'bg-primary-600 text-white shadow-sm'
+                              : 'text-gray-800'
+                          }`}>
+                            {day.getDate()}
+                          </div>
                         </th>
                       );
                     })}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {employes.map((employe) => (
-                    <tr key={employe.id} className="hover:bg-gray-50 transition-colors">
-                      {/* Nom employé */}
-                      <td className="sticky left-0 z-10 bg-white hover:bg-gray-50 px-4 py-2 border-r border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-xs font-bold text-primary-700 flex-shrink-0">
-                            {(employe.user?.prenom?.[0] || '?').toUpperCase()}
+                  {employes.map((employe, idx) => {
+                    const name = `${employe.user?.prenom || ''} ${employe.user?.nom || ''}`.trim();
+                    const initials = [employe.user?.prenom?.[0], employe.user?.nom?.[0]].filter(Boolean).join('').toUpperCase() || '?';
+                    const gradient = getAvatarGradient(name || employe.id);
+                    return (
+                      <tr key={employe.id} className={`group ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-primary-50/30 transition-colors`}>
+                        {/* Cellule employé */}
+                        <td className={`sticky left-0 z-10 px-4 py-3 border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} group-hover:bg-primary-50/30 transition-colors`}>
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-xs font-bold text-white shadow-sm flex-shrink-0`}>
+                              {initials}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-gray-900 truncate leading-tight">{name || 'Employé'}</p>
+                              {employe.poste && (
+                                <p className="text-xs text-gray-400 truncate leading-tight mt-0.5">{employe.poste}</p>
+                              )}
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold text-gray-900 truncate">
-                              {employe.user?.prenom} {employe.user?.nom}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Cellules par jour */}
-                      {days.map((day, di) => {
-                        const today = isToday(day);
-                        const chantiersJour = getChantiersForEmployeDay(employe, day);
-                        return (
-                          <td
-                            key={di}
-                            className={`px-1 py-1.5 border-r border-gray-100 last:border-r-0 align-top min-w-[7rem] ${
-                              today ? 'bg-yellow-50' : ''
-                            }`}
-                          >
-                            {chantiersJour.map((c) => {
-                              const colors = STATUT_COLORS[c.statut] || STATUT_COLORS.PLANIFIE;
-                              return (
-                                <div
-                                  key={c.id}
-                                  onClick={() => navigate(`/chantiers/${c.id}`)}
-                                  className={`text-xs px-2 py-1 rounded-lg border cursor-pointer hover:opacity-80 transition-opacity mb-0.5 truncate ${colors.light}`}
-                                  title={`${c.nom}${c.client ? ` – ${c.client.nom}` : ''}`}
-                                >
-                                  <span className="font-medium">{c.nom}</span>
-                                  {c.client && (
-                                    <span className="block text-xs opacity-70 truncate">{c.client.nom}</span>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
+                        {/* Cellules jours */}
+                        {days.map((day, di) => {
+                          const today = isToday(day);
+                          const chantiersJour = getChantiersForEmployeDay(employe, day);
+                          return (
+                            <td
+                              key={di}
+                              className={`px-1.5 py-1.5 border-r border-gray-100 last:border-r-0 align-top min-w-[7.5rem] ${
+                                today ? 'bg-primary-50/40' : ''
+                              }`}
+                            >
+                              <div className="space-y-1">
+                                {chantiersJour.map((c) => {
+                                  const cfg = STATUT_CONFIG[c.statut] || STATUT_CONFIG.PLANIFIE;
+                                  return (
+                                    <button
+                                      key={c.id}
+                                      onClick={() => navigate(`/chantiers/${c.id}`)}
+                                      className={`w-full text-left text-xs px-2 py-1.5 rounded-lg border-l-4 ${cfg.border} ${cfg.bg} ${cfg.text} hover:brightness-95 transition-all shadow-sm`}
+                                      title={`${c.nom}${c.client ? ` – ${c.client.nom}` : ''}`}
+                                    >
+                                      <p className="font-semibold truncate leading-tight">{c.nom}</p>
+                                      {c.client && (
+                                        <p className="text-xs opacity-60 truncate leading-tight mt-0.5">{c.client.nom}</p>
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* Chantiers sans employés assignés */}
-        {(() => {
-          const sansEmployes = chantiers.filter(
-            c => c.statut !== 'TERMINE' && c.statut !== 'ANNULE' &&
-              (!c.employes_assignes || c.employes_assignes.length === 0)
-          );
-          if (sansEmployes.length === 0) return null;
-          return (
-            <div className="mt-6 bg-white rounded-2xl shadow-lg p-4 sm:p-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <Building className="w-4 h-4 text-orange-500" />
-                Chantiers sans équipe assignée ({sansEmployes.length})
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {sansEmployes.map(c => {
-                  const colors = STATUT_COLORS[c.statut] || STATUT_COLORS.PLANIFIE;
-                  return (
-                    <div
-                      key={c.id}
-                      onClick={() => navigate(`/chantiers/${c.id}`)}
-                      className={`text-xs px-3 py-2 rounded-lg border cursor-pointer hover:opacity-80 transition-opacity ${colors.light}`}
-                    >
-                      <p className="font-semibold">{c.nom}</p>
-                      {c.client && <p className="opacity-70">{c.client.nom}</p>}
-                    </div>
-                  );
-                })}
-              </div>
+        {/* Chantiers sans équipe */}
+        {sansEmployes.length > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5">
+            <h3 className="text-sm font-semibold text-amber-800 mb-3 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-500" />
+              Chantiers sans équipe assignée
+              <span className="ml-1 px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs font-bold">
+                {sansEmployes.length}
+              </span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+              {sansEmployes.map(c => {
+                const cfg = STATUT_CONFIG[c.statut] || STATUT_CONFIG.PLANIFIE;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => navigate(`/chantiers/${c.id}`)}
+                    className={`text-left text-xs px-3 py-2.5 rounded-xl border-l-4 ${cfg.border} ${cfg.bg} ${cfg.text} hover:brightness-95 transition-all shadow-sm`}
+                  >
+                    <p className="font-semibold">{c.nom}</p>
+                    {c.client && <p className="opacity-60 mt-0.5">{c.client.nom}</p>}
+                    <span className={`inline-block mt-1.5 px-1.5 py-0.5 rounded text-xs ${cfg.badge}`}>{cfg.label}</span>
+                  </button>
+                );
+              })}
             </div>
-          );
-        })()}
+          </div>
+        )}
       </div>
     </div>
   );
