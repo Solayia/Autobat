@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, MapPin, Calendar, Users, Clock, Building, ChevronRight } from 'lucide-react';
+import { Plus, Search, MapPin, Calendar, Users, Clock, Building, ChevronRight, Grid3x3, List, Eye } from 'lucide-react';
 import chantierService from '../../services/chantierService';
 import useAuthStore from '../../stores/authStore';
 
@@ -11,6 +11,7 @@ export default function Chantiers() {
   const [loading, setLoading] = useState(true);
   const [chantiers, setChantiers] = useState([]);
   const [pagination, setPagination] = useState({});
+  const [viewMode, setViewMode] = useState('cards');
   const [filters, setFilters] = useState({
     page: 1,
     limit: 20,
@@ -60,6 +61,11 @@ export default function Chantiers() {
     return new Date(date).toLocaleDateString('fr-FR');
   };
 
+  const formatCurrency = (amount) => {
+    if (!amount) return '-';
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
+  };
+
   if (loading && chantiers.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -96,178 +102,266 @@ export default function Chantiers() {
           </div>
         </div>
       </div>
+
       <div className="max-w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
 
-      {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
-        <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Rechercher par nom ou référence..."
-                value={filters.search}
-                onChange={(e) => setFilters({ ...filters, page: 1, search: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
+        {/* Filters */}
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher par nom ou référence..."
+                  value={filters.search}
+                  onChange={(e) => setFilters({ ...filters, page: 1, search: e.target.value })}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
 
-            {/* Statut filter */}
-            <select
-              value={filters.statut}
-              onChange={(e) => setFilters({ ...filters, page: 1, statut: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="">Tous les statuts</option>
-              <option value="PLANIFIE">Planifié</option>
-              <option value="EN_COURS">En cours</option>
-              <option value="TERMINE">Terminé</option>
-              <option value="ANNULE">Annulé</option>
-            </select>
-          </div>
-          {pagination.total > 0 && (
-            <div className="flex items-center gap-1.5 text-sm text-gray-500">
-              <Building className="w-4 h-4" />
-              <span className="font-semibold text-gray-900">{pagination.total}</span>
-              chantier{pagination.total > 1 ? 's' : ''}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Chantiers grid */}
-      {chantiers.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-          <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucun chantier</h3>
-          <p className="text-gray-500 mb-6">Commencez par créer un nouveau chantier</p>
-          <button
-            onClick={() => navigate('/chantiers/new')}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Nouveau chantier
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-          {chantiers.map((chantier) => {
-            const badge = getStatutBadge(chantier.statut);
-
-            return (
-              <div
-                key={chantier.id}
-                onClick={() => navigate(`/chantiers/${chantier.id}`)}
-                className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden border border-gray-100"
+              {/* Statut filter */}
+              <select
+                value={filters.statut}
+                onChange={(e) => setFilters({ ...filters, page: 1, statut: e.target.value })}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                {/* Header avec statut */}
-                <div className={`px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r ${getStatutHeaderColors(chantier.statut)}`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-white text-base sm:text-lg line-clamp-2">
-                        {chantier.nom}
-                      </h3>
-                      <p className="text-green-100 text-sm mt-0.5">{chantier.reference}</p>
-                    </div>
-                    <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${badge.color} bg-white/20 text-white border border-white/30`}>
-                      {badge.label}
-                    </span>
-                  </div>
-                </div>
+                <option value="">Tous les statuts</option>
+                <option value="PLANIFIE">Planifié</option>
+                <option value="EN_COURS">En cours</option>
+                <option value="TERMINE">Terminé</option>
+                <option value="ANNULE">Annulé</option>
+              </select>
 
-                {/* Body */}
-                <div className="px-4 py-3 sm:px-6 sm:py-4 space-y-2 sm:space-y-3">
-                  {/* Client */}
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Users className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium">{chantier.client?.nom || 'Client inconnu'}</span>
-                  </div>
+              {/* Toggle Vue */}
+              <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 self-end sm:self-auto">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all duration-200 text-sm ${
+                    viewMode === 'cards'
+                      ? 'bg-white text-primary-600 shadow-md'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Vue en cartes"
+                >
+                  <Grid3x3 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Cartes</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all duration-200 text-sm ${
+                    viewMode === 'table'
+                      ? 'bg-white text-primary-600 shadow-md'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Vue en tableau"
+                >
+                  <List className="w-4 h-4" />
+                  <span className="hidden sm:inline">Tableau</span>
+                </button>
+              </div>
+            </div>
 
-                  {/* Adresse */}
-                  {chantier.adresse && (
-                    <div className="flex items-start gap-2 text-sm text-gray-600">
-                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                      <span className="line-clamp-2">{chantier.adresse}</span>
-                    </div>
-                  )}
+            {pagination.total > 0 && (
+              <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                <Building className="w-4 h-4" />
+                <span className="font-semibold text-gray-900">{pagination.total}</span>
+                chantier{pagination.total > 1 ? 's' : ''}
+              </div>
+            )}
+          </div>
+        </div>
 
-                  {/* Dates */}
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span>
-                      {formatDate(chantier.date_debut)} - {formatDate(chantier.date_fin_prevue)}
-                    </span>
-                  </div>
-
-                  {/* Employés assignés */}
-                  {chantier.employes && chantier.employes.length > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Users className="w-4 h-4 text-gray-400" />
-                      <span>{chantier.employes.length} employé{chantier.employes.length > 1 ? 's' : ''}</span>
-                    </div>
-                  )}
-
-                  {/* Durée */}
-                  {chantier.duree_estimee_heures && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      <span>{chantier.duree_estimee_heures}h estimées</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-4 py-2.5 sm:px-6 sm:py-3 bg-gray-50 border-t border-gray-100">
-                  <div className="flex items-center justify-between">
-                    {chantier.montant_ht ? (
-                      <>
-                        <span className="text-sm text-gray-500">Montant HT</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-gray-900">
-                            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(chantier.montant_ht)}
+        {/* Contenu */}
+        {chantiers.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+            <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucun chantier</h3>
+            <p className="text-gray-500 mb-6">Commencez par créer un nouveau chantier</p>
+            <button
+              onClick={() => navigate('/chantiers/new')}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              Nouveau chantier
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Vue cartes */}
+            {viewMode === 'cards' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+                {chantiers.map((chantier) => {
+                  const badge = getStatutBadge(chantier.statut);
+                  return (
+                    <div
+                      key={chantier.id}
+                      onClick={() => navigate(`/chantiers/${chantier.id}`)}
+                      className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden border border-gray-100"
+                    >
+                      {/* Header avec statut */}
+                      <div className={`px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r ${getStatutHeaderColors(chantier.statut)}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-white text-base sm:text-lg line-clamp-2">
+                              {chantier.nom}
+                            </h3>
+                            <p className="text-green-100 text-sm mt-0.5">{chantier.reference}</p>
+                          </div>
+                          <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${badge.color} bg-white/20 text-white border border-white/30`}>
+                            {badge.label}
                           </span>
-                          <ChevronRight className="w-4 h-4 text-gray-400" />
                         </div>
-                      </>
-                    ) : (
-                      <span className="text-xs text-primary-600 font-medium ml-auto flex items-center gap-1">
-                        Voir le détail <ChevronRight className="w-3.5 h-3.5" />
-                      </span>
-                    )}
-                  </div>
+                      </div>
+
+                      {/* Body */}
+                      <div className="px-4 py-3 sm:px-6 sm:py-4 space-y-2 sm:space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Users className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">{chantier.client?.nom || 'Client inconnu'}</span>
+                        </div>
+                        {chantier.adresse && (
+                          <div className="flex items-start gap-2 text-sm text-gray-600">
+                            <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
+                            <span className="line-clamp-2">{chantier.adresse}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <span>{formatDate(chantier.date_debut)} - {formatDate(chantier.date_fin_prevue)}</span>
+                        </div>
+                        {chantier.employes && chantier.employes.length > 0 && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Users className="w-4 h-4 text-gray-400" />
+                            <span>{chantier.employes.length} employé{chantier.employes.length > 1 ? 's' : ''}</span>
+                          </div>
+                        )}
+                        {chantier.duree_estimee_heures && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Clock className="w-4 h-4 text-gray-400" />
+                            <span>{chantier.duree_estimee_heures}h estimées</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="px-4 py-2.5 sm:px-6 sm:py-3 bg-gray-50 border-t border-gray-100">
+                        <div className="flex items-center justify-between">
+                          {chantier.montant_ht ? (
+                            <>
+                              <span className="text-sm text-gray-500">Montant HT</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-gray-900">{formatCurrency(chantier.montant_ht)}</span>
+                                <ChevronRight className="w-4 h-4 text-gray-400" />
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-xs text-primary-600 font-medium ml-auto flex items-center gap-1">
+                              Voir le détail <ChevronRight className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Vue tableau */}
+            {viewMode === 'table' && (
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gradient-to-r from-primary-600 to-primary-800">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Chantier</th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Client</th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Adresse</th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Dates</th>
+                        <th className="px-6 py-4 text-center text-xs font-medium text-white uppercase tracking-wider">Statut</th>
+                        <th className="px-6 py-4 text-right text-xs font-medium text-white uppercase tracking-wider">Montant HT</th>
+                        <th className="px-6 py-4 text-center text-xs font-medium text-white uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {chantiers.map((chantier) => {
+                        const badge = getStatutBadge(chantier.statut);
+                        return (
+                          <tr
+                            key={chantier.id}
+                            className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                            onClick={() => navigate(`/chantiers/${chantier.id}`)}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{chantier.nom}</div>
+                              {chantier.reference && (
+                                <div className="text-xs text-gray-500">{chantier.reference}</div>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">{chantier.client?.nom || '-'}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-gray-600 max-w-xs truncate">{chantier.adresse || '-'}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-700">{formatDate(chantier.date_debut)}</div>
+                              <div className="text-xs text-gray-500">→ {formatDate(chantier.date_fin_prevue)}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.color}`}>
+                                {badge.label}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                              <div className="text-sm font-semibold text-gray-900">{formatCurrency(chantier.montant_ht)}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); navigate(`/chantiers/${chantier.id}`); }}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                Voir
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+          </>
+        )}
 
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="mt-4 sm:mt-8 bg-white rounded-2xl shadow-lg px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            Page {pagination.page} sur {pagination.pages}
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <div className="mt-4 sm:mt-8 bg-white rounded-2xl shadow-lg px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Page {pagination.page} sur {pagination.pages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
+                disabled={pagination.page === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Précédent
+              </button>
+              <button
+                onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
+                disabled={pagination.page === pagination.pages}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Suivant
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
-              disabled={pagination.page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Précédent
-            </button>
-            <button
-              onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
-              disabled={pagination.page === pagination.pages}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Suivant
-            </button>
-          </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );
