@@ -8,6 +8,7 @@ export default function Chantiers() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const canCreate = user?.role !== 'EMPLOYEE';
+  const isEmployee = user?.role === 'EMPLOYEE';
   const [loading, setLoading] = useState(true);
   const [chantiers, setChantiers] = useState([]);
   const [pagination, setPagination] = useState({});
@@ -248,7 +249,7 @@ export default function Chantiers() {
                       {/* Footer */}
                       <div className="px-4 py-2.5 sm:px-6 sm:py-3 bg-gray-50 border-t border-gray-100">
                         <div className="flex items-center justify-between">
-                          {chantier.montant_ht ? (
+                          {!isEmployee && chantier.montant_ht ? (
                             <>
                               <span className="text-sm text-gray-500">Montant HT</span>
                               <div className="flex items-center gap-2">
@@ -281,7 +282,7 @@ export default function Chantiers() {
                         <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Adresse</th>
                         <th className="px-6 py-4 text-left text-xs font-medium text-white uppercase tracking-wider">Dates</th>
                         <th className="px-6 py-4 text-center text-xs font-medium text-white uppercase tracking-wider">Statut</th>
-                        <th className="px-6 py-4 text-right text-xs font-medium text-white uppercase tracking-wider">Montant HT</th>
+                        {!isEmployee && <th className="px-6 py-4 text-right text-xs font-medium text-white uppercase tracking-wider">Montant HT</th>}
                         <th className="px-6 py-4 text-center text-xs font-medium text-white uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
@@ -315,9 +316,11 @@ export default function Chantiers() {
                                 {badge.label}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <div className="text-sm font-semibold text-gray-900">{formatCurrency(chantier.montant_ht)}</div>
-                            </td>
+                            {!isEmployee && (
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <div className="text-sm font-semibold text-gray-900">{formatCurrency(chantier.montant_ht)}</div>
+                              </td>
+                            )}
                             <td className="px-6 py-4 whitespace-nowrap text-center">
                               <button
                                 onClick={(e) => { e.stopPropagation(); navigate(`/chantiers/${chantier.id}`); }}

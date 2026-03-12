@@ -23,10 +23,13 @@ import chantierService from '../../services/chantierService';
 import TachesTab from './TachesTab';
 import DocumentsTab from './DocumentsTab';
 import BadgeagesTab from './BadgeagesTab';
+import useAuthStore from '../../stores/authStore';
 
 export default function ChantierDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isEmployee = user?.role === 'EMPLOYEE';
   const [loading, setLoading] = useState(true);
   const [chantier, setChantier] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -314,24 +317,26 @@ export default function ChantierDetail() {
             </div>
           </div>
 
-          {/* Budget Card */}
-          <div className="bg-white rounded-lg shadow p-2 sm:p-6">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 flex-shrink-0 text-green-600 hidden sm:block" />
-              <div>
-                {chantier.devis ? (
-                  <>
-                    <p className="text-xs sm:text-xl font-bold text-gray-900">
-                      {formatCurrency(chantier.devis.montant_ht || 0)}
-                    </p>
-                    <p className="text-gray-600 text-xs hidden sm:block">Budget HT</p>
-                  </>
-                ) : (
-                  <p className="text-gray-500 text-xs">Pas de devis</p>
-                )}
+          {/* Budget Card — masqué pour les employés */}
+          {!isEmployee && (
+            <div className="bg-white rounded-lg shadow p-2 sm:p-6">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 flex-shrink-0 text-green-600 hidden sm:block" />
+                <div>
+                  {chantier.devis ? (
+                    <>
+                      <p className="text-xs sm:text-xl font-bold text-gray-900">
+                        {formatCurrency(chantier.devis.montant_ht || 0)}
+                      </p>
+                      <p className="text-gray-600 text-xs hidden sm:block">Budget HT</p>
+                    </>
+                  ) : (
+                    <p className="text-gray-500 text-xs">Pas de devis</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -477,9 +482,11 @@ export default function ChantierDetail() {
                             <FileText className="w-5 h-5 text-blue-600" />
                             <span className="font-medium text-blue-900">{chantier.devis.numero_devis}</span>
                           </div>
-                          <div className="text-sm text-blue-700 mb-2">
-                            Montant: {formatCurrency(chantier.devis.montant_ht || 0)} HT
-                          </div>
+                          {!isEmployee && (
+                            <div className="text-sm text-blue-700 mb-2">
+                              Montant: {formatCurrency(chantier.devis.montant_ht || 0)} HT
+                            </div>
+                          )}
                           <div className="text-sm text-blue-600 font-medium">→ Voir le devis</div>
                         </div>
                       </div>
