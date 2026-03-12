@@ -20,6 +20,12 @@ const badgeageService = {
     return response.data;
   },
 
+  // Supprimer un badgeage (MANAGER/COMPANY_ADMIN uniquement)
+  deleteBadgeage: async (chantierId, badgeageId) => {
+    const response = await api.delete(`/chantiers/${chantierId}/badgeages/${badgeageId}`);
+    return response.data;
+  },
+
   // Récupérer les chantiers de l'employé connecté
   getMesChantiers: async () => {
     const response = await api.get('/chantiers/mes-chantiers');

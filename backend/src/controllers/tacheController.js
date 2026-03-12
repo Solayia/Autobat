@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import logger from '../config/logger.js';
+import { updatePrixAutoLearning } from './catalogueController.js';
 
 /**
  * @desc    Créer une tâche pour un chantier
@@ -203,6 +204,46 @@ export const updateTache = async (req, res, next) => {
         ouvrage: true
       }
     });
+
+    // ── Auto-learning : déclencher quand une tâche passe à TERMINEE ──
+    // Calcule le temps réel cumulé de TOUS les employés, par employé séparément
+    // pour éviter les interférences entre cycles de différents employés.
+    if (statut === 'TERMINEE' && tache.statut !== 'TERMINEE' && updatedTache.ouvrage_id) {
+      try {
+        const tacheBadges = await prisma.badgeage.findMany({
+          where: { tache_id: id },
+          orderBy: { timestamp: 'asc' }
+        });
+
+        // Grouper par employe_id
+        const byEmploye = {};
+        for (const b of tacheBadges) {
+          if (!byEmploye[b.employe_id]) byEmploye[b.employe_id] = [];
+          byEmploye[b.employe_id].push(b);
+        }
+
+        // Calculer le temps par employé (cycles DEBUT/REPRISE → PAUSE/FIN)
+        let totalMinutes = 0;
+        for (const badges of Object.values(byEmploye)) {
+          let debutCycle = null;
+          for (const b of badges) {
+            if (b.type === 'TACHE_DEBUT' || b.type === 'TACHE_REPRISE') {
+              debutCycle = new Date(b.timestamp);
+            } else if ((b.type === 'TACHE_PAUSE' || b.type === 'TACHE_FIN') && debutCycle) {
+              totalMinutes += (new Date(b.timestamp) - debutCycle) / 60000;
+              debutCycle = null;
+            }
+          }
+        }
+
+        if (totalMinutes > 0) {
+          await updatePrixAutoLearning(updatedTache.ouvrage_id, totalMinutes);
+          logger.info(`Auto-learning déclenché: tâche ${updatedTache.nom}, ${totalMinutes.toFixed(1)} min cumulées (${Object.keys(byEmploye).length} employé(s))`);
+        }
+      } catch (autoErr) {
+        logger.error('Erreur auto-learning après TERMINEE:', autoErr);
+      }
+    }
 
     logger.info(`Tâche modifiée: ${updatedTache.nom} (${updatedTache.id})`);
     res.json(updatedTache);

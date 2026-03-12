@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import {
   Activity, MapPin, Clock, User, Plus, Navigation,
   Wifi, WifiOff, RefreshCw, AlertCircle, CheckCircle2,
-  ChevronLeft, Loader2, PauseCircle, StopCircle, X, LogOut, PlayCircle
+  ChevronLeft, Loader2, PauseCircle, StopCircle, X, LogOut, PlayCircle, Trash2
 } from 'lucide-react';
 import badgeageService from '../../services/badgeageService';
 import tacheService from '../../services/tacheService';
@@ -791,6 +791,29 @@ export default function BadgeagesTab({ chantierId, chantier }) {
                                 disabled={submitting}
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-200 disabled:opacity-50">
                                 <StopCircle className="w-3.5 h-3.5" /> Terminer
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Bouton supprimer - MANAGER/COMPANY_ADMIN uniquement */}
+                          {isAdmin && (
+                            <div className="flex justify-end mt-2">
+                              <button
+                                onClick={async () => {
+                                  if (!confirm('Supprimer ce badgeage ?')) return;
+                                  try {
+                                    await badgeageService.deleteBadgeage(chantierId, badge.id);
+                                    toast.success('Badgeage supprimé');
+                                    loadBadgeages();
+                                  } catch {
+                                    toast.error('Erreur lors de la suppression');
+                                  }
+                                }}
+                                className="flex items-center gap-1 px-2 py-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-xs transition-colors"
+                                title="Supprimer ce badgeage"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Supprimer
                               </button>
                             </div>
                           )}
