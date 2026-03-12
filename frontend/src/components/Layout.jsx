@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, FileText, BookOpen, Building, Receipt, LogOut, Menu, X, ChevronLeft, ChevronRight, UserCog, Settings, BarChart2, Eye, AlertTriangle } from 'lucide-react';
+import { Home, Users, FileText, BookOpen, Building, Receipt, LogOut, Menu, X, ChevronLeft, ChevronRight, UserCog, Settings, CalendarDays, Eye, AlertTriangle } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import NotificationBell from './NotificationBell';
 import GlobalSearch from './GlobalSearch';
@@ -45,7 +45,7 @@ export default function Layout({ children }) {
       label: null,
       items: [
         { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['EMPLOYEE', 'MANAGER', 'COMPANY_ADMIN'] },
-        { name: 'Pilotage', href: '/pilotage', icon: BarChart2, roles: ['MANAGER', 'COMPANY_ADMIN'] },
+        { name: 'Planning', href: '/pilotage', icon: CalendarDays, roles: ['MANAGER', 'COMPANY_ADMIN'] },
       ]
     },
     {

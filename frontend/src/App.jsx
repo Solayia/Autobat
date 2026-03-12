@@ -22,7 +22,7 @@ import FactureForm from './pages/Factures/FactureForm';
 import FactureDetail from './pages/Factures/FactureDetail';
 import Employes from './pages/Employes';
 import Settings from './pages/Settings/Settings';
-import Pilotage from './pages/Pilotage';
+import Planning from './pages/Planning';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import SuperAdmin from './pages/SuperAdmin/SuperAdmin';
@@ -284,13 +284,13 @@ function App() {
           }
         />
 
-        {/* Pilotage route */}
+        {/* Planning route */}
         <Route
           path="/pilotage"
           element={
             <ProtectedRoute roles={['MANAGER', 'COMPANY_ADMIN']}>
               <Layout>
-                <Pilotage />
+                <Planning />
               </Layout>
             </ProtectedRoute>
           }
