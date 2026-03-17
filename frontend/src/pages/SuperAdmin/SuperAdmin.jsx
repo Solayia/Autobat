@@ -489,6 +489,46 @@ export default function SuperAdmin() {
                 </div>
               </div>
 
+              {/* Bloc trial */}
+              {stats.trial?.count > 0 && (
+                <div className="bg-gray-900 border border-orange-500/30 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-orange-400" />
+                      <h3 className="text-sm font-semibold text-gray-300">Comptes en trial</h3>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-orange-900/40 text-orange-400 font-medium">{stats.trial.count}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">MRR potentiel si conversion</p>
+                      <p className="text-lg font-bold text-orange-400">{fmtM(stats.trial.mrr_potentiel)}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {stats.trial.details.map(t => {
+                      const daysLeft = t.trial_ends_at
+                        ? Math.max(0, Math.ceil((new Date(t.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24)))
+                        : null;
+                      return (
+                        <div key={t.id} className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
+                          <div>
+                            <p className="text-sm font-medium text-white">{t.nom}</p>
+                            <p className="text-xs text-gray-500">{t.nb_users} user{t.nb_users > 1 ? 's' : ''}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-semibold text-orange-300">{fmtM(t.mrr_si_converti)}/mois</p>
+                            {daysLeft !== null && (
+                              <p className={`text-xs font-medium ${daysLeft <= 2 ? 'text-red-400' : daysLeft <= 4 ? 'text-orange-400' : 'text-gray-500'}`}>
+                                {daysLeft === 0 ? 'Expire aujourd\'hui' : `J-${daysLeft}`}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Alertes + Derniers inscrits */}
               <div className="grid grid-cols-2 gap-4">
 

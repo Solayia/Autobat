@@ -44,6 +44,7 @@ export const getStats = async (req, res, next) => {
       totalTenants,
       tenantsActifs,
       tenantsSuspendus,
+      tenantsTrial,
       newTenantsThisMonth,
       newTenantsLastMonth,
       nouveaux7j,
@@ -57,12 +58,14 @@ export const getStats = async (req, res, next) => {
       totalFactures,
       badgeagesAujourdhui,
       badgeages30j,
-      tenantsEtablissements
+      tenantsEtablissements,
+      tenantsTrial_detail
     ] = await withSuperAdmin(() =>
       Promise.all([
         prisma.tenant.count({ where: { siret: { not: '00000000000000' } } }),
         prisma.tenant.count({ where: { statut: 'ACTIF', siret: { not: '00000000000000' } } }),
         prisma.tenant.count({ where: { statut: 'SUSPENDU', siret: { not: '00000000000000' } } }),
+        prisma.tenant.count({ where: { statut: 'TRIAL', siret: { not: '00000000000000' } } }),
         prisma.tenant.count({ where: { date_inscription: { gte: startOfMonth }, siret: { not: '00000000000000' } } }),
         prisma.tenant.count({ where: { date_inscription: { gte: startOfLastMonth, lte: endOfLastMonth }, siret: { not: '00000000000000' } } }),
         prisma.tenant.count({ where: { date_inscription: { gte: last7Days }, siret: { not: '00000000000000' } } }),
@@ -81,12 +84,30 @@ export const getStats = async (req, res, next) => {
           select: {
             _count: { select: { users: true } }
           }
+        }),
+        prisma.tenant.findMany({
+          where: { statut: 'TRIAL', siret: { not: '00000000000000' } },
+          select: {
+            id: true,
+            nom: true,
+            trial_ends_at: true,
+            date_inscription: true,
+            _count: { select: { users: true } }
+          },
+          orderBy: { trial_ends_at: 'asc' }
         })
       ])
     );
 
     // MRR réel : 100€ (1er compte) + 20€/compte supplémentaire
     const mrr = tenantsEtablissements.reduce((sum, t) => {
+      const nb = t._count.users;
+      if (nb === 0) return sum;
+      return sum + 100 + Math.max(0, nb - 1) * 20;
+    }, 0);
+
+    // MRR potentiel trial : ce que rapporteront les comptes en essai s'ils convertissent
+    const mrr_trial = tenantsTrial_detail.reduce((sum, t) => {
       const nb = t._count.users;
       if (nb === 0) return sum;
       return sum + 100 + Math.max(0, nb - 1) * 20;
@@ -182,6 +203,7 @@ export const getStats = async (req, res, next) => {
         total: totalTenants,
         actifs: tenantsActifs,
         suspendus: tenantsSuspendus,
+        trial: tenantsTrial,
         nouveaux_ce_mois: newTenantsThisMonth,
         nouveaux_mois_dernier: newTenantsLastMonth,
         nouveaux_7j: nouveaux7j,
@@ -194,6 +216,18 @@ export const getStats = async (req, res, next) => {
         total: totalUsers,
         actifs_30j: activeUsers30d,
         taux_engagement: totalUsers > 0 ? Math.round((activeUsers30d / totalUsers) * 100) : 0
+      },
+      trial: {
+        count: tenantsTrial,
+        mrr_potentiel: mrr_trial,
+        details: tenantsTrial_detail.map(t => ({
+          id: t.id,
+          nom: t.nom,
+          trial_ends_at: t.trial_ends_at,
+          date_inscription: t.date_inscription,
+          nb_users: t._count.users,
+          mrr_si_converti: t._count.users > 0 ? 100 + Math.max(0, t._count.users - 1) * 20 : 0
+        }))
       },
       business: {
         mrr_estime: mrr,
