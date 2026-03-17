@@ -48,13 +48,13 @@ async function main() {
     console.log(`🗑️  Suppression de "${tenant.nom}" (id: ${tenant.id})`);
     console.log(`   → ${tenant._count.users} users | ${tenant._count.chantiers} chantiers | ${tenant._count.devis} devis | ${tenant._count.factures} factures`);
 
-    // Récupérer les IDs des users du tenant
-    const users = await prisma.user.findMany({ where: { tenant_id: tenant.id }, select: { id: true } });
-    const userIds = users.map(u => u.id);
+    // Récupérer les IDs des Employe du tenant
+    const employes = await prisma.employe.findMany({ where: { tenant_id: tenant.id }, select: { id: true } });
+    const employeIds = employes.map(e => e.id);
 
-    // Supprimer les badgeages (FK sur employe_id → User, pas en cascade)
-    if (userIds.length > 0) {
-      const delBadgeages = await prisma.badgeage.deleteMany({ where: { employe_id: { in: userIds } } });
+    // Supprimer les badgeages (FK sur employe_id → Employe, pas en cascade via tenant)
+    if (employeIds.length > 0) {
+      const delBadgeages = await prisma.badgeage.deleteMany({ where: { employe_id: { in: employeIds } } });
       console.log(`   → ${delBadgeages.count} badgeages supprimés`);
     }
 
