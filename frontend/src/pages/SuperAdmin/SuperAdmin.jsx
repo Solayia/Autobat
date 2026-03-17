@@ -634,6 +634,7 @@ export default function SuperAdmin() {
                   <option value="">Tous les statuts</option>
                   <option value="ACTIF">Actifs</option>
                   <option value="SUSPENDU">Suspendus</option>
+                  <option value="RESILIE">Résiliés</option>
                 </select>
               </div>
               <p className="text-xs text-gray-500">{tenantsTotal} client(s) trouvé(s)</p>
@@ -663,10 +664,10 @@ export default function SuperAdmin() {
                             <div className="font-medium text-white text-sm">{t.nom}</div>
                             <div className="text-xs text-gray-500">{t.email}</div>
                           </td>
-                          <td className="px-4 py-3 text-right text-xs font-medium text-purple-400">{fmtM(t._count?.users > 0 ? 100 + Math.max(0, (t._count.users - 1)) * 20 : 0)}</td>
+                          <td className="px-4 py-3 text-right text-xs font-medium text-purple-400">{t.statut === 'ACTIF' && t._count?.users > 0 ? fmtM(100 + Math.max(0, (t._count.users - 1)) * 20) : <span className="text-gray-600">—</span>}</td>
                           <td className="px-4 py-3 text-center text-gray-300 text-sm">{t._count?.users || 0}</td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${t.statut === 'ACTIF' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${t.statut === 'ACTIF' ? 'bg-green-900/50 text-green-400' : t.statut === 'RESILIE' ? 'bg-gray-800 text-gray-500' : 'bg-red-900/50 text-red-400'}`}>
                               {t.statut === 'ACTIF' ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                               {t.statut}
                             </span>

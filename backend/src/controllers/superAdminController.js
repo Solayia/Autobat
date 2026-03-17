@@ -77,7 +77,7 @@ export const getStats = async (req, res, next) => {
         prisma.badgeage.count({ where: { timestamp: { gte: today } } }),
         prisma.badgeage.count({ where: { timestamp: { gte: last30Days } } }),
         prisma.tenant.findMany({
-          where: { siret: { not: '00000000000000' } },
+          where: { statut: 'ACTIF', siret: { not: '00000000000000' } },
           select: {
             _count: { select: { users: true } }
           }
@@ -367,8 +367,8 @@ export const updateTenantStatut = async (req, res, next) => {
     const { id } = req.params;
     const { statut, raison } = req.body;
 
-    if (!['ACTIF', 'SUSPENDU'].includes(statut)) {
-      return res.status(400).json({ message: 'Statut invalide (ACTIF | SUSPENDU)' });
+    if (!['ACTIF', 'SUSPENDU', 'RESILIE'].includes(statut)) {
+      return res.status(400).json({ message: 'Statut invalide (ACTIF | SUSPENDU | RESILIE)' });
     }
 
     // Empêcher suspension du tenant platform

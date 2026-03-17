@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
 
 /**
@@ -10,6 +10,8 @@ import { AlertTriangle, Trash2, X } from 'lucide-react';
  */
 export default function ConfirmDialog({ confirm, onClose }) {
   const [inputText, setInputText] = useState('');
+
+  useEffect(() => { setInputText(''); }, [confirm]);
 
   if (!confirm) return null;
 
