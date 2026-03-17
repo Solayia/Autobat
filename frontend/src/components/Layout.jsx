@@ -107,7 +107,7 @@ export default function Layout({ children }) {
               onClick={() => navigate('/dashboard')}
               className={`flex items-center gap-3 hover:opacity-80 transition-opacity ${sidebarCollapsed ? '' : ''}`}
             >
-              <img src="/Logo_Autobat.png" alt="Autobat" className="w-9 h-9 rounded-xl flex-shrink-0 bg-white p-1 object-contain" />
+              <img src="/images/Logo-Atuobat.png" alt="Autobat" className="w-9 h-9 rounded-xl flex-shrink-0 bg-white p-1 object-contain" />
               {!sidebarCollapsed && <span className="text-xl font-bold text-white">Autobat</span>}
             </button>
             <div className="flex items-center gap-1">
@@ -228,7 +228,7 @@ export default function Layout({ children }) {
                 onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity"
               >
-                <img src="/Logo_Autobat.png" alt="Autobat" className="w-9 h-9 rounded-xl bg-white p-1 object-contain" />
+                <img src="/images/Logo-Atuobat.png" alt="Autobat" className="w-9 h-9 rounded-xl bg-white p-1 object-contain" />
                 <span className="text-xl font-bold text-white">Autobat</span>
               </button>
               <button
@@ -331,7 +331,7 @@ export default function Layout({ children }) {
             <Menu className="w-6 h-6" />
           </button>
           <div className="flex items-center gap-2">
-            <img src="/Logo_Autobat.png" alt="Autobat" className="w-7 h-7 rounded-lg object-contain" />
+            <img src="/images/Logo-Atuobat.png" alt="Autobat" className="w-7 h-7 rounded-lg object-contain" />
             <span className="text-lg font-bold text-blue-600">Autobat</span>
           </div>
           <div className="flex items-center gap-1">

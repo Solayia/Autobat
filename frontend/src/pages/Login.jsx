@@ -48,7 +48,7 @@ export default function Login() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl mb-4 shadow-lg p-2">
-            <img src="/Logo_Autobat.png" alt="Autobat" className="w-full h-full object-contain" />
+            <img src="/images/Logo-Atuobat.png" alt="Autobat" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-white">Autobat</h1>
           <p className="text-primary-100 mt-2">Gestion BTP intelligente</p>
