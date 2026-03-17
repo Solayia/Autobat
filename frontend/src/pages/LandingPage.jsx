@@ -231,9 +231,68 @@ export default function LandingPage() {
     }))
   }
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Autobat",
+    "url": "https://autobat.pro",
+    "logo": "https://autobat.pro/images/Logo-Atuobat.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "contact@autobat.pro",
+      "contactType": "customer support",
+      "availableLanguage": "French"
+    },
+    "areaServed": "FR",
+    "description": "Logiciel SaaS de gestion de chantier pour artisans et entreprises du BTP en France."
+  }
+
+  const softwareSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Autobat",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web, iOS, Android",
+    "url": "https://autobat.pro",
+    "description": "Logiciel de gestion chantier BTP : devis, factures légales, badgeage GPS des équipes, catalogue auto-apprenant et pilotage de rentabilité en temps réel.",
+    "screenshot": "https://autobat.pro/images/Logo-Atuobat.png",
+    "featureList": [
+      "Création de devis BTP avec export PDF",
+      "Facturation légale française",
+      "Badgeage GPS des équipes en temps réel",
+      "Catalogue de prix auto-apprenant",
+      "Pilotage de rentabilité par chantier",
+      "Fonctionne hors-ligne (PWA)"
+    ],
+    "offers": {
+      "@type": "Offer",
+      "price": "100",
+      "priceCurrency": "EUR",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "100",
+        "priceCurrency": "EUR",
+        "unitText": "MONTH"
+      },
+      "description": "100 € HT/mois pour le compte gérant, +20 € HT/mois par employé supplémentaire",
+      "trialSpec": {
+        "@type": "OfferShippingDetails",
+        "shippingLabel": "Essai gratuit 7 jours"
+      }
+    },
+    "inLanguage": "fr",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Autobat",
+      "url": "https://autobat.pro"
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white font-sans">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }} />
 
       {/* ── NAV ── */}
       <nav

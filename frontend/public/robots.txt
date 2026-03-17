@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+Allow: /cgu
+Allow: /cgv
+Allow: /mentions-legales
+Allow: /confidentialite
+
+# Pages applicatives derrière authentification — inutile à crawler
+Disallow: /dashboard
+Disallow: /clients
+Disallow: /devis
+Disallow: /chantiers
+Disallow: /factures
+Disallow: /catalogue
+Disallow: /employes
+Disallow: /pilotage
+Disallow: /settings
+Disallow: /super-admin
+Disallow: /badgeage
+Disallow: /mon-profil
+Disallow: /app
+Disallow: /api/
+
+Sitemap: https://autobat.pro/sitemap.xml

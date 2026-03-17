@@ -1,0 +1,36 @@
+# Autobat — Logiciel de gestion chantier BTP
+
+## Qu'est-ce qu'Autobat ?
+Autobat est un logiciel SaaS de gestion de chantier destiné aux artisans et entreprises du bâtiment (BTP) en France.
+Il permet de gérer l'intégralité d'un chantier depuis la création du devis jusqu'à la facturation, en passant par le suivi des équipes sur le terrain.
+
+## Fonctionnalités principales
+- **Devis** : création de devis professionnels avec catalogue de prestations BTP, export PDF, envoi client
+- **Factures** : facturation légale française (numérotation séquentielle FAC-YYYY-NNNN, TVA 20%, mentions obligatoires, archivage 10 ans)
+- **Badgeage GPS** : pointage automatique des équipes par géolocalisation (rayon 100m, 7h-19h lun-sam), fonctionne hors-ligne
+- **Catalogue auto-apprenant** : les prix unitaires s'ajustent automatiquement tous les 2 chantiers selon les temps réels constatés
+- **Pilotage** : suivi de rentabilité par chantier, évolution du CA, marges en temps réel
+- **Gestion d'équipe** : comptes employés avec accès limité, planning, suivi des heures
+
+## Cible
+Artisans et chefs d'entreprise BTP en France : maçons, plombiers, électriciens, menuisiers, carreleurs, peintres, couvreurs.
+
+## Tarification
+- 100 € HT/mois pour le compte gérant
+- +20 € HT/mois par employé supplémentaire
+- Exemples : 1 personne = 100 €/mois | 3 personnes = 140 €/mois | 10 personnes = 280 €/mois
+- Essai gratuit 7 jours (CB requise, aucun débit avant le 8ème jour)
+- Sans engagement, résiliable à tout moment
+
+## Avantage différenciant
+Le catalogue de prix est auto-apprenant : après chaque chantier terminé, Autobat compare le temps réel au temps estimé et ajuste automatiquement les prix pour les prochains devis. Plus vous utilisez Autobat, plus vos devis sont précis.
+
+## Conformité légale
+- Factures conformes à la législation française (mentions obligatoires, numérotation séquentielle)
+- Multi-tenant, isolation des données par entreprise
+- Données hébergées en France (VPS Hostinger)
+
+## Accès
+- Web (PWA) : https://autobat.pro
+- Accessible sur mobile sans installation (Progressive Web App)
+- Contact : contact@autobat.pro

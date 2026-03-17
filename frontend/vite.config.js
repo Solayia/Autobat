@@ -7,11 +7,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt', 'logo.svg'],
+      includeAssets: ['favicon.ico', 'robots.txt', 'sitemap.xml', 'llms.txt', 'logo.svg'],
       manifest: {
-        name: 'Autobat - Gestion BTP',
+        name: 'Autobat — Logiciel de gestion chantier BTP',
         short_name: 'Autobat',
-        description: 'Application de gestion pour entreprises BTP',
+        description: 'Devis, factures, badgeage GPS et pilotage de rentabilité pour artisans BTP.',
         theme_color: '#1E40AF',
         background_color: '#FFFFFF',
         display: 'standalone',
