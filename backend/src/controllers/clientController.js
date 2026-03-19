@@ -7,7 +7,8 @@ import logger from '../config/logger.js';
  */
 export const createClient = async (req, res, next) => {
   try {
-    const { type, prenom, nom, email, telephone, adresse, code_postal, ville, siret, notes } = req.body;
+    const { type, prenom, nom, telephone, adresse, code_postal, ville, siret, notes } = req.body;
+    const email = req.body.email?.trim() || null;
     const tenantId = req.tenantId;
 
     // Validation
@@ -224,7 +225,8 @@ export const updateClient = async (req, res, next) => {
   try {
     const { id } = req.params;
     const tenantId = req.tenantId;
-    const { type, prenom, nom, email, telephone, adresse, code_postal, ville, siret, notes, actif } = req.body;
+    const { type, prenom, nom, telephone, adresse, code_postal, ville, siret, notes, actif } = req.body;
+    const email = req.body.email !== undefined ? (req.body.email?.trim() || null) : undefined;
 
     // Vérifier que le client existe
     const existingClient = await prisma.client.findFirst({
@@ -266,7 +268,7 @@ export const updateClient = async (req, res, next) => {
         ...(type && { type }),
         ...(prenom !== undefined && { prenom }),
         ...(nom && { nom }),
-        ...(email && { email }),
+        ...(email !== undefined && { email }),
         ...(telephone && { telephone }),
         ...(adresse !== undefined && { adresse }),
         ...(code_postal !== undefined && { code_postal }),
