@@ -343,18 +343,16 @@ export default function Register() {
                   <div>
                     <label htmlFor="password" className="label">Mot de passe *</label>
                     <input id="password" type="password" name="password" value={formData.password} onChange={handleChange} className="input" placeholder="Min. 12 caractères" required />
-                    {formData.password && !validatePasswordRules(formData.password).every(r => r.ok) && (
-                      <div className="mt-2 grid grid-cols-2 gap-1">
-                        {validatePasswordRules(formData.password).map((rule) => (
-                          <div key={rule.label} className="flex items-center gap-1.5">
-                            {rule.ok
-                              ? <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
-                              : <XCircle className="w-3 h-3 text-gray-300 flex-shrink-0" />}
-                            <span className={`text-xs ${rule.ok ? 'text-green-600' : 'text-gray-400'}`}>{rule.label}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <div className="mt-2 grid grid-cols-2 gap-1">
+                      {validatePasswordRules(formData.password).map((rule) => (
+                        <div key={rule.label} className="flex items-center gap-1.5">
+                          {rule.ok
+                            ? <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                            : <XCircle className="w-3 h-3 text-gray-300 flex-shrink-0" />}
+                          <span className={`text-xs ${rule.ok ? 'text-green-600' : 'text-gray-400'}`}>{rule.label}</span>
+                        </div>
+                      ))}
+                    </div>
                     {passwordError && <p className="mt-1 text-xs text-red-600">{passwordError}</p>}
                   </div>
                   <div>
