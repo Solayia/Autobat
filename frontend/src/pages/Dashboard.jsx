@@ -219,12 +219,8 @@ export default function Dashboard() {
           <p className="text-xs text-gray-400 mt-1">présence badgée sur la période</p>
           <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Devis envoyés</span>
-              <span className="font-semibold text-gray-900">{kpis.nb_devis_envoyes || 0}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Taux acceptation</span>
-              <span className="font-semibold text-blue-600">{kpis.taux_acceptation_devis || 0} %</span>
+              <span className="text-gray-600">Chantiers en cours</span>
+              <span className="font-semibold text-gray-900">{kpis.nb_chantiers_actifs || 0}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Chantiers terminés</span>
