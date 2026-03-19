@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   Loader2, CheckCircle, XCircle, CreditCard, ExternalLink,
-  ArrowRight, Shield, Lock, HardHat, Users, FileText, BarChart2,
+  ArrowRight, ArrowLeft, Shield, Lock, HardHat, Users, FileText, BarChart2,
 } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import api from '../services/api';
@@ -14,6 +14,7 @@ export default function Register() {
   const { register, loading, error, clearError, tenant, isAuthenticated, refreshUser } = useAuthStore();
   const [stripeLoading, setStripeLoading] = useState(false);
   const [stripeCancelled, setStripeCancelled] = useState(false);
+  const [step, setStep] = useState(1);
 
   const [docsOpened, setDocsOpened] = useState({ cgu: false, cgv: false, confidentialite: false });
   const [docsAccepted, setDocsAccepted] = useState({ cgu: false, cgv: false, confidentialite: false });
@@ -66,6 +67,17 @@ export default function Register() {
   });
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleStep1Next = (e) => {
+    e.preventDefault();
+    const { entreprise_nom, entreprise_siret, entreprise_telephone, entreprise_adresse, entreprise_code_postal, entreprise_ville, entreprise_email } = formData;
+    if (!entreprise_nom || !entreprise_siret || !entreprise_telephone || !entreprise_adresse || !entreprise_code_postal || !entreprise_ville || !entreprise_email) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -129,21 +141,48 @@ export default function Register() {
     );
   }
 
+  // ── Stepper indicator ──────────────────────────────────────────────────────
+  const Stepper = () => (
+    <div className="flex items-center gap-3 mb-8">
+      {[
+        { n: 1, label: 'Votre entreprise' },
+        { n: 2, label: 'Votre compte' },
+      ].map(({ n, label }, i) => (
+        <div key={n} className="flex items-center gap-3">
+          {i > 0 && (
+            <div className={`h-px flex-1 w-10 transition-colors ${step > 1 ? 'bg-secondary-400' : 'bg-gray-200'}`} />
+          )}
+          <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+              step === n
+                ? 'bg-secondary-500 text-white shadow-md'
+                : step > n
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-100 text-gray-400'
+            }`}>
+              {step > n ? <CheckCircle className="w-4 h-4" /> : n}
+            </div>
+            <span className={`text-sm font-medium transition-colors ${step === n ? 'text-gray-900' : step > n ? 'text-green-600' : 'text-gray-400'}`}>
+              {label}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   // ── Page principale ────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex flex-col">
 
       {/* NAV */}
       <nav className="bg-white shadow-sm border-b border-gray-100 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between sticky top-0 z-50">
-        <Link to="/">
-          <img src="/images/Logo-Atuobat.png" alt="Autobat" className="h-9 w-auto" />
-        </Link>
+        <Link to="/"><img src="/images/Logo-Atuobat.png" alt="Autobat" className="h-9 w-auto" /></Link>
         <Link to="/login" className="text-gray-600 hover:text-primary-600 font-medium text-sm transition-colors">
           Déjà un compte ? Se connecter
         </Link>
       </nav>
 
-      {/* BODY */}
       <div className="flex flex-1">
 
         {/* ── Panneau gauche (desktop) ── */}
@@ -152,7 +191,6 @@ export default function Register() {
           style={{ background: 'linear-gradient(160deg, #0a1628 0%, #0d1f35 50%, #10264d 100%)' }}
         >
           <div>
-            {/* Headline */}
             <h2 className="text-3xl xl:text-4xl font-bold text-white leading-tight mb-4">
               Maîtrisez votre temps.<br />
               <span className="text-secondary-400">Gagnez plus.</span>
@@ -161,7 +199,6 @@ export default function Register() {
               Autobat connecte le terrain, le bureau et le pilotage dans un seul outil pensé pour le BTP.
             </p>
 
-            {/* Features */}
             <ul className="space-y-4 mb-10">
               {[
                 { icon: <HardHat className="w-5 h-5 text-secondary-400" />, text: 'Badgeage GPS automatique, même hors réseau' },
@@ -178,7 +215,6 @@ export default function Register() {
               ))}
             </ul>
 
-            {/* Pricing mini-card */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-8">
               <p className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-3">Tarification simple</p>
               <div className="flex items-end gap-1 mb-1">
@@ -193,16 +229,14 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Trust badges */}
           <div className="space-y-2.5">
             {[
               { icon: <Shield className="w-4 h-4 text-green-400" />, text: 'SSL sécurisé · Données hébergées en France' },
               { icon: <Lock className="w-4 h-4 text-green-400" />, text: 'Sans engagement · Résiliable à tout moment' },
-              { icon: <CreditCard className="w-4 h-4 text-green-400" />, text: '7 jours gratuits · Aucun débit avant la fin d\'essai' },
+              { icon: <CreditCard className="w-4 h-4 text-green-400" />, text: "7 jours gratuits · Aucun débit avant la fin d'essai" },
             ].map(({ icon, text }) => (
               <div key={text} className="flex items-center gap-2.5 text-blue-100/50 text-xs">
-                {icon}
-                <span>{text}</span>
+                {icon}<span>{text}</span>
               </div>
             ))}
           </div>
@@ -213,15 +247,20 @@ export default function Register() {
           <div className="w-full max-w-2xl">
 
             {/* Mobile heading */}
-            <div className="lg:hidden text-center mb-8">
+            <div className="lg:hidden text-center mb-6">
               <h2 className="text-2xl font-bold text-primary-600 mb-1">Créez votre compte</h2>
               <p className="text-gray-500 text-sm">7 jours gratuits · Sans engagement</p>
             </div>
 
             {/* Desktop heading */}
-            <div className="hidden lg:block mb-8">
+            <div className="hidden lg:block mb-2">
               <h2 className="text-2xl font-bold text-gray-900">Créer votre compte entreprise</h2>
               <p className="text-gray-500 mt-1 text-sm">Essai gratuit 7 jours — aucun débit avant la fin d'essai</p>
+            </div>
+
+            {/* Stepper */}
+            <div className="mt-6">
+              <Stepper />
             </div>
 
             {/* Banners */}
@@ -238,16 +277,9 @@ export default function Register() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-
-              {/* ─── Section entreprise ─── */}
-              <section>
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <HardHat className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900">Votre entreprise</h3>
-                </div>
+            {/* ── ÉTAPE 1 : Entreprise ── */}
+            {step === 1 && (
+              <form onSubmit={handleStep1Next} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label htmlFor="entreprise_nom" className="label">Nom de l'entreprise *</label>
@@ -278,18 +310,19 @@ export default function Register() {
                     <input id="entreprise_email" type="email" name="entreprise_email" value={formData.entreprise_email} onChange={handleChange} className="input" required />
                   </div>
                 </div>
-              </section>
 
-              <div className="border-t border-gray-100" />
+                <button
+                  type="submit"
+                  className="w-full flex items-center justify-center gap-2 bg-secondary-500 hover:bg-secondary-600 text-white font-bold px-6 py-4 rounded-xl text-base transition-all shadow-lg hover:shadow-xl mt-2"
+                >
+                  Continuer <ArrowRight className="w-5 h-5" />
+                </button>
+              </form>
+            )}
 
-              {/* ─── Section compte admin ─── */}
-              <section>
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900">Votre compte administrateur</h3>
-                </div>
+            {/* ── ÉTAPE 2 : Compte admin + docs + submit ── */}
+            {step === 2 && (
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="prenom" className="label">Prénom *</label>
@@ -330,79 +363,85 @@ export default function Register() {
                     )}
                   </div>
                 </div>
-              </section>
 
-              <div className="border-t border-gray-100" />
-
-              {/* ─── Documents légaux ─── */}
-              <section>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">
-                  Documents à lire et accepter *
-                </p>
-                <div className="space-y-3">
-                  {[
-                    { key: 'cgu', label: 'Conditions Générales d\'Utilisation', url: '/cgu' },
-                    { key: 'cgv', label: 'Conditions Générales de Vente', url: '/cgv' },
-                    { key: 'confidentialite', label: 'Politique de confidentialité & RGPD', url: '/confidentialite' },
-                  ].map(({ key, label, url }) => (
-                    <div
-                      key={key}
-                      className={`flex items-center gap-3 p-3.5 rounded-xl border transition-colors ${
-                        docsAccepted[key]
-                          ? 'bg-green-50 border-green-200'
-                          : docsOpened[key]
-                            ? 'bg-blue-50 border-blue-200'
-                            : 'bg-gray-50 border-gray-200'
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => openDoc(key, url)}
-                        className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-gray-700 hover:border-primary-400 hover:text-primary-600 transition-colors whitespace-nowrap flex-shrink-0"
+                <div className="border-t border-gray-100 pt-5">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">
+                    Documents à lire et accepter *
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { key: 'cgu', label: "Conditions Générales d'Utilisation", url: '/cgu' },
+                      { key: 'cgv', label: 'Conditions Générales de Vente', url: '/cgv' },
+                      { key: 'confidentialite', label: 'Politique de confidentialité & RGPD', url: '/confidentialite' },
+                    ].map(({ key, label, url }) => (
+                      <div
+                        key={key}
+                        className={`flex items-center gap-3 p-3.5 rounded-xl border transition-colors ${
+                          docsAccepted[key]
+                            ? 'bg-green-50 border-green-200'
+                            : docsOpened[key]
+                              ? 'bg-blue-50 border-blue-200'
+                              : 'bg-gray-50 border-gray-200'
+                        }`}
                       >
-                        <ExternalLink className="w-3 h-3" />
-                        Lire
-                      </button>
-                      <span className="text-sm text-gray-700 flex-1">{label}</span>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {docsAccepted[key]
-                          ? <CheckCircle className="w-5 h-5 text-green-500" />
-                          : !docsOpened[key]
-                            ? <span className="text-xs text-gray-400 italic">Lisez d'abord</span>
-                            : null}
-                        <input
-                          type="checkbox"
-                          id={`accept_${key}`}
-                          checked={docsAccepted[key]}
-                          disabled={!docsOpened[key]}
-                          onChange={(e) => setDocsAccepted(prev => ({ ...prev, [key]: e.target.checked }))}
-                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                        />
+                        <button
+                          type="button"
+                          onClick={() => openDoc(key, url)}
+                          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-gray-700 hover:border-primary-400 hover:text-primary-600 transition-colors whitespace-nowrap flex-shrink-0"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          Lire
+                        </button>
+                        <span className="text-sm text-gray-700 flex-1">{label}</span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {docsAccepted[key]
+                            ? <CheckCircle className="w-5 h-5 text-green-500" />
+                            : !docsOpened[key]
+                              ? <span className="text-xs text-gray-400 italic">Lisez d'abord</span>
+                              : null}
+                          <input
+                            type="checkbox"
+                            id={`accept_${key}`}
+                            checked={docsAccepted[key]}
+                            disabled={!docsOpened[key]}
+                            onChange={(e) => setDocsAccepted(prev => ({ ...prev, [key]: e.target.checked }))}
+                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </section>
 
-              {/* ─── CTA ─── */}
-              <button
-                type="submit"
-                disabled={loading || stripeLoading || !allAccepted}
-                className="w-full flex items-center justify-center gap-2 bg-secondary-500 hover:bg-secondary-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-6 py-4 rounded-xl text-base transition-all shadow-lg hover:shadow-xl"
-              >
-                {stripeLoading ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" />Redirection vers le paiement...</>
-                ) : loading ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" />Création du compte...</>
-                ) : (
-                  <>Créer mon compte — Essai gratuit 7 jours <ArrowRight className="w-5 h-5" /></>
-                )}
-              </button>
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className="flex items-center gap-2 px-5 py-4 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Retour
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || stripeLoading || !allAccepted}
+                    className="flex-1 flex items-center justify-center gap-2 bg-secondary-500 hover:bg-secondary-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-6 py-4 rounded-xl text-base transition-all shadow-lg hover:shadow-xl"
+                  >
+                    {stripeLoading ? (
+                      <><Loader2 className="w-5 h-5 animate-spin" />Redirection vers le paiement...</>
+                    ) : loading ? (
+                      <><Loader2 className="w-5 h-5 animate-spin" />Création du compte...</>
+                    ) : (
+                      <>Créer mon compte — Essai gratuit 7 jours <ArrowRight className="w-5 h-5" /></>
+                    )}
+                  </button>
+                </div>
 
-              <p className="text-xs text-center text-gray-400 -mt-4">
-                7 jours gratuits · CB requise · Résiliable à tout moment
-              </p>
-            </form>
+                <p className="text-xs text-center text-gray-400">
+                  7 jours gratuits · CB requise · Résiliable à tout moment
+                </p>
+              </form>
+            )}
 
             {/* Footer légal */}
             <div className="mt-8 pt-6 border-t border-gray-100 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-gray-400">
