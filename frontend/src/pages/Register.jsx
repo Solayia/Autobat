@@ -215,18 +215,6 @@ export default function Register() {
               ))}
             </ul>
 
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-8">
-              <p className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-3">Tarification simple</p>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-3xl font-bold text-white">100€</span>
-                <span className="text-white/50 text-sm mb-1">/mois HT</span>
-              </div>
-              <p className="text-blue-100/50 text-xs mb-4">pour le compte gérant</p>
-              <div className="flex items-center gap-2 text-sm text-blue-100/70">
-                <span className="bg-secondary-500/20 border border-secondary-500/30 text-secondary-300 text-xs font-semibold px-2.5 py-1 rounded-lg">+20€/mois</span>
-                <span>par employé supplémentaire</span>
-              </div>
-            </div>
           </div>
 
           <div className="space-y-2.5">
