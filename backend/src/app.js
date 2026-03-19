@@ -33,6 +33,9 @@ import searchRoutes from './routes/searchRoutes.js';
 
 const app = express();
 
+// Nginx reverse proxy — nécessaire pour express-rate-limit et req.ip
+app.set('trust proxy', 1);
+
 // ═══════════════════════════════════════════════════════════════
 // MIDDLEWARES
 // ═══════════════════════════════════════════════════════════════
