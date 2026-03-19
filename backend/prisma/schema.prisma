@@ -97,6 +97,7 @@ model User {
   refresh_tokens         RefreshToken[]
   password_reset_tokens  PasswordResetToken[]
   employe                Employe?
+  chantier_messages      ChantierMessage[]
 
   @@unique([tenant_id, email])
 }
@@ -283,6 +284,19 @@ model Chantier {
   employes_assignes     ChantierEmploye[]
   documents             Document[]
   factures              Facture[]
+  messages              ChantierMessage[]
+}
+
+model ChantierMessage {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  chantier_id String
+  user_id     String
+  message     String
+  created_at  DateTime @default(now())
+
+  chantier    Chantier @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [user_id], references: [id])
 }
 
 model ChantierEmploye {

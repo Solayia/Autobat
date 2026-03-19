@@ -15,6 +15,7 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 import tacheRoutes from './tacheRoutes.js';
 import documentRoutes from './documentRoutes.js';
 import badgeageRoutes from './badgeageRoutes.js';
+import discussionRoutes from './discussionRoutes.js';
 
 const router = express.Router();
 
@@ -104,5 +105,11 @@ router.use('/:chantierId/documents', documentRoutes);
  * /api/chantiers/:chantierId/badgeages
  */
 router.use('/:chantierId/badgeages', badgeageRoutes);
+
+/**
+ * Subroutes pour la discussion d'un chantier
+ * /api/chantiers/:chantierId/messages
+ */
+router.use('/:chantierId/messages', discussionRoutes);
 
 export default router;

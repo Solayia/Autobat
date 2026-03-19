@@ -17,12 +17,14 @@ import {
   Info,
   Plus,
   ListChecks,
-  RefreshCw
+  RefreshCw,
+  MessageSquare
 } from 'lucide-react';
 import chantierService from '../../services/chantierService';
 import TachesTab from './TachesTab';
 import DocumentsTab from './DocumentsTab';
 import BadgeagesTab from './BadgeagesTab';
+import DiscussionTab from './DiscussionTab';
 import useAuthStore from '../../stores/authStore';
 
 export default function ChantierDetail() {
@@ -347,6 +349,7 @@ export default function ChantierDetail() {
                 { key: 'taches', label: 'Tâches', Icon: ListChecks },
                 { key: 'badgeages', label: 'Badgeages', Icon: Activity },
                 { key: 'documents', label: 'Documents', Icon: Folder },
+                { key: 'discussion', label: 'Discussion', Icon: MessageSquare },
                 { key: 'infos', label: 'Infos', Icon: Info },
               ].map(({ key, label, Icon }) => (
                 <button
@@ -372,6 +375,8 @@ export default function ChantierDetail() {
             {activeTab === 'badgeages' && <BadgeagesTab chantierId={id} chantier={chantier} />}
 
             {activeTab === 'documents' && <DocumentsTab chantierId={id} />}
+
+            {activeTab === 'discussion' && <DiscussionTab chantierId={id} />}
 
             {activeTab === 'infos' && (
               <div>
