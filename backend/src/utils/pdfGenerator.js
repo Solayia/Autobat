@@ -258,14 +258,11 @@ function generateFactureHTML(facture, logoDataUrl = null) {
   </div>
   ` : ''}
 
+  ${facture.mentions_legales ? `
   <div class="mentions">
-    <strong>Mentions obligatoires:</strong><br>
-    En cas de retard de paiement, seront exigibles, conformément à l'article L 441-6 du code de commerce,
-    une indemnité calculée sur la base de trois fois le taux de l'intérêt légal en vigueur ainsi qu'une
-    indemnité forfaitaire pour frais de recouvrement de 40 euros.<br>
-    Escompte pour paiement anticipé : néant.<br>
-    TVA non applicable - Article 293 B du CGI (si micro-entreprise) ou TVA ${facture.montant_tva > 0 ? 'applicable' : 'non applicable'}.
+    ${facture.mentions_legales.replace(/\n/g, '<br>')}
   </div>
+  ` : ''}
 
   <div class="footer">
     <div style="text-align: center;">

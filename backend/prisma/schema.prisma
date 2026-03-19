@@ -396,6 +396,7 @@ model Facture {
   date_paiement_complet DateTime?
   pdf_url             String?
   notes               String?
+  mentions_legales    String?
   facture_origine_id  String?
   facture_avoir_id    String?
   created_at          DateTime           @default(now())

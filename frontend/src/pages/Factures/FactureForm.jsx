@@ -11,12 +11,15 @@ export default function FactureForm() {
   const [chantiersTermines, setChantiersTermines] = useState([]);
   const [chantierSelected, setChantierSelected] = useState(null);
   const [acompteFromDevis, setAcompteFromDevis] = useState(null);
+  const MENTIONS_DEFAUT = `En cas de retard de paiement, seront exigibles, conformément à l'article L 441-6 du code de commerce, une indemnité calculée sur la base de trois fois le taux de l'intérêt légal en vigueur ainsi qu'une indemnité forfaitaire pour frais de recouvrement de 40 euros.\nEscompte pour paiement anticipé : néant.`;
+
   const [formData, setFormData] = useState({
     chantier_id: '',
     devis_id: '',
     acompte_demande: 0,
     date_echeance: '',
-    notes: ''
+    notes: '',
+    mentions_legales: MENTIONS_DEFAUT
   });
   const [lignes, setLignes] = useState([
     { description: '', quantite: 1, unite: 'unité', prix_unitaire_ht: 0 }
@@ -350,6 +353,31 @@ export default function FactureForm() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Notes ou conditions particulières..."
             />
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Mentions légales (bas de facture)
+              </label>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, mentions_legales: '' })}
+                className="text-xs text-red-500 hover:text-red-700 transition-colors"
+              >
+                Supprimer
+              </button>
+            </div>
+            <textarea
+              value={formData.mentions_legales}
+              onChange={(e) => setFormData({ ...formData, mentions_legales: e.target.value })}
+              rows={4}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+              placeholder="Laissez vide pour ne pas afficher de mentions sur la facture..."
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Pré-rempli avec les mentions légales standard BTP. Modifiez ou supprimez selon votre situation.
+            </p>
           </div>
         </div>
 

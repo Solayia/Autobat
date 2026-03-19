@@ -120,7 +120,8 @@ export const createFacture = async (req, res, next) => {
       lignes,
       acompte_demande = 0,
       date_echeance,
-      notes
+      notes,
+      mentions_legales
     } = req.body;
 
     // Vérifier que le chantier existe et est TERMINÉ
@@ -223,6 +224,7 @@ export const createFacture = async (req, res, next) => {
         date_emission: new Date(),
         date_echeance: date_echeance ? new Date(date_echeance) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours par défaut
         notes,
+        mentions_legales: mentions_legales ?? null,
         statut_facture: 'BROUILLON',
         statut_paiement,
         ...(statut_paiement === 'PAYE' && { date_paiement_complet: new Date() }),
