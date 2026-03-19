@@ -309,6 +309,10 @@ export default function Register() {
                     <label htmlFor="entreprise_email" className="label">Email entreprise *</label>
                     <input id="entreprise_email" type="email" name="entreprise_email" value={formData.entreprise_email} onChange={handleChange} className="input" required />
                   </div>
+                  <div className="sm:col-span-2">
+                    <label htmlFor="telephone" className="label">Votre téléphone personnel</label>
+                    <input id="telephone" type="tel" name="telephone" value={formData.telephone} onChange={handleChange} className="input" placeholder="Optionnel" />
+                  </div>
                 </div>
 
                 <button
@@ -322,8 +326,8 @@ export default function Register() {
 
             {/* ── ÉTAPE 2 : Compte admin + docs + submit ── */}
             {step === 2 && (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label htmlFor="prenom" className="label">Prénom *</label>
                     <input id="prenom" type="text" name="prenom" value={formData.prenom} onChange={handleChange} className="input" required />
@@ -332,51 +336,49 @@ export default function Register() {
                     <label htmlFor="nom" className="label">Nom *</label>
                     <input id="nom" type="text" name="nom" value={formData.nom} onChange={handleChange} className="input" required />
                   </div>
-                  <div>
+                  <div className="sm:col-span-2">
                     <label htmlFor="email" className="label">Email *</label>
                     <input id="email" type="email" name="email" value={formData.email} onChange={handleChange} className="input" required />
                   </div>
                   <div>
-                    <label htmlFor="telephone" className="label">Téléphone</label>
-                    <input id="telephone" type="tel" name="telephone" value={formData.telephone} onChange={handleChange} className="input" />
-                  </div>
-                  <div>
                     <label htmlFor="password" className="label">Mot de passe *</label>
                     <input id="password" type="password" name="password" value={formData.password} onChange={handleChange} className="input" placeholder="Min. 12 caractères" required />
-                    <div className="mt-2.5 grid grid-cols-2 gap-1">
-                      {validatePasswordRules(formData.password).map((rule) => (
-                        <div key={rule.label} className="flex items-center gap-1.5">
-                          {rule.ok
-                            ? <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                            : <XCircle className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />}
-                          <span className={`text-xs ${rule.ok ? 'text-green-600' : 'text-gray-400'}`}>{rule.label}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {formData.password && !validatePasswordRules(formData.password).every(r => r.ok) && (
+                      <div className="mt-2 grid grid-cols-2 gap-1">
+                        {validatePasswordRules(formData.password).map((rule) => (
+                          <div key={rule.label} className="flex items-center gap-1.5">
+                            {rule.ok
+                              ? <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                              : <XCircle className="w-3 h-3 text-gray-300 flex-shrink-0" />}
+                            <span className={`text-xs ${rule.ok ? 'text-green-600' : 'text-gray-400'}`}>{rule.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {passwordError && <p className="mt-1 text-xs text-red-600">{passwordError}</p>}
                   </div>
                   <div>
-                    <label htmlFor="password_confirm" className="label">Confirmer le mot de passe *</label>
+                    <label htmlFor="password_confirm" className="label">Confirmer *</label>
                     <input id="password_confirm" type="password" name="password_confirm" value={formData.password_confirm} onChange={handleChange} className="input" required />
                     {formData.password_confirm && formData.password !== formData.password_confirm && (
-                      <p className="mt-1 text-xs text-red-600">Les mots de passe ne correspondent pas</p>
+                      <p className="mt-1 text-xs text-red-600">Ne correspond pas</p>
                     )}
                   </div>
                 </div>
 
-                <div className="border-t border-gray-100 pt-5">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">
+                <div className="border-t border-gray-100 pt-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2.5">
                     Documents à lire et accepter *
                   </p>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {[
-                      { key: 'cgu', label: "Conditions Générales d'Utilisation", url: '/cgu' },
-                      { key: 'cgv', label: 'Conditions Générales de Vente', url: '/cgv' },
-                      { key: 'confidentialite', label: 'Politique de confidentialité & RGPD', url: '/confidentialite' },
+                      { key: 'cgu', label: "CGU", url: '/cgu' },
+                      { key: 'cgv', label: 'CGV', url: '/cgv' },
+                      { key: 'confidentialite', label: 'Confidentialité & RGPD', url: '/confidentialite' },
                     ].map(({ key, label, url }) => (
                       <div
                         key={key}
-                        className={`flex items-center gap-3 p-3.5 rounded-xl border transition-colors ${
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${
                           docsAccepted[key]
                             ? 'bg-green-50 border-green-200'
                             : docsOpened[key]
@@ -387,18 +389,15 @@ export default function Register() {
                         <button
                           type="button"
                           onClick={() => openDoc(key, url)}
-                          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-gray-700 hover:border-primary-400 hover:text-primary-600 transition-colors whitespace-nowrap flex-shrink-0"
+                          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md bg-white border border-gray-300 text-gray-700 hover:border-primary-400 hover:text-primary-600 transition-colors whitespace-nowrap flex-shrink-0"
                         >
                           <ExternalLink className="w-3 h-3" />
                           Lire
                         </button>
                         <span className="text-sm text-gray-700 flex-1">{label}</span>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          {docsAccepted[key]
-                            ? <CheckCircle className="w-5 h-5 text-green-500" />
-                            : !docsOpened[key]
-                              ? <span className="text-xs text-gray-400 italic">Lisez d'abord</span>
-                              : null}
+                          {!docsOpened[key] && <span className="text-xs text-gray-400 italic">Lisez d'abord</span>}
+                          {docsAccepted[key] && <CheckCircle className="w-4 h-4 text-green-500" />}
                           <input
                             type="checkbox"
                             id={`accept_${key}`}
