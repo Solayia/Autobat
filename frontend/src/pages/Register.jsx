@@ -340,10 +340,10 @@ export default function Register() {
                     <label htmlFor="email" className="label">Email *</label>
                     <input id="email" type="email" name="email" value={formData.email} onChange={handleChange} className="input" required />
                   </div>
-                  <div>
+                  <div className="sm:col-span-2">
                     <label htmlFor="password" className="label">Mot de passe *</label>
                     <input id="password" type="password" name="password" value={formData.password} onChange={handleChange} className="input" placeholder="Min. 12 caractères" required />
-                    <div className="mt-2 grid grid-cols-2 gap-1">
+                    <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
                       {validatePasswordRules(formData.password).map((rule) => (
                         <div key={rule.label} className="flex items-center gap-1.5">
                           {rule.ok
@@ -355,11 +355,11 @@ export default function Register() {
                     </div>
                     {passwordError && <p className="mt-1 text-xs text-red-600">{passwordError}</p>}
                   </div>
-                  <div>
-                    <label htmlFor="password_confirm" className="label">Confirmer *</label>
+                  <div className="sm:col-span-2">
+                    <label htmlFor="password_confirm" className="label">Confirmer le mot de passe *</label>
                     <input id="password_confirm" type="password" name="password_confirm" value={formData.password_confirm} onChange={handleChange} className="input" required />
                     {formData.password_confirm && formData.password !== formData.password_confirm && (
-                      <p className="mt-1 text-xs text-red-600">Ne correspond pas</p>
+                      <p className="mt-1 text-xs text-red-600">Les mots de passe ne correspondent pas</p>
                     )}
                   </div>
                 </div>
