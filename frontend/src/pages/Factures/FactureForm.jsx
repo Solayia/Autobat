@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, Info } from 'lucide-react';
 import factureService from '../../services/factureService';
 import chantierService from '../../services/chantierService';
 
@@ -10,6 +10,7 @@ export default function FactureForm() {
   const [loading, setLoading] = useState(false);
   const [chantiersTermines, setChantiersTermines] = useState([]);
   const [chantierSelected, setChantierSelected] = useState(null);
+  const [acompteFromDevis, setAcompteFromDevis] = useState(null);
   const [formData, setFormData] = useState({
     chantier_id: '',
     devis_id: '',
@@ -47,9 +48,12 @@ export default function FactureForm() {
 
       // Pré-remplir avec le devis si disponible
       if (chantier.devis) {
+        const acompte = chantier.devis.acompte_verse > 0 ? chantier.devis.acompte_verse : null;
+        setAcompteFromDevis(acompte);
         setFormData(prev => ({
           ...prev,
-          devis_id: chantier.devis.id
+          devis_id: chantier.devis.id,
+          acompte_demande: acompte ?? 0
         }));
 
         // Charger les lignes du devis
@@ -61,6 +65,8 @@ export default function FactureForm() {
             prix_unitaire_ht: ligne.prix_unitaire_ht
           })));
         }
+      } else {
+        setAcompteFromDevis(null);
       }
     } catch (error) {
       console.error('Erreur chargement chantier:', error);
@@ -297,6 +303,14 @@ export default function FactureForm() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Acompte déjà versé par le client (€)
               </label>
+              {acompteFromDevis !== null && (
+                <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-2">
+                  <Info className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  <p className="text-xs text-blue-700">
+                    Acompte issu du devis : <strong>{acompteFromDevis.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</strong> — pré-rempli automatiquement, modifiable si besoin.
+                  </p>
+                </div>
+              )}
               <input
                 type="number"
                 step="0.01"
@@ -307,7 +321,7 @@ export default function FactureForm() {
                 placeholder="0.00"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Si un acompte a déjà été encaissé, indiquez le montant ici — il sera déduit du solde.
+                Sera déduit automatiquement du solde restant à payer.
               </p>
             </div>
 
