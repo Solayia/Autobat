@@ -177,9 +177,14 @@ export default function Factures() {
                   className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer active:bg-gray-50"
                 >
                   <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <span className="text-sm font-semibold text-gray-900 truncate">{facture.numero_facture}</span>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm font-semibold text-gray-900 truncate">{facture.numero_facture}</span>
+                      </div>
+                      {facture.objet && (
+                        <span className="text-sm text-gray-700 truncate mt-0.5 ml-6">{facture.objet}</span>
+                      )}
                     </div>
                     <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${badgeFacture.color}`}>
                       {badgeFacture.label}
@@ -238,11 +243,14 @@ export default function Factures() {
                         onClick={() => navigate(`/factures/${facture.id}`)}
                         className="hover:bg-gray-50 cursor-pointer transition-colors"
                       >
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                            <span className="text-sm font-medium text-gray-900">{facture.numero_facture}</span>
+                            <span className="text-sm font-medium text-gray-900 whitespace-nowrap">{facture.numero_facture}</span>
                           </div>
+                          {facture.objet && (
+                            <div className="text-xs text-gray-500 mt-0.5 ml-6 truncate max-w-[180px]">{facture.objet}</div>
+                          )}
                         </td>
                         <td className="px-4 py-3 max-w-[130px]">
                           <div className="text-sm text-gray-900 truncate">{facture.client_nom}</div>

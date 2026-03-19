@@ -120,6 +120,7 @@ export const createFacture = async (req, res, next) => {
       lignes,
       acompte_demande = 0,
       date_echeance,
+      objet,
       notes,
       mentions_legales
     } = req.body;
@@ -189,8 +190,8 @@ export const createFacture = async (req, res, next) => {
     }
 
     // Initialiser les montants de paiement
-    const acompte_recu = acompte_verse_devis;
-    const reste_a_payer = montant_ttc - acompte_recu;
+    const acompte_recu = Math.round(acompte_verse_devis * 100) / 100;
+    const reste_a_payer = Math.round((montant_ttc - acompte_recu) * 100) / 100;
     const statut_paiement = acompte_recu >= montant_ttc ? 'PAYE' : acompte_recu > 0 ? 'PARTIEL' : 'EN_ATTENTE';
 
     // Créer la facture avec snapshots
@@ -223,6 +224,7 @@ export const createFacture = async (req, res, next) => {
         // Dates
         date_emission: new Date(),
         date_echeance: date_echeance ? new Date(date_echeance) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours par défaut
+        objet: objet || null,
         notes,
         mentions_legales: mentions_legales ?? null,
         statut_facture: 'BROUILLON',
@@ -287,7 +289,7 @@ export const updateFacture = async (req, res, next) => {
   try {
     const { id } = req.params;
     const tenantId = req.tenantId;
-    const { lignes, date_echeance, notes, acompte_demande } = req.body;
+    const { lignes, date_echeance, objet, notes, acompte_demande } = req.body;
 
     // Vérifier que la facture existe et est en BROUILLON
     const facture = await prisma.facture.findFirst({
@@ -313,6 +315,7 @@ export const updateFacture = async (req, res, next) => {
 
     let updateData = {
       ...(date_echeance && { date_echeance: new Date(date_echeance) }),
+      ...(objet !== undefined && { objet: objet || null }),
       ...(notes !== undefined && { notes }),
       updated_at: new Date()
     };
@@ -324,11 +327,11 @@ export const updateFacture = async (req, res, next) => {
         where: { facture_id: id }
       });
 
-      // Recalculer les montants
-      const montant_ht = lignes.reduce((sum, ligne) => sum + (ligne.quantite * ligne.prix_unitaire_ht), 0);
-      const montant_tva = montant_ht * 0.20;
-      const montant_ttc = montant_ht + montant_tva;
-      const reste_a_payer = montant_ttc - facture.acompte_recu; // Basé sur ce qui a été réellement reçu
+      // Recalculer les montants (arrondi centimes pour éviter les flottants)
+      const montant_ht = Math.round(lignes.reduce((sum, ligne) => sum + (ligne.quantite * ligne.prix_unitaire_ht), 0) * 100) / 100;
+      const montant_tva = Math.round(montant_ht * 0.20 * 100) / 100;
+      const montant_ttc = Math.round((montant_ht + montant_tva) * 100) / 100;
+      const reste_a_payer = Math.round((montant_ttc - facture.acompte_recu) * 100) / 100; // Basé sur ce qui a été réellement reçu
 
       updateData = {
         ...updateData,
@@ -470,9 +473,9 @@ export const enregistrerPaiement = async (req, res, next) => {
       });
     }
 
-    // Calculer le total déjà payé
-    const totalPaye = facture.paiements.reduce((sum, p) => sum + p.montant, 0);
-    const nouveauTotal = totalPaye + montant;
+    // Calculer le total déjà payé (arrondi centimes pour éviter les flottants)
+    const totalPaye = Math.round(facture.paiements.reduce((sum, p) => sum + p.montant, 0) * 100) / 100;
+    const nouveauTotal = Math.round((totalPaye + montant) * 100) / 100;
 
     if (nouveauTotal > facture.montant_ttc) {
       return res.status(400).json({
@@ -495,8 +498,8 @@ export const enregistrerPaiement = async (req, res, next) => {
     });
 
     // Mettre à jour la facture
-    const nouveauReste = facture.montant_ttc - nouveauTotal;
-    const estPayeComplet = nouveauReste === 0;
+    const nouveauReste = Math.round((facture.montant_ttc - nouveauTotal) * 100) / 100;
+    const estPayeComplet = nouveauReste <= 0;
 
     const updatedFacture = await prisma.facture.update({
       where: { id },

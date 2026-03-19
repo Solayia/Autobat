@@ -174,6 +174,9 @@ export default function FactureDetail() {
               {badgePaiement.label}
             </span>
           </div>
+          {facture.objet && (
+            <p className="text-base sm:text-lg font-medium text-gray-800 mb-1">{facture.objet}</p>
+          )}
           <p className="text-sm sm:text-base text-gray-600">
             Émise le {formatDate(facture.date_emission)} • Échéance le {formatDate(facture.date_echeance)}
           </p>
@@ -379,7 +382,7 @@ export default function FactureDetail() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="0.00"
                   required
-                  max={facture.reste_a_payer}
+                  max={Math.floor(facture.reste_a_payer * 100) / 100}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Reste à payer: {formatCurrency(facture.reste_a_payer)}

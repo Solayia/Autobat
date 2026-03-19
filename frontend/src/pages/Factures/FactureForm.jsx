@@ -16,6 +16,7 @@ export default function FactureForm() {
   const [formData, setFormData] = useState({
     chantier_id: '',
     devis_id: '',
+    objet: '',
     acompte_demande: 0,
     date_echeance: '',
     notes: '',
@@ -183,6 +184,20 @@ export default function FactureForm() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Objet de la facture *
+              </label>
+              <input
+                type="text"
+                value={formData.objet}
+                onChange={(e) => setFormData({ ...formData, objet: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Ex: Travaux de rénovation salle de bain"
+                required
+              />
             </div>
 
             {chantierSelected && (

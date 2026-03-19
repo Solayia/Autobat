@@ -177,6 +177,7 @@ function generateFactureHTML(facture, logoDataUrl = null) {
     <div class="invoice-info">
       <div class="invoice-number">FACTURE</div>
       <div class="invoice-number">${facture.numero_facture}</div>
+      ${facture.objet ? `<div style="font-size:12px;color:#555;margin-top:4px;">${facture.objet}</div>` : ''}
       <div>Date: ${formatDate(facture.date_emission)}</div>
       <div>Échéance: ${formatDate(facture.date_echeance)}</div>
       ${facture.statut_paiement === 'PAYE' ? '<span class="status-badge status-paye">PAYÉE</span>' : ''}

@@ -395,6 +395,7 @@ model Facture {
   date_envoi          DateTime?
   date_paiement_complet DateTime?
   pdf_url             String?
+  objet               String?
   notes               String?
   mentions_legales    String?
   facture_origine_id  String?
