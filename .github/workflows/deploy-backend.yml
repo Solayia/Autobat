@@ -75,6 +75,7 @@ jobs:
             npx prisma generate
             npx prisma db push
             node prisma/create-super-admin.js
+            node prisma/create-demo-tenant.js
             node prisma/seed-catalogue-all-tenants.js
             sed -i "s|STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET|" /var/www/autobat/backend/.env
             # Google OAuth2 credentials (only if secrets are set)
