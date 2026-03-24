@@ -433,6 +433,40 @@ export const updateTenantStatut = async (req, res, next) => {
 };
 
 /**
+ * PATCH /api/super-admin/tenants/:id/demo
+ * Active/désactive le mode démo d'un tenant
+ */
+export const toggleDemo = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const tenant = await withSuperAdmin(() =>
+      prisma.tenant.findUnique({ where: { id }, select: { id: true, nom: true, is_demo: true, siret: true } })
+    );
+    if (!tenant) return res.status(404).json({ message: 'Tenant introuvable' });
+    if (tenant.siret === '00000000000000') {
+      return res.status(403).json({ message: 'Impossible de modifier le tenant platform' });
+    }
+
+    const updated = await withSuperAdmin(() =>
+      prisma.tenant.update({
+        where: { id },
+        data: { is_demo: !tenant.is_demo, statut: !tenant.is_demo ? 'ACTIF' : tenant.statut },
+        select: { id: true, nom: true, is_demo: true, statut: true }
+      })
+    );
+
+    logger.info(`[SUPER_ADMIN] Tenant ${id} (${tenant.nom}) → mode démo ${updated.is_demo ? 'activé' : 'désactivé'}`, {
+      admin_id: req.userId
+    });
+
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * DELETE /api/super-admin/tenants/:id
  * Supprime un tenant et toutes ses données (cascade)
  */

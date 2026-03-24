@@ -29,6 +29,7 @@ model Tenant {
   plan              String   @default("STARTER")
   statut            String   @default("ACTIF") // TRIAL | ACTIF | SUSPENDU | RESILIE
   trial_ends_at     DateTime? // Date de fin de la période d'essai (null si ACTIF)
+  is_demo           Boolean  @default(false)  // Compte démo/test — accès illimité, jamais modifié par Stripe
   employes_max      Int      @default(1) // Nombre max d'employés autorisés (payés)
   badgeage_par_tache_defaut Boolean @default(false) // Mode de badgeage par défaut pour nouveaux chantiers
 

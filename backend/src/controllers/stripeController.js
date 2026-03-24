@@ -254,6 +254,7 @@ export const handleWebhook = async (req, res) => {
           });
         }
         if (!tenant) break;
+        if (tenant.is_demo) break; // Compte démo — jamais modifié par Stripe
 
         await prisma.tenant.update({
           where: { id: tenant.id },
@@ -277,6 +278,7 @@ export const handleWebhook = async (req, res) => {
           where: { stripe_customer_id: invoice.customer }
         });
         if (!tenant) break;
+        if (tenant.is_demo) break; // Compte démo — jamais modifié par Stripe
 
         await prisma.tenant.update({
           where: { id: tenant.id },
@@ -299,6 +301,7 @@ export const handleWebhook = async (req, res) => {
           where: { stripe_subscription_id: subscription.id }
         });
         if (!tenant) break;
+        if (tenant.is_demo) break; // Compte démo — jamais modifié par Stripe
 
         await prisma.tenant.update({
           where: { id: tenant.id },
@@ -320,6 +323,7 @@ export const handleWebhook = async (req, res) => {
           where: { stripe_subscription_id: subscription.id }
         });
         if (!tenant) break;
+        if (tenant.is_demo) break; // Compte démo — jamais modifié par Stripe
 
         // Résiliation programmée → on marque RESILIE immédiatement
         if (subscription.cancel_at_period_end === true) {

@@ -148,6 +148,15 @@ export default function SuperAdmin() {
     });
   };
 
+  const handleToggleDemo = async (tenant) => {
+    try {
+      const res = await api.patch(`/super-admin/tenants/${tenant.id}/demo`);
+      toast.success(res.data.is_demo ? '🎭 Mode démo activé' : 'Mode démo désactivé');
+      loadTenants();
+      if (selectedTenant?.id === tenant.id) setSelectedTenant(t => ({ ...t, is_demo: res.data.is_demo }));
+    } catch { toast.error('Erreur'); }
+  };
+
   const handleDelete = (tenant) => {
     setConfirmDialog({
       title: 'Suppression définitive',
@@ -836,6 +845,10 @@ export default function SuperAdmin() {
                     </div>
 
                     <div className="flex gap-2 pt-2 border-t border-gray-800">
+                      <button onClick={() => handleToggleDemo(selectedTenant)}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1 ${selectedTenant.is_demo ? 'bg-purple-900/50 text-purple-300 hover:bg-purple-900/70 ring-1 ring-purple-600' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+                        🎭 {selectedTenant.is_demo ? 'Démo ON' : 'Démo OFF'}
+                      </button>
                       <button onClick={() => toggleStatut(selectedTenant)}
                         className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${selectedTenant.statut === 'ACTIF' ? 'bg-orange-900/30 text-orange-400 hover:bg-orange-900/50' : 'bg-green-900/30 text-green-400 hover:bg-green-900/50'}`}>
                         {selectedTenant.statut === 'ACTIF' ? 'Suspendre' : 'Réactiver'}

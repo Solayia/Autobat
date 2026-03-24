@@ -43,26 +43,29 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({ error: 'Utilisateur introuvable ou inactif' });
     }
 
-    // Vérifier que le tenant est actif (ACTIF ou TRIAL autorisés)
-    const statutsAutorises = ['ACTIF', 'TRIAL'];
-    if (!statutsAutorises.includes(user.tenant.statut)) {
-      const isPending = user.tenant.statut === 'PENDING';
-      return res.status(403).json({
-        error: isPending
-          ? 'Abonnement non activé. Veuillez finaliser votre paiement.'
-          : 'Compte suspendu ou résilié. Contactez le support.',
-        code: isPending ? 'PAYMENT_REQUIRED' : 'ACCOUNT_SUSPENDED',
-        statut: user.tenant.statut
-      });
-    }
+    // Compte démo → accès illimité, bypass tous les checks d'abonnement
+    if (!user.tenant.is_demo) {
+      // Vérifier que le tenant est actif (ACTIF ou TRIAL autorisés)
+      const statutsAutorises = ['ACTIF', 'TRIAL'];
+      if (!statutsAutorises.includes(user.tenant.statut)) {
+        const isPending = user.tenant.statut === 'PENDING';
+        return res.status(403).json({
+          error: isPending
+            ? 'Abonnement non activé. Veuillez finaliser votre paiement.'
+            : 'Compte suspendu ou résilié. Contactez le support.',
+          code: isPending ? 'PAYMENT_REQUIRED' : 'ACCOUNT_SUSPENDED',
+          statut: user.tenant.statut
+        });
+      }
 
-    // Vérifier que la période d'essai n'a pas expiré
-    if (user.tenant.statut === 'TRIAL' && user.tenant.trial_ends_at && user.tenant.trial_ends_at < new Date()) {
-      return res.status(402).json({
-        code: 'TRIAL_EXPIRED',
-        message: 'Votre période d\'essai a expiré. Veuillez souscrire à un abonnement pour continuer.',
-        trial_ends_at: user.tenant.trial_ends_at
-      });
+      // Vérifier que la période d'essai n'a pas expiré
+      if (user.tenant.statut === 'TRIAL' && user.tenant.trial_ends_at && user.tenant.trial_ends_at < new Date()) {
+        return res.status(402).json({
+          code: 'TRIAL_EXPIRED',
+          message: 'Votre période d\'essai a expiré. Veuillez souscrire à un abonnement pour continuer.',
+          trial_ends_at: user.tenant.trial_ends_at
+        });
+      }
     }
 
     // Injecter user et tenant_id dans req
