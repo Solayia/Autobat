@@ -30,6 +30,7 @@ import salesRoutes from './routes/salesRoutes.js';
 import syncBadgeageRoutes from './routes/syncBadgeageRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
 
 const app = express();
 
@@ -154,6 +155,10 @@ app.use('/api/super-admin/sales', salesRoutes);
 app.use('/api/badgeages', syncBadgeageRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/support', supportRoutes);
+
+// Fichiers support (screenshots + pièces jointes) — publics pour superadmin
+app.use('/api/uploads/support', authenticate, express.static(path.join(uploadsDir, 'support')));
 
 app.use(notFound);
 app.use(errorHandler);
