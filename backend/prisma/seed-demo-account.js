@@ -20,8 +20,13 @@
  */
 
 import 'dotenv/config';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const prisma = new PrismaClient();
 global.currentTenantId = null;
@@ -114,6 +119,10 @@ async function main() {
   // Clients (plus rien ne les référence)
   await prisma.client.deleteMany({ where: { tenant_id: tenantId } });
   console.log('  ✓ clients');
+  // Ouvrages (lignesDevis/lignesFacture déjà supprimées → plus de FK bloquante)
+  // HistoriquePrix cascade depuis Ouvrage
+  await prisma.ouvrage.deleteMany({ where: { tenant_id: tenantId } });
+  console.log('  ✓ ouvrages');
   // Employés supplémentaires + users (sauf admin démo)
   const usersToDelete = await prisma.user.findMany({
     where: { tenant_id: tenantId, email: { not: DEMO_EMAIL } },
@@ -178,9 +187,32 @@ async function main() {
   ]);
   console.log('✅ 6 clients créés\n');
 
-  // ── 5. Catalogue — activer l'auto-learning sur quelques ouvrages ─────────
+  // ── 5. Catalogue — seeder depuis syla.json + auto-learning ───────────────
+  console.log('📚 Seed catalogue...');
+  const sylaPath = resolve(__dirname, 'data/syla.json');
+  const sylaItems = JSON.parse(readFileSync(sylaPath, 'utf-8'));
+  let catCreated = 0;
+  for (let i = 0; i < sylaItems.length; i++) {
+    const item = sylaItems[i];
+    if (!item.denomination) continue;
+    await prisma.ouvrage.create({
+      data: {
+        tenant_id: tenantId,
+        categorie: item.categorie || 'Divers',
+        code: `SYLA-${String(i + 1).padStart(3, '0')}`,
+        denomination: item.denomination,
+        unite: item.unite || 'F',
+        prix_unitaire_ht: parseFloat(item.debourse_ht) || 0,
+        temps_estime_minutes: null,
+        nb_chantiers_realises: 0,
+        notes: item.note || null,
+      },
+    });
+    catCreated++;
+  }
+  console.log(`✅ ${catCreated} ouvrages seedés\n`);
+
   const allOuvrages = await prisma.ouvrage.findMany({ where: { tenant_id: tenantId }, take: 40, orderBy: { categorie: 'asc' } });
-  if (allOuvrages.length === 0) throw new Error('Catalogue vide — lancez d\'abord create-demo-tenant.js');
 
   // Simuler de l'auto-learning sur les 10 premiers ouvrages
   for (let i = 0; i < Math.min(10, allOuvrages.length); i++) {

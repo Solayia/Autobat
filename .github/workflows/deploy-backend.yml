@@ -77,8 +77,8 @@ jobs:
             node prisma/ensure-columns.js
             node prisma/create-super-admin.js
             node prisma/create-demo-tenant.js && echo "✅ create-demo-tenant OK" || echo "❌ create-demo-tenant FAILED"
-            echo "=== Lancement seed-demo-account ===" && node prisma/seed-demo-account.js 2>&1 && echo "✅ seed-demo-account OK" || echo "❌ seed-demo-account FAILED (code=$?)"
             node prisma/seed-catalogue-all-tenants.js && echo "✅ seed-catalogue OK" || echo "❌ seed-catalogue FAILED"
+            echo "=== Lancement seed-demo-account ===" && node prisma/seed-demo-account.js 2>&1 && echo "✅ seed-demo-account OK" || echo "❌ seed-demo-account FAILED (code=$?)"
             sed -i "s|STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET|" /var/www/autobat/backend/.env
             # Google OAuth2 credentials (only if secrets are set)
             if [ -n "$GOOGLE_CLIENT_ID" ]; then
