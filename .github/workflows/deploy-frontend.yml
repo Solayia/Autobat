@@ -40,24 +40,16 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "frontend/dist/*"
-          target: "/var/www/autobat/frontend/build/"
+          target: "/var/www/autobat/frontend/dist/"
           strip_components: 2
           rm: true
 
-      - name: Reload Nginx & Verify
+      - name: Reload Nginx
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            echo "=== Build directory ==="
-            ls -la /var/www/autobat/frontend/build/ 2>&1 || echo "build/ NOT FOUND"
-            echo "=== Assets directory ==="
-            ls /var/www/autobat/frontend/build/assets/ 2>&1 | head -10 || echo "assets/ NOT FOUND"
-            echo "=== Nginx root directives ==="
-            grep -r "root\|alias" /etc/nginx/sites-enabled/ 2>/dev/null || grep -r "root\|alias" /etc/nginx/conf.d/ 2>/dev/null
-            echo "=== All index.html on server ==="
-            find /var/www -name "index.html" 2>/dev/null
             sudo systemctl reload nginx
             echo "Deploy frontend $(date) - Stripe live mode"
