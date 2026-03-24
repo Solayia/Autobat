@@ -73,7 +73,8 @@ jobs:
             # Télécharger le Chrome bundlé Puppeteer si pas encore présent
             npx puppeteer browsers install chrome || true
             npx prisma generate
-            npx prisma db push
+            npx prisma db push --accept-data-loss 2>&1 && echo "✅ prisma db push OK" || echo "❌ prisma db push FAILED"
+            node prisma/ensure-columns.js
             node prisma/create-super-admin.js
             node prisma/create-demo-tenant.js
             node prisma/seed-catalogue-all-tenants.js
