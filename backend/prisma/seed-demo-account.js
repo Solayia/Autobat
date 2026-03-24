@@ -215,17 +215,31 @@ async function main() {
   const allOuvrages = await prisma.ouvrage.findMany({ where: { tenant_id: tenantId }, take: 40, orderBy: { categorie: 'asc' } });
 
   // Simuler de l'auto-learning sur les 10 premiers ouvrages
+  // Scénarios variés : En apprentissage / Aligné / Sous-estimé / Sur-estimé
+  const alScenarios = [
+    { nb: 4,  ecart:  0.12 }, // En apprentissage (sous-estimé +12%)
+    { nb: 6,  ecart: -0.08 }, // En apprentissage (sur-estimé -8%)
+    { nb: 12, ecart:  0.05 }, // Aligné (+5%)
+    { nb: 18, ecart: -0.04 }, // Aligné (-4%)
+    { nb: 20, ecart:  0.22 }, // Sous-estimé (+22%)
+    { nb: 14, ecart: -0.18 }, // Sur-estimé (-18%)
+    { nb: 8,  ecart:  0.09 }, // En apprentissage (+9%)
+    { nb: 22, ecart:  0.03 }, // Aligné (+3%)
+    { nb: 10, ecart:  0.15 }, // Sous-estimé (+15%)
+    { nb: 16, ecart: -0.11 }, // Sur-estimé (-11%)
+  ];
   for (let i = 0; i < Math.min(10, allOuvrages.length); i++) {
     const o = allOuvrages[i];
-    const nbChantiers = 2 + i * 2; // 2, 4, 6, ...
-    const ecartPct = (i % 2 === 0 ? 0.08 : -0.05); // +8% ou -5%
+    const { nb: nbChantiers, ecart: ecartPct } = alScenarios[i];
+    const tempsBase = 30 + (i % 4) * 15; // 30, 45, 60, 75, 30, 45, 60, 75, 30, 45
     const nouveauPrix = r2(o.prix_unitaire_ht * (1 + ecartPct));
     await prisma.ouvrage.update({
       where: { id: o.id },
       data: {
         nb_chantiers_realises: nbChantiers,
-        prix_unitaire_ht: nouveauPrix,
-        temps_reel_moyen: (o.temps_estime_minutes ?? 30) * (1 + ecartPct * 0.5),
+        prix_unitaire_ht: o.prix_unitaire_ht > 0 ? nouveauPrix : o.prix_unitaire_ht,
+        temps_estime_minutes: tempsBase,
+        temps_reel_moyen: r2(tempsBase * (1 + ecartPct)),
         derniere_maj_auto: dAgo(nbChantiers * 7),
       },
     });
