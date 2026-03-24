@@ -98,31 +98,34 @@ async function main() {
   });
   console.log('✅ Tenant mis à jour\n');
 
-  // ── 2. Nettoyage ────────────────────────────────────────────────────────
+  // ── 2. Nettoyage — ordre FK strict, CASCADE gère les enfants
+  // ──────────────────────────────────────────────────────────
+  console.log('🧹 Nettoyage...');
+  // Factures d'abord (Chantier → Facture sans CASCADE)
+  // LigneFacture + PaiementFacture cascadent depuis Facture
+  await prisma.facture.deleteMany({ where: { tenant_id: tenantId } });
+  console.log('  ✓ factures');
+  // Chantiers : CASCADE sur tâches, badgeages, docs, messages, chantierEmploye, tacheEmploye
+  await prisma.chantier.deleteMany({ where: { tenant_id: tenantId } });
+  console.log('  ✓ chantiers');
+  // Devis : CASCADE sur ligneDevis
+  await prisma.devis.deleteMany({ where: { tenant_id: tenantId } });
+  console.log('  ✓ devis');
+  // Clients (plus rien ne les référence)
+  await prisma.client.deleteMany({ where: { tenant_id: tenantId } });
+  console.log('  ✓ clients');
+  // Employés supplémentaires + users (sauf admin démo)
   const usersToDelete = await prisma.user.findMany({
     where: { tenant_id: tenantId, email: { not: DEMO_EMAIL } },
     select: { id: true },
   });
   const uids = usersToDelete.map((u) => u.id);
-
-  await prisma.paiementFacture.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.ligneFacture.deleteMany({ where: { facture: { tenant_id: tenantId } } });
-  await prisma.facture.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.badgeage.deleteMany({ where: { chantier: { tenant_id: tenantId } } });
-  await prisma.tacheEmploye.deleteMany({ where: { tache: { chantier: { tenant_id: tenantId } } } });
-  await prisma.chantierEmploye.deleteMany({ where: { chantier: { tenant_id: tenantId } } });
-  await prisma.tache.deleteMany({ where: { chantier: { tenant_id: tenantId } } });
-  await prisma.document.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.chantierMessage.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.chantier.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.ligneDevis.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.devis.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.client.deleteMany({ where: { tenant_id: tenantId } });
   if (uids.length > 0) {
     await prisma.employe.deleteMany({ where: { user_id: { in: uids } } });
     await prisma.user.deleteMany({ where: { id: { in: uids } } });
+    console.log(`  ✓ ${uids.length} users supplémentaires`);
   }
-  console.log('🧹 Données précédentes supprimées\n');
+  console.log('🧹 Nettoyage terminé\n');
 
   // ── 3. Employés ─────────────────────────────────────────────────────────
   console.log('👷 Création des employés...');
