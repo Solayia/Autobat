@@ -5,7 +5,7 @@ import {
   Eye, RefreshCw, Euro, Trash2, LogIn, FileText, Activity,
   BarChart2, Terminal, AlertTriangle, ChevronRight, MapPin, HardHat, Clock, Zap,
   Tag, Percent, Save, Plus, ToggleLeft, ToggleRight, Calculator,
-  Target, PhoneCall, X, Edit2, ChevronDown, LogOut, Globe, Play, FlaskConical, MessageSquare
+  Target, PhoneCall, X, Edit2, ChevronDown, LogOut, Globe, Play, FlaskConical, MessageSquare, Mail
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
@@ -709,13 +709,25 @@ export default function SuperAdmin() {
                           <td className="px-4 py-3 text-right text-xs font-medium text-purple-400">{t.statut === 'ACTIF' && t._count?.users > 0 ? fmtM(100 + Math.max(0, (t._count.users - 1)) * 20) : <span className="text-gray-600">—</span>}</td>
                           <td className="px-4 py-3 text-center text-gray-300 text-sm">{t._count?.users || 0}</td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${t.statut === 'ACTIF' ? 'bg-green-900/50 text-green-400' : t.statut === 'RESILIE' ? 'bg-gray-800 text-gray-500' : 'bg-red-900/50 text-red-400'}`}>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                              t.statut === 'ACTIF' ? 'bg-green-900/50 text-green-400' :
+                              t.statut === 'TRIAL' ? 'bg-orange-900/50 text-orange-400' :
+                              t.statut === 'RESILIE' ? 'bg-gray-800 text-gray-400 ring-1 ring-red-800' :
+                              t.statut === 'SUSPENDU' ? 'bg-red-900/50 text-red-400' :
+                              'bg-gray-800 text-gray-500'
+                            }`}>
                               {t.statut === 'ACTIF' ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                              {t.statut}
+                              {t.statut === 'RESILIE' ? '🚨 RÉSILIÉ' : t.statut}
                             </span>
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1 justify-end">
+                              <a href={`mailto:${t.email}?subject=Autobat — On aimerait vous récupérer 👋&body=Bonjour,%0D%0A%0D%0ANous avons vu que vous avez résilié votre abonnement Autobat. Pouvez-vous nous dire ce qui ne vous a pas convenu ? Nous serions ravis d'améliorer l'application pour vous.%0D%0A%0D%0ACordialement,%0D%0AL'équipe Autobat`}
+                                onClick={(e) => e.stopPropagation()}
+                                title={`Contacter ${t.email}`}
+                                className={`p-1.5 transition-colors ${t.statut === 'RESILIE' ? 'text-orange-400 hover:text-orange-300' : 'text-gray-500 hover:text-blue-400'}`}>
+                                <Mail className="w-3.5 h-3.5" />
+                              </a>
                               <button onClick={(e) => { e.stopPropagation(); handleImpersonate(t); }}
                                 title="Accéder au compte" className="p-1.5 text-gray-500 hover:text-purple-400 transition-colors">
                                 <LogIn className="w-3.5 h-3.5" />
@@ -740,6 +752,20 @@ export default function SuperAdmin() {
                 {/* Panneau détail */}
                 {selectedTenant && (
                   <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+                    {selectedTenant.statut === 'RESILIE' && (
+                      <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-3 flex items-start gap-3">
+                        <div className="text-red-400 mt-0.5">🚨</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-red-400">Client résilié — à contacter !</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{selectedTenant.email}</p>
+                          {selectedTenant.telephone && <p className="text-xs text-gray-400">{selectedTenant.telephone}</p>}
+                        </div>
+                        <a href={`mailto:${selectedTenant.email}?subject=Autobat — On aimerait vous récupérer 👋&body=Bonjour,%0D%0A%0D%0ANous avons vu que vous avez résilié votre abonnement Autobat. Pouvez-vous nous dire ce qui ne vous a pas convenu ? Nous serions ravis d'améliorer l'application pour vous.%0D%0A%0D%0ACordialement,%0D%0AL'équipe Autobat`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap">
+                          <Mail className="w-3.5 h-3.5" /> Contacter
+                        </a>
+                      </div>
+                    )}
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-bold text-white">{selectedTenant.nom}</h3>

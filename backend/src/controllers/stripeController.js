@@ -313,7 +313,7 @@ export const handleWebhook = async (req, res) => {
         break;
       }
 
-      // --- Abonnement mis à jour (ex: sortie de trial, paiement ok/échoué) ---
+      // --- Abonnement mis à jour (ex: sortie de trial, résiliation, paiement ok/échoué) ---
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
         const tenant = await prisma.tenant.findFirst({
@@ -321,7 +321,20 @@ export const handleWebhook = async (req, res) => {
         });
         if (!tenant) break;
 
-        if (subscription.status === 'active') {
+        // Résiliation programmée → on marque RESILIE immédiatement
+        if (subscription.cancel_at_period_end === true) {
+          const reason = subscription.cancellation_details?.feedback || subscription.cancellation_details?.reason || null;
+          await prisma.tenant.update({
+            where: { id: tenant.id },
+            data: { statut: 'RESILIE' }
+          });
+          logger.warn('Résiliation programmée — statut RESILIE', {
+            service: 'autobat-api',
+            tenant_id: tenant.id,
+            reason,
+            cancel_at: subscription.cancel_at
+          });
+        } else if (subscription.status === 'active') {
           await prisma.tenant.update({
             where: { id: tenant.id },
             data: { statut: 'ACTIF', trial_ends_at: null }
