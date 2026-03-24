@@ -98,6 +98,9 @@ model User {
   password_reset_tokens  PasswordResetToken[]
   employe                Employe?
   chantier_messages      ChantierMessage[]
+  support_tickets        SupportTicket[]
+  feature_requests       FeatureRequest[]
+  feature_votes          FeatureVote[]
 
   @@unique([tenant_id, email])
 }
@@ -495,6 +498,65 @@ model CodePromo {
   expires_at  DateTime?
   actif       Boolean   @default(true)
   created_at  DateTime  @default(now())
+}
+
+// ─── Auto Bat Man : Support & Feature Requests ───────────────────────────────
+
+model SupportTicket {
+  id            String   @id @default(cuid())
+  tenant_id     String
+  user_id       String
+  type          String   // BUG | FEEDBACK | QUESTION
+  titre         String
+  message       String
+  page_url      String?
+  entity_name   String?
+  screenshot_url String?
+  attachments   String?  // JSON array of URLs
+  statut        String   @default("OUVERT")   // OUVERT | EN_COURS | RESOLU | FERME
+  priorite      String   @default("MEDIUM")   // LOW | MEDIUM | HIGH
+  admin_notes   String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  user          User     @relation(fields: [user_id], references: [id])
+}
+
+model FeatureRequest {
+  id          String   @id @default(cuid())
+  tenant_id   String   // tenant de l'auteur
+  user_id     String
+  titre       String
+  description String
+  statut      String   @default("PENDING") // PENDING | VALIDATED | IN_DEVELOPMENT | SHIPPED | REJECTED
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user        User          @relation(fields: [user_id], references: [id])
+  votes       FeatureVote[]
+}
+
+model FeatureVote {
+  id                 String         @id @default(cuid())
+  user_id            String
+  feature_request_id String
+  created_at         DateTime       @default(now())
+
+  user               User           @relation(fields: [user_id], references: [id])
+  feature_request    FeatureRequest @relation(fields: [feature_request_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, feature_request_id])
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  categorie String
+  question  String
+  reponse   String
+  ordre     Int      @default(0)
+  actif     Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 // Pipeline commercial (leads / prospects)
