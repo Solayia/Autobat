@@ -5,12 +5,13 @@ import {
   Eye, RefreshCw, Euro, Trash2, LogIn, FileText, Activity,
   BarChart2, Terminal, AlertTriangle, ChevronRight, MapPin, HardHat, Clock, Zap,
   Tag, Percent, Save, Plus, ToggleLeft, ToggleRight, Calculator,
-  Target, PhoneCall, X, Edit2, ChevronDown, LogOut, Globe, Play, FlaskConical
+  Target, PhoneCall, X, Edit2, ChevronDown, LogOut, Globe, Play, FlaskConical, MessageSquare
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import useAuthStore from '../../stores/authStore';
 import MapTab from './MapTab';
+import SupportAdminTab from './SupportAdminTab';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
 const TABS = [
@@ -19,6 +20,7 @@ const TABS = [
   { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'ventes', label: 'Ventes', icon: Target },
   { id: 'pricing', label: 'Tarification', icon: Euro },
+  { id: 'support', label: 'Support', icon: MessageSquare },
   { id: 'logs', label: 'Logs système', icon: Terminal },
   { id: 'tests', label: 'Tests', icon: FlaskConical },
   { id: 'carte', label: 'Carte', icon: Globe },
@@ -1509,6 +1511,7 @@ export default function SuperAdmin() {
             </div>
           )}
 
+          {activeTab === 'support' && <SupportAdminTab />}
           {activeTab === 'carte' && <MapTab />}
 
         </div>

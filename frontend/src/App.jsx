@@ -31,6 +31,7 @@ import CGU from './pages/CGU';
 import CGV from './pages/CGV';
 import MentionsLegales from './pages/MentionsLegales';
 import Confidentialite from './pages/Confidentialite';
+import SupportWidget from './components/support/SupportWidget';
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
         }}
       />
 
+      <SupportWidget />
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
