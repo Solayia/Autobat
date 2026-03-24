@@ -244,10 +244,15 @@ export const handleWebhook = async (req, res) => {
         // Ignorer les factures à 0€ (générées lors de la création du trial)
         if (invoice.amount_paid === 0) break;
 
-        // Retrouver le tenant par stripe_customer_id
-        const tenant = await prisma.tenant.findFirst({
+        // Retrouver le tenant par stripe_customer_id, avec fallback sur stripe_subscription_id
+        let tenant = await prisma.tenant.findFirst({
           where: { stripe_customer_id: invoice.customer }
         });
+        if (!tenant && invoice.subscription) {
+          tenant = await prisma.tenant.findFirst({
+            where: { stripe_subscription_id: invoice.subscription }
+          });
+        }
         if (!tenant) break;
 
         await prisma.tenant.update({
@@ -308,7 +313,7 @@ export const handleWebhook = async (req, res) => {
         break;
       }
 
-      // --- Abonnement mis à jour (ex: sortie de trial) ---
+      // --- Abonnement mis à jour (ex: sortie de trial, paiement ok/échoué) ---
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
         const tenant = await prisma.tenant.findFirst({
@@ -316,13 +321,31 @@ export const handleWebhook = async (req, res) => {
         });
         if (!tenant) break;
 
-        // Si le trial est terminé mais pas encore de paiement, on garde le statut actuel
-        // (invoice.payment_succeeded s'en chargera)
-        logger.info('Abonnement mis à jour', {
-          service: 'autobat-api',
-          tenant_id: tenant.id,
-          status: subscription.status
-        });
+        if (subscription.status === 'active') {
+          await prisma.tenant.update({
+            where: { id: tenant.id },
+            data: { statut: 'ACTIF', trial_ends_at: null }
+          });
+          logger.info('Abonnement actif — statut ACTIF', {
+            service: 'autobat-api',
+            tenant_id: tenant.id
+          });
+        } else if (subscription.status === 'past_due') {
+          await prisma.tenant.update({
+            where: { id: tenant.id },
+            data: { statut: 'SUSPENDU' }
+          });
+          logger.warn('Abonnement en retard de paiement — statut SUSPENDU', {
+            service: 'autobat-api',
+            tenant_id: tenant.id
+          });
+        } else {
+          logger.info('Abonnement mis à jour', {
+            service: 'autobat-api',
+            tenant_id: tenant.id,
+            status: subscription.status
+          });
+        }
         break;
       }
 
