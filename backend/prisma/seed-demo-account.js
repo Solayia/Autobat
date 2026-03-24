@@ -206,8 +206,8 @@ async function main() {
       });
     }
   }
-  // Recharger avec les nouveaux prix
-  const ouvrages = await prisma.ouvrage.findMany({ where: { tenant_id: tenantId }, take: 40, orderBy: { categorie: 'asc' } });
+  // Recharger avec les nouveaux prix — filtrer prix > 0 pour éviter divisions par zéro
+  const ouvrages = await prisma.ouvrage.findMany({ where: { tenant_id: tenantId, prix_unitaire_ht: { gt: 0 } }, take: 40, orderBy: { categorie: 'asc' } });
   const o = (i) => ouvrages[Math.min(i, ouvrages.length - 1)];
   console.log('✅ Auto-learning simulé sur 10 ouvrages\n');
 
@@ -517,9 +517,9 @@ async function main() {
     const tvaH = r2(htH * 0.2);
     const ttcH = r2(htH * tvaH);
 
-    // Devis accepté
-    const lH = [{ ouvrage: o(5), qte: 10 }, { ouvrage: o(6), qte: 8 }];
-    const mH = mkMontants([{ qte: Math.round(htH / 2 / o(5).prix_unitaire_ht), prix: o(5).prix_unitaire_ht }, { qte: Math.round(htH / 2 / o(6).prix_unitaire_ht), prix: o(6).prix_unitaire_ht }]);
+    // Devis accepté — quantités fixes (évite division par zéro si prix = 0)
+    const lH = [{ ouvrage: o(5), qte: 15 }, { ouvrage: o(6), qte: 10 }];
+    const mH = mkMontants(lH.map(l => ({ qte: l.qte, prix: l.ouvrage.prix_unitaire_ht })));
     const dH = await prisma.devis.create({ data: {
       tenant_id: tenantId, numero_devis: `DEV-${year}-${h.num}`, client_id: h.client.id,
       objet: `Travaux ${h.label} — ${h.client.nom}`,
@@ -685,5 +685,6 @@ async function main() {
 }
 
 main()
-  .catch(console.error)
+  .then(() => process.exit(0))
+  .catch((e) => { console.error('❌ SEED DEMO FAILED:', e.message); console.error(e); process.exit(1); })
   .finally(() => prisma.$disconnect());
