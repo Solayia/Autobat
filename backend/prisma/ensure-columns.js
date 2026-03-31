@@ -46,6 +46,47 @@ const migrations = [
   `ALTER TABLE "Chantier" ALTER COLUMN "ville" DROP NOT NULL`,
   `ALTER TABLE "Chantier" ALTER COLUMN "latitude" DROP NOT NULL`,
   `ALTER TABLE "Chantier" ALTER COLUMN "longitude" DROP NOT NULL`,
+  // Fournisseurs (nouvelles tables v1.3.0)
+  `CREATE TABLE IF NOT EXISTS "Fournisseur" (
+    "id"         TEXT NOT NULL,
+    "tenant_id"  TEXT NOT NULL,
+    "nom"        TEXT NOT NULL,
+    "siret"      TEXT,
+    "email"      TEXT,
+    "telephone"  TEXT,
+    "adresse"    TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Fournisseur_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "Fournisseur_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )`,
+  `CREATE INDEX IF NOT EXISTS "Fournisseur_tenant_id_idx" ON "Fournisseur"("tenant_id")`,
+  `CREATE TABLE IF NOT EXISTS "FactureFournisseur" (
+    "id"             TEXT NOT NULL,
+    "tenant_id"      TEXT NOT NULL,
+    "numero"         TEXT NOT NULL,
+    "fournisseur_id" TEXT NOT NULL,
+    "chantier_id"    TEXT,
+    "date_facture"   TIMESTAMP(3) NOT NULL,
+    "date_echeance"  TIMESTAMP(3),
+    "categorie"      TEXT NOT NULL DEFAULT 'AUTRE',
+    "description"    TEXT,
+    "montant_ht"     DOUBLE PRECISION NOT NULL,
+    "taux_tva"       DOUBLE PRECISION NOT NULL DEFAULT 20,
+    "montant_tva"    DOUBLE PRECISION NOT NULL,
+    "montant_ttc"    DOUBLE PRECISION NOT NULL,
+    "statut"         TEXT NOT NULL DEFAULT 'A_PAYER',
+    "date_paiement"  TIMESTAMP(3),
+    "notes"          TEXT,
+    "fichier_url"    TEXT,
+    "created_at"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "FactureFournisseur_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "FactureFournisseur_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "FactureFournisseur_fournisseur_id_fkey" FOREIGN KEY ("fournisseur_id") REFERENCES "Fournisseur"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "FactureFournisseur_chantier_id_fkey" FOREIGN KEY ("chantier_id") REFERENCES "Chantier"("id") ON DELETE SET NULL ON UPDATE CASCADE
+  )`,
+  `CREATE INDEX IF NOT EXISTS "FactureFournisseur_tenant_id_idx" ON "FactureFournisseur"("tenant_id")`,
 ];
 
 async function main() {
