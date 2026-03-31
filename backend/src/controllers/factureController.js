@@ -192,7 +192,8 @@ export const createFacture = async (req, res, next) => {
     }, 0);
     const montant_ttc = montant_ht + montant_tva;
 
-    // Récupérer l'acompte versé depuis le devis associé (s'il existe)
+    // Récupérer l'acompte versé : priorité au champ saisi dans le formulaire (acompte_demande),
+    // sinon fallback sur acompte_verse du devis associé (pour la cohérence comptable)
     let acompte_verse_devis = 0;
     if (devis_id) {
       const devisAssocie = await prisma.devis.findFirst({ where: { id: devis_id } });
@@ -200,9 +201,12 @@ export const createFacture = async (req, res, next) => {
         acompte_verse_devis = devisAssocie.acompte_verse;
       }
     }
+    const acompte_saisi = parseFloat(acompte_demande) || 0;
+    // Utiliser la valeur saisie par l'utilisateur (pré-remplie depuis le devis si disponible)
+    const acompte_effectif = acompte_saisi > 0 ? acompte_saisi : acompte_verse_devis;
 
     // Initialiser les montants de paiement
-    const acompte_recu = Math.round(acompte_verse_devis * 100) / 100;
+    const acompte_recu = Math.round(acompte_effectif * 100) / 100;
     const reste_a_payer = Math.round((montant_ttc - acompte_recu) * 100) / 100;
     const statut_paiement = acompte_recu >= montant_ttc ? 'PAYE' : acompte_recu > 0 ? 'PARTIEL' : 'EN_ATTENTE';
 
