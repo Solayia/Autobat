@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, CalendarDays, Users, Building2, TrendingUp, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, Users, Building2, TrendingUp, AlertCircle, Clock } from 'lucide-react';
 import chantierService from '../services/chantierService';
 import employeService from '../services/employeService';
+import tacheService from '../services/tacheService';
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
@@ -75,12 +76,14 @@ export default function Planning() {
   const [loading, setLoading] = useState(true);
   const [employes, setEmployes] = useState([]);
   const [chantiers, setChantiers] = useState([]);
+  const [planningSlots, setPlanningSlots] = useState([]);
   const [weekStart, setWeekStart] = useState(() => getMondayOfWeek(new Date()));
   const [viewMode, setViewMode] = useState('semaine');
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadBaseData(); }, []);
+  useEffect(() => { loadPlanningSlots(); }, [weekStart, viewMode]);
 
-  const loadData = async () => {
+  const loadBaseData = async () => {
     try {
       setLoading(true);
       const [employesData, chantiersData] = await Promise.all([
@@ -93,6 +96,19 @@ export default function Planning() {
       console.error('Erreur chargement planning:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPlanningSlots = async () => {
+    try {
+      const debut = weekStart;
+      const fin = viewMode === 'semaine'
+        ? addDays(weekStart, 5)
+        : new Date(weekStart.getFullYear(), weekStart.getMonth() + 1, 0);
+      const slots = await tacheService.getPlanning(debut, fin);
+      setPlanningSlots(slots || []);
+    } catch (err) {
+      console.error('Erreur chargement créneaux:', err);
     }
   };
 
@@ -118,10 +134,11 @@ export default function Planning() {
   };
   const goToToday = () => setWeekStart(getMondayOfWeek(new Date()));
 
-  const getChantiersForEmployeDay = (employe, day) =>
-    chantiers.filter(c => {
-      const isAssigned = c.employes_assignes?.some(a => a.employe?.id === employe.id);
-      return isAssigned && dateInRange(day, c.date_debut, c.date_fin_prevue || c.date_fin_reelle);
+  const getSlotsForEmployeDay = (employe, day) =>
+    planningSlots.filter(slot => {
+      if (slot.employe?.id !== employe.id) return false;
+      if (!slot.date_planifiee) return false;
+      return isSameDay(new Date(slot.date_planifiee), day);
     });
 
   const periodLabel = viewMode === 'semaine' ? formatWeekRange(weekStart) : formatMonthYear(weekStart);
@@ -130,6 +147,8 @@ export default function Planning() {
   const employesActifs = employes.filter(emp =>
     chantiers.some(c => c.statut === 'EN_COURS' && c.employes_assignes?.some(a => a.employe?.id === emp.id))
   ).length;
+
+  const tachesPlannifiees = planningSlots.length;
 
   const sansEmployes = chantiers.filter(
     c => c.statut !== 'TERMINE' && c.statut !== 'ANNULE' &&
@@ -179,11 +198,11 @@ export default function Planning() {
           </div>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-5 h-5 text-blue-600" />
+              <Clock className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{chantiersPlannifies}</p>
-              <p className="text-xs text-gray-500 leading-tight">Planifiés</p>
+              <p className="text-2xl font-bold text-gray-900">{tachesPlannifiees}</p>
+              <p className="text-xs text-gray-500 leading-tight">Créneaux</p>
             </div>
           </div>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
@@ -334,7 +353,7 @@ export default function Planning() {
                         {/* Cellules jours */}
                         {days.map((day, di) => {
                           const today = isToday(day);
-                          const chantiersJour = getChantiersForEmployeDay(employe, day);
+                          const slotsJour = getSlotsForEmployeDay(employe, day);
                           return (
                             <td
                               key={di}
@@ -343,18 +362,30 @@ export default function Planning() {
                               }`}
                             >
                               <div className="space-y-1">
-                                {chantiersJour.map((c) => {
-                                  const cfg = STATUT_CONFIG[c.statut] || STATUT_CONFIG.PLANIFIE;
+                                {slotsJour.map((slot) => {
+                                  const chantier = slot.tache?.chantier;
+                                  const cfg = STATUT_CONFIG[chantier?.statut] || STATUT_CONFIG.PLANIFIE;
+                                  const dureeLabel = slot.duree_minutes
+                                    ? slot.duree_minutes >= 60
+                                      ? `${Math.floor(slot.duree_minutes / 60)}h${slot.duree_minutes % 60 ? String(slot.duree_minutes % 60).padStart(2, '0') : ''}`
+                                      : `${slot.duree_minutes}min`
+                                    : null;
                                   return (
                                     <button
-                                      key={c.id}
-                                      onClick={() => navigate(`/chantiers/${c.id}`)}
+                                      key={slot.id || `${slot.tache_id}-${slot.employe_id}`}
+                                      onClick={() => chantier && navigate(`/chantiers/${chantier.id}`)}
                                       className={`w-full text-left text-xs px-2 py-1.5 rounded-lg border-l-4 ${cfg.border} ${cfg.bg} ${cfg.text} hover:brightness-95 transition-all shadow-sm`}
-                                      title={`${c.nom}${c.client ? ` – ${c.client.nom}` : ''}`}
+                                      title={`${slot.tache?.nom}${chantier ? ` – ${chantier.nom}` : ''}`}
                                     >
-                                      <p className="font-semibold truncate leading-tight">{c.nom}</p>
-                                      {c.client && (
-                                        <p className="text-xs opacity-60 truncate leading-tight mt-0.5">{c.client.nom}</p>
+                                      <p className="font-semibold truncate leading-tight">{slot.tache?.nom}</p>
+                                      {chantier && (
+                                        <p className="opacity-60 truncate leading-tight mt-0.5">{chantier.nom}</p>
+                                      )}
+                                      {(slot.heure_debut || dureeLabel) && (
+                                        <p className="opacity-70 leading-tight mt-0.5 flex items-center gap-1">
+                                          {slot.heure_debut && <span>{slot.heure_debut}</span>}
+                                          {dureeLabel && <span>· {dureeLabel}</span>}
+                                        </p>
                                       )}
                                     </button>
                                   );

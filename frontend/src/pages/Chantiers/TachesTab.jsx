@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Plus, Trash2, Edit2, CheckCircle, Clock, Play, FileText, X, UserPlus } from 'lucide-react';
+import { Users, Plus, Trash2, Edit2, CheckCircle, Clock, Play, FileText, X, UserPlus, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import tacheService from '../../services/tacheService';
 import employeService from '../../services/employeService';
@@ -13,6 +13,8 @@ export default function TachesTab({ chantierId, chantier }) {
   const [showCreateFromDevisModal, setShowCreateFromDevisModal] = useState(false);
   const [selectedTache, setSelectedTache] = useState(null);
   const [editingTache, setEditingTache] = useState(null);
+  const [schedulingEmployeId, setSchedulingEmployeId] = useState(null);
+  const [scheduleForm, setScheduleForm] = useState({ date_planifiee: '', heure_debut: '', duree_minutes: '' });
   const [employes, setEmployes] = useState([]);
   const [formData, setFormData] = useState({
     nom: '',
@@ -150,10 +152,12 @@ export default function TachesTab({ chantierId, chantier }) {
     }
   };
 
-  const handleAssignEmploye = async (tacheId, employeId) => {
+  const handleAssignEmploye = async (tacheId, employeId, scheduleData = {}) => {
     try {
-      await tacheService.assignEmploye(chantierId, tacheId, employeId);
+      await tacheService.assignEmploye(chantierId, tacheId, employeId, scheduleData);
       toast.success('Employé assigné à la tâche');
+      setSchedulingEmployeId(null);
+      setScheduleForm({ date_planifiee: '', heure_debut: '', duree_minutes: '' });
       loadTaches();
     } catch (error) {
       console.error('Erreur:', error);
@@ -174,6 +178,8 @@ export default function TachesTab({ chantierId, chantier }) {
 
   const openAssignModal = (tache) => {
     setSelectedTache(tache);
+    setSchedulingEmployeId(null);
+    setScheduleForm({ date_planifiee: '', heure_debut: '', duree_minutes: '' });
     setShowAssignModal(true);
   };
 
@@ -284,6 +290,13 @@ export default function TachesTab({ chantierId, chantier }) {
                           >
                             <Users className="w-3 h-3" />
                             <span>{assign.employe.user.prenom} {assign.employe.user.nom}</span>
+                            {assign.date_planifiee && (
+                              <span className="ml-1 text-blue-500 flex items-center gap-0.5">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(assign.date_planifiee).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                                {assign.heure_debut && ` ${assign.heure_debut}`}
+                              </span>
+                            )}
                             <button
                               onClick={() => handleUnassignEmploye(tache.id, assign.employe.id)}
                               className="ml-1 hover:text-blue-900"
@@ -471,36 +484,95 @@ export default function TachesTab({ chantierId, chantier }) {
             </p>
 
             {employes && employes.length > 0 ? (
-              <div className="space-y-2 max-h-80 overflow-y-auto">
+              <div className="space-y-2 max-h-96 overflow-y-auto">
                 {employes.map((employe) => {
                   const isAssigned = isEmployeAssigned(selectedTache, employe.id);
+                  const isScheduling = schedulingEmployeId === employe.id;
                   return (
-                    <div
-                      key={employe.id}
-                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-900">
-                          {employe.user.prenom} {employe.user.nom}
-                        </span>
+                    <div key={employe.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="flex items-center justify-between p-3 hover:bg-gray-50">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm font-medium text-gray-900">
+                            {employe.user.prenom} {employe.user.nom}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isAssigned && (
+                            <button
+                              onClick={() => handleUnassignEmploye(selectedTache.id, employe.id)}
+                              className="px-3 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                            >
+                              Retirer
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              if (isScheduling) {
+                                setSchedulingEmployeId(null);
+                              } else {
+                                setSchedulingEmployeId(employe.id);
+                                setScheduleForm({ date_planifiee: '', heure_debut: '', duree_minutes: '' });
+                              }
+                            }}
+                            className={`px-3 py-1 text-xs rounded transition-colors flex items-center gap-1 ${
+                              isScheduling
+                                ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                            }`}
+                          >
+                            <Calendar className="w-3 h-3" />
+                            {isAssigned ? 'Replanifier' : 'Assigner'}
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => {
-                          if (isAssigned) {
-                            handleUnassignEmploye(selectedTache.id, employe.id);
-                          } else {
-                            handleAssignEmploye(selectedTache.id, employe.id);
-                          }
-                        }}
-                        className={`px-3 py-1 text-xs rounded transition-colors ${
-                          isAssigned
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                        }`}
-                      >
-                        {isAssigned ? 'Retirer' : 'Assigner'}
-                      </button>
+                      {isScheduling && (
+                        <div className="px-3 pb-3 bg-gray-50 border-t border-gray-100 space-y-2">
+                          <p className="text-xs text-gray-500 pt-2 font-medium">Créneau (optionnel)</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Date</label>
+                              <input
+                                type="date"
+                                value={scheduleForm.date_planifiee}
+                                onChange={e => setScheduleForm(f => ({ ...f, date_planifiee: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Heure début</label>
+                              <input
+                                type="time"
+                                value={scheduleForm.heure_debut}
+                                onChange={e => setScheduleForm(f => ({ ...f, heure_debut: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Durée (minutes)</label>
+                            <input
+                              type="number"
+                              min="15"
+                              step="15"
+                              placeholder="Ex: 120"
+                              value={scheduleForm.duree_minutes}
+                              onChange={e => setScheduleForm(f => ({ ...f, duree_minutes: e.target.value }))}
+                              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                            />
+                          </div>
+                          <button
+                            onClick={() => handleAssignEmploye(selectedTache.id, employe.id, {
+                              date_planifiee: scheduleForm.date_planifiee || undefined,
+                              heure_debut: scheduleForm.heure_debut || undefined,
+                              duree_minutes: scheduleForm.duree_minutes ? parseInt(scheduleForm.duree_minutes) : undefined
+                            })}
+                            className="w-full py-1.5 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors font-medium"
+                          >
+                            Confirmer l'assignation
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -508,7 +580,7 @@ export default function TachesTab({ chantierId, chantier }) {
             ) : (
               <div className="text-center py-6 text-gray-500">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm">Aucun employé assigné à ce chantier</p>
+                <p className="text-sm">Aucun employé disponible</p>
               </div>
             )}
 
@@ -517,6 +589,8 @@ export default function TachesTab({ chantierId, chantier }) {
                 onClick={() => {
                   setShowAssignModal(false);
                   setSelectedTache(null);
+                  setSchedulingEmployeId(null);
+                  setScheduleForm({ date_planifiee: '', heure_debut: '', duree_minutes: '' });
                 }}
                 className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
               >

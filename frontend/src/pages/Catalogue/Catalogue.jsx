@@ -285,7 +285,13 @@ export default function Catalogue() {
                   Dénomination
                 </th>
                 <th className="px-2 sm:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Prix HT
+                  Prix revente HT
+                </th>
+                <th className="hidden lg:table-cell px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Coût HT
+                </th>
+                <th className="hidden lg:table-cell px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Marge
                 </th>
                 <th className="hidden md:table-cell px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Temps Est.
@@ -339,6 +345,22 @@ export default function Catalogue() {
                             currency: 'EUR'
                           }).format(ouvrage.prix_unitaire_ht)}
                         </span>
+                      </td>
+                      <td className="hidden lg:table-cell px-4 py-3 sm:py-4 whitespace-nowrap text-right">
+                        <span className="text-xs sm:text-sm text-gray-600">
+                          {ouvrage.cout_ht != null
+                            ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(ouvrage.cout_ht)
+                            : '-'}
+                        </span>
+                      </td>
+                      <td className="hidden lg:table-cell px-4 py-3 sm:py-4 whitespace-nowrap text-right">
+                        {ouvrage.marge_pourcent != null ? (
+                          <span className={`text-xs sm:text-sm font-semibold ${ouvrage.marge_pourcent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {ouvrage.marge_pourcent >= 0 ? '+' : ''}{ouvrage.marge_pourcent}%
+                          </span>
+                        ) : (
+                          <span className="text-xs sm:text-sm text-gray-400">-</span>
+                        )}
                       </td>
                       <td className="hidden md:table-cell px-4 py-4 whitespace-nowrap text-right">
                         <span className="text-sm text-gray-600">

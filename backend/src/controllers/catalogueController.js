@@ -50,10 +50,11 @@ export const getOuvrages = async (req, res, next) => {
       ]
     });
 
-    // Ajouter le badge selon l'état d'apprentissage
+    // Ajouter le badge et la marge calculée
     const ouvragesWithBadge = ouvrages.map(ouvrage => ({
       ...ouvrage,
-      badge: getBadge(ouvrage)
+      badge: getBadge(ouvrage),
+      marge_pourcent: getMargePourcent(ouvrage)
     }));
 
     // Récupérer les catégories avec compteurs
@@ -115,7 +116,8 @@ export const getOuvrageById = async (req, res, next) => {
 
     res.json({
       ...ouvrage,
-      badge: getBadge(ouvrage)
+      badge: getBadge(ouvrage),
+      marge_pourcent: getMargePourcent(ouvrage)
     });
   } catch (error) {
     next(error);
@@ -127,7 +129,7 @@ export const getOuvrageById = async (req, res, next) => {
  */
 export const createOuvrage = async (req, res, next) => {
   try {
-    const { code, categorie, denomination, description, unite, prix_unitaire_ht, temps_estime_minutes } = req.body;
+    const { code, categorie, denomination, description, unite, prix_unitaire_ht, cout_ht, cout_materiaux, cout_materiel, cout_main_oeuvre, temps_estime_minutes } = req.body;
     const tenantId = req.tenantId;
 
     // Validation
@@ -153,6 +155,14 @@ export const createOuvrage = async (req, res, next) => {
       });
     }
 
+    // Calculer cout_ht automatiquement si les sous-champs sont fournis
+    const cMat = cout_materiaux != null ? parseFloat(cout_materiaux) : null;
+    const cMateriel = cout_materiel != null ? parseFloat(cout_materiel) : null;
+    const cMO = cout_main_oeuvre != null ? parseFloat(cout_main_oeuvre) : null;
+    const computedCoutHt = (cMat != null || cMateriel != null || cMO != null)
+      ? (cMat || 0) + (cMateriel || 0) + (cMO || 0)
+      : (cout_ht != null ? parseFloat(cout_ht) : null);
+
     // Créer l'ouvrage
     const ouvrage = await prisma.ouvrage.create({
       data: {
@@ -162,6 +172,10 @@ export const createOuvrage = async (req, res, next) => {
         denomination,
         unite,
         prix_unitaire_ht,
+        cout_ht: computedCoutHt,
+        cout_materiaux: cMat,
+        cout_materiel: cMateriel,
+        cout_main_oeuvre: cMO,
         temps_estime_minutes: temps_estime_minutes || 60,
         temps_reel_moyen: 0,
         nb_chantiers_realises: 0
@@ -177,7 +191,8 @@ export const createOuvrage = async (req, res, next) => {
 
     res.status(201).json({
       ...ouvrage,
-      badge: getBadge(ouvrage)
+      badge: getBadge(ouvrage),
+      marge_pourcent: getMargePourcent(ouvrage)
     });
   } catch (error) {
     next(error);
@@ -190,7 +205,7 @@ export const createOuvrage = async (req, res, next) => {
 export const updateOuvrage = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { code, categorie, denomination, description, unite, prix_unitaire_ht, temps_estime_minutes } = req.body;
+    const { code, categorie, denomination, description, unite, prix_unitaire_ht, cout_ht, cout_materiaux, cout_materiel, cout_main_oeuvre, temps_estime_minutes } = req.body;
     const tenantId = req.tenantId;
 
     const ouvrage = await prisma.ouvrage.findFirst({
@@ -207,6 +222,18 @@ export const updateOuvrage = async (req, res, next) => {
       });
     }
 
+    // Recalculer cout_ht si les sous-champs sont fournis
+    const hasSubs = cout_materiaux !== undefined || cout_materiel !== undefined || cout_main_oeuvre !== undefined;
+    let computedCoutHt = undefined;
+    if (hasSubs) {
+      const cMat = cout_materiaux != null ? parseFloat(cout_materiaux) : (ouvrage.cout_materiaux || 0);
+      const cMateriel = cout_materiel != null ? parseFloat(cout_materiel) : (ouvrage.cout_materiel || 0);
+      const cMO = cout_main_oeuvre != null ? parseFloat(cout_main_oeuvre) : (ouvrage.cout_main_oeuvre || 0);
+      computedCoutHt = cMat + cMateriel + cMO;
+    } else if (cout_ht !== undefined) {
+      computedCoutHt = cout_ht !== null ? parseFloat(cout_ht) : null;
+    }
+
     const updatedOuvrage = await prisma.ouvrage.update({
       where: { id },
       data: {
@@ -215,6 +242,10 @@ export const updateOuvrage = async (req, res, next) => {
         ...(denomination && { denomination }),
         ...(unite && { unite }),
         ...(prix_unitaire_ht !== undefined && { prix_unitaire_ht }),
+        ...(computedCoutHt !== undefined && { cout_ht: computedCoutHt }),
+        ...(cout_materiaux !== undefined && { cout_materiaux: cout_materiaux != null ? parseFloat(cout_materiaux) : null }),
+        ...(cout_materiel !== undefined && { cout_materiel: cout_materiel != null ? parseFloat(cout_materiel) : null }),
+        ...(cout_main_oeuvre !== undefined && { cout_main_oeuvre: cout_main_oeuvre != null ? parseFloat(cout_main_oeuvre) : null }),
         ...(temps_estime_minutes !== undefined && { temps_estime_minutes })
       }
     });
@@ -227,7 +258,8 @@ export const updateOuvrage = async (req, res, next) => {
 
     res.json({
       ...updatedOuvrage,
-      badge: getBadge(updatedOuvrage)
+      badge: getBadge(updatedOuvrage),
+      marge_pourcent: getMargePourcent(updatedOuvrage)
     });
   } catch (error) {
     next(error);
@@ -307,6 +339,14 @@ function getBadge(ouvrage) {
   } else {
     return 'OPTIMISE';
   }
+}
+
+/**
+ * Calcule le pourcentage de marge : (prix_revente - cout) / cout * 100
+ */
+function getMargePourcent(ouvrage) {
+  if (!ouvrage.cout_ht || ouvrage.cout_ht <= 0) return null;
+  return parseFloat(((ouvrage.prix_unitaire_ht - ouvrage.cout_ht) / ouvrage.cout_ht * 100).toFixed(1));
 }
 
 /**

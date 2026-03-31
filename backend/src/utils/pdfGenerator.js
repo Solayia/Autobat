@@ -9,197 +9,96 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * Génère le HTML d'une facture
  */
 function generateFactureHTML(facture, logoDataUrl = null) {
-  const brandColor = facture.couleur_primaire || '#10B981';
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR');
-  };
+  const accentColor = '#444444';
+  const borderColor = '#cccccc';
+  const lightGray = '#f7f7f7';
 
-  const formatMontant = (montant) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(montant);
-  };
+  const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
+
+  const formatMontant = (montant) => new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(montant);
+
+  const statusLabel = facture.statut_paiement === 'PAYE' ? 'PAYÉE'
+    : facture.statut_paiement === 'PARTIEL' ? 'PARTIELLEMENT PAYÉE'
+    : 'EN ATTENTE';
 
   return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Facture ${facture.numero_facture}</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Arial', sans-serif;
-      font-size: 11pt;
-      line-height: 1.6;
-      color: #333;
-      padding: 40px;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 40px;
-      padding-bottom: 20px;
-      border-bottom: 3px solid ${brandColor};
-    }
-    .company-info {
-      flex: 1;
-    }
-    .company-name {
-      font-size: 20pt;
-      font-weight: bold;
-      color: ${brandColor};
-      margin-bottom: 8px;
-    }
-    .invoice-info {
-      text-align: right;
-    }
-    .invoice-number {
-      font-size: 24pt;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 8px;
-    }
-    .parties {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 30px;
-    }
-    .party {
-      flex: 1;
-      padding: 15px;
-      background: #f9fafb;
-      border-radius: 8px;
-    }
-    .party + .party {
-      margin-left: 20px;
-    }
-    .party-title {
-      font-weight: bold;
-      color: ${brandColor};
-      margin-bottom: 8px;
-      font-size: 12pt;
-    }
-    .party-name {
-      font-weight: bold;
-      font-size: 12pt;
-      margin-bottom: 4px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 30px 0;
-    }
-    th {
-      background: ${brandColor};
-      color: white;
-      padding: 12px 8px;
-      text-align: left;
-      font-weight: bold;
-    }
-    td {
-      padding: 10px 8px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .text-right {
-      text-align: right;
-    }
-    .totals {
-      margin-top: 20px;
-      text-align: right;
-    }
-    .totals-table {
-      margin-left: auto;
-      width: 300px;
-    }
-    .totals-table td {
-      border: none;
-      padding: 8px;
-    }
-    .total-row {
-      font-size: 14pt;
-      font-weight: bold;
-      border-top: 2px solid ${brandColor};
-    }
-    .footer {
-      margin-top: 50px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
-      font-size: 9pt;
-      color: #6b7280;
-    }
-    .mentions {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f9fafb;
-      border-radius: 8px;
-      font-size: 9pt;
-      color: #6b7280;
-    }
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 9pt;
-      font-weight: bold;
-      margin-left: 10px;
-    }
-    .status-partiel {
-      background: #fef3c7;
-      color: #92400e;
-    }
-    .status-paye {
-      background: #d1fae5;
-      color: #065f46;
-    }
-    .status-en-attente {
-      background: #fee2e2;
-      color: #991b1b;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #333; padding: 40px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 2px solid ${accentColor}; }
+    .company-name { font-size: 16pt; font-weight: bold; color: ${accentColor}; margin-bottom: 6px; }
+    .company-info-text { font-size: 9pt; color: #555; line-height: 1.6; }
+    .invoice-block { text-align: right; }
+    .invoice-label { font-size: 22pt; font-weight: bold; color: ${accentColor}; letter-spacing: 2px; }
+    .invoice-number { font-size: 13pt; font-weight: bold; color: #333; margin-top: 4px; }
+    .invoice-meta { font-size: 9pt; color: #555; margin-top: 8px; line-height: 1.7; }
+    .status-tag { display: inline-block; margin-top: 8px; padding: 3px 10px; border: 1px solid ${accentColor}; font-size: 8pt; font-weight: bold; letter-spacing: 1px; color: ${accentColor}; }
+    .parties { display: flex; gap: 20px; margin-bottom: 28px; }
+    .party { flex: 1; padding: 12px 14px; background: ${lightGray}; border-left: 3px solid ${borderColor}; }
+    .party-title { font-size: 8pt; font-weight: bold; letter-spacing: 1px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+    .party-name { font-size: 11pt; font-weight: bold; color: #222; margin-bottom: 4px; }
+    .party-info { font-size: 9pt; color: #555; line-height: 1.6; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    thead tr { background: ${lightGray}; border-top: 2px solid ${accentColor}; border-bottom: 1px solid ${borderColor}; }
+    th { padding: 9px 8px; text-align: left; font-size: 8pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; color: ${accentColor}; }
+    td { padding: 9px 8px; font-size: 9.5pt; border-bottom: 1px solid #eee; }
+    .text-right { text-align: right; }
+    .totals-wrap { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .totals-table { width: 280px; border-collapse: collapse; }
+    .totals-table td { padding: 6px 8px; font-size: 9.5pt; border: none; }
+    .totals-table tr.total-final td { border-top: 2px solid ${accentColor}; font-weight: bold; font-size: 11pt; padding-top: 10px; }
+    .notes { margin-top: 24px; padding: 12px 14px; background: ${lightGray}; font-size: 9pt; color: #555; }
+    .notes-title { font-weight: bold; color: ${accentColor}; margin-bottom: 4px; font-size: 8pt; text-transform: uppercase; letter-spacing: 1px; }
+    .mentions { margin-top: 16px; padding: 10px 14px; border: 1px solid ${borderColor}; font-size: 8pt; color: #777; line-height: 1.6; }
+    .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid ${borderColor}; font-size: 8pt; color: #999; text-align: center; line-height: 1.8; }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="company-info">
-      ${logoDataUrl ? `<img src="${logoDataUrl}" alt="${facture.entreprise_nom}" style="max-width:150px;max-height:60px;object-fit:contain;display:block;margin-bottom:8px;" />` : ''}
+    <div>
+      ${logoDataUrl ? `<img src="${logoDataUrl}" alt="${facture.entreprise_nom}" style="max-width:140px;max-height:55px;object-fit:contain;display:block;margin-bottom:8px;" />` : ''}
       <div class="company-name">${facture.entreprise_nom}</div>
-      <div>SIRET: ${facture.entreprise_siret}</div>
-      <div>${facture.entreprise_adresse}</div>
-      <div>Tél: ${facture.entreprise_tel}</div>
-      <div>Email: ${facture.entreprise_email}</div>
+      <div class="company-info-text">
+        SIRET : ${facture.entreprise_siret}<br>
+        ${facture.entreprise_adresse}<br>
+        ${facture.entreprise_tel} — ${facture.entreprise_email}
+      </div>
     </div>
-    <div class="invoice-info">
-      <div class="invoice-number">FACTURE</div>
+    <div class="invoice-block">
+      <div class="invoice-label">FACTURE</div>
       <div class="invoice-number">${facture.numero_facture}</div>
-      ${facture.objet ? `<div style="font-size:12px;color:#555;margin-top:4px;">${facture.objet}</div>` : ''}
-      <div>Date: ${formatDate(facture.date_emission)}</div>
-      <div>Échéance: ${formatDate(facture.date_echeance)}</div>
-      ${facture.statut_paiement === 'PAYE' ? '<span class="status-badge status-paye">PAYÉE</span>' : ''}
-      ${facture.statut_paiement === 'PARTIEL' ? '<span class="status-badge status-partiel">PARTIELLEMENT PAYÉE</span>' : ''}
-      ${facture.statut_paiement === 'EN_ATTENTE' ? '<span class="status-badge status-en-attente">EN ATTENTE</span>' : ''}
+      <div class="invoice-meta">
+        ${facture.objet ? `<strong>${facture.objet}</strong><br>` : ''}
+        Date d'émission : ${formatDate(facture.date_emission)}<br>
+        Date d'échéance : ${formatDate(facture.date_echeance)}
+      </div>
+      <div class="status-tag">${statusLabel}</div>
     </div>
   </div>
 
   <div class="parties">
     <div class="party">
-      <div class="party-title">CLIENT</div>
+      <div class="party-title">Client</div>
       <div class="party-name">${facture.client_nom}</div>
-      ${facture.client_siret ? `<div>SIRET: ${facture.client_siret}</div>` : ''}
-      <div>${facture.client_adresse}</div>
-      <div>Tél: ${facture.client_tel}</div>
-      <div>Email: ${facture.client_email}</div>
+      <div class="party-info">
+        ${facture.client_siret ? `SIRET : ${facture.client_siret}<br>` : ''}
+        ${facture.client_adresse}<br>
+        ${facture.client_tel} — ${facture.client_email}
+      </div>
     </div>
     ${facture.chantier ? `
     <div class="party">
-      <div class="party-title">CHANTIER</div>
+      <div class="party-title">Chantier</div>
       <div class="party-name">${facture.chantier.nom}</div>
-      <div>${facture.chantier.adresse || ''}</div>
+      <div class="party-info">${facture.chantier.adresse || ''}</div>
     </div>
     ` : ''}
   </div>
@@ -207,10 +106,11 @@ function generateFactureHTML(facture, logoDataUrl = null) {
   <table>
     <thead>
       <tr>
-        <th>DESCRIPTION</th>
-        <th class="text-right">QUANTITÉ</th>
-        <th class="text-right">PRIX UNIT. HT</th>
-        <th class="text-right">MONTANT HT</th>
+        <th>Description</th>
+        <th class="text-right">Qté</th>
+        <th class="text-right">Prix unit. HT</th>
+        <th class="text-right">TVA</th>
+        <th class="text-right">Montant HT</th>
       </tr>
     </thead>
     <tbody>
@@ -219,32 +119,33 @@ function generateFactureHTML(facture, logoDataUrl = null) {
           <td>${ligne.description}</td>
           <td class="text-right">${ligne.quantite} ${ligne.unite}</td>
           <td class="text-right">${formatMontant(ligne.prix_unitaire_ht)}</td>
+          <td class="text-right">${ligne.tva_pourcent !== undefined ? ligne.tva_pourcent : 20}%</td>
           <td class="text-right">${formatMontant(ligne.montant_ht)}</td>
         </tr>
       `).join('')}
     </tbody>
   </table>
 
-  <div class="totals">
+  <div class="totals-wrap">
     <table class="totals-table">
       <tr>
         <td>Total HT</td>
         <td class="text-right">${formatMontant(facture.montant_ht)}</td>
       </tr>
       <tr>
-        <td>TVA (20%)</td>
+        <td>TVA</td>
         <td class="text-right">${formatMontant(facture.montant_tva)}</td>
       </tr>
-      <tr class="total-row">
+      <tr class="total-final">
         <td>Total TTC</td>
         <td class="text-right">${formatMontant(facture.montant_ttc)}</td>
       </tr>
       ${facture.acompte_recu > 0 ? `
       <tr>
         <td>Acompte reçu</td>
-        <td class="text-right">- ${formatMontant(facture.acompte_recu)}</td>
+        <td class="text-right">− ${formatMontant(facture.acompte_recu)}</td>
       </tr>
-      <tr class="total-row">
+      <tr class="total-final">
         <td>Reste à payer</td>
         <td class="text-right">${formatMontant(facture.reste_a_payer)}</td>
       </tr>
@@ -253,8 +154,8 @@ function generateFactureHTML(facture, logoDataUrl = null) {
   </div>
 
   ${facture.notes ? `
-  <div style="margin-top: 30px;">
-    <strong>Notes:</strong><br>
+  <div class="notes">
+    <div class="notes-title">Notes</div>
     ${facture.notes}
   </div>
   ` : ''}
@@ -266,10 +167,8 @@ function generateFactureHTML(facture, logoDataUrl = null) {
   ` : ''}
 
   <div class="footer">
-    <div style="text-align: center;">
-      ${facture.entreprise_nom} - SIRET: ${facture.entreprise_siret}<br>
-      ${facture.entreprise_adresse} - ${facture.entreprise_tel} - ${facture.entreprise_email}
-    </div>
+    ${facture.entreprise_nom} — SIRET : ${facture.entreprise_siret}<br>
+    ${facture.entreprise_adresse} — ${facture.entreprise_tel} — ${facture.entreprise_email}
   </div>
 </body>
 </html>

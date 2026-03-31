@@ -163,6 +163,7 @@ export default function Settings() {
       setUploadingLogo(true);
       const data = await settingsService.uploadLogo(file);
       setSettings({ ...settings, logo_url: data.logo_url });
+      setTenant({ ...tenant, logo_url: data.logo_url });
       toast.success('Logo uploadé avec succès');
     } catch (error) {
       console.error('❌ Erreur upload logo:', error);
@@ -652,45 +653,38 @@ export default function Settings() {
               </div>
             </div>
 
+            {/* Couleur de marque */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Couleur de marque
               </label>
               <p className="text-sm text-gray-500 mb-4">
-                Cette couleur sera utilisée dans vos devis (sections, en-têtes, boutons)
+                Cette couleur apparaîtra sur vos factures PDF (en-tête, tableau, totaux)
               </p>
-
               <div className="flex items-center gap-4">
                 <input
                   type="color"
-                  value={settings.couleur_primaire}
-                  onChange={(e) => setSettings({ ...settings, couleur_primaire: e.target.value })}
-                  className="h-16 w-32 rounded-xl border-2 border-gray-300 cursor-pointer"
+                  value={settings.couleur_primaire || '#10B981'}
+                  onChange={e => setSettings(prev => ({ ...prev, couleur_primaire: e.target.value }))}
+                  className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer p-1"
                 />
-                <div>
-                  <input
-                    type="text"
-                    value={settings.couleur_primaire}
-                    onChange={(e) => setSettings({ ...settings, couleur_primaire: e.target.value })}
-                    placeholder="#FF9F43"
-                    pattern="^#[0-9A-Fa-f]{6}$"
-                    className="w-32 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">Format: #RRGGBB</p>
-                </div>
-
-                {/* Aperçu */}
-                <div className="ml-auto">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Aperçu</p>
-                  <div
-                    className="px-6 py-3 rounded-xl text-white font-medium"
-                    style={{ backgroundColor: settings.couleur_primaire }}
-                  >
-                    Section du devis
-                  </div>
+                <input
+                  type="text"
+                  value={settings.couleur_primaire || '#10B981'}
+                  onChange={e => setSettings(prev => ({ ...prev, couleur_primaire: e.target.value }))}
+                  placeholder="#10B981"
+                  className="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+                <span className="text-sm text-gray-500">Aperçu :</span>
+                <div
+                  className="px-4 py-2 rounded-lg text-white text-sm font-medium"
+                  style={{ backgroundColor: settings.couleur_primaire || '#10B981' }}
+                >
+                  Facture #FAC-2026-0001
                 </div>
               </div>
             </div>
+
           </div>
 
           {/* Actions */}

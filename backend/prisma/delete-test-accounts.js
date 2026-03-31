@@ -30,7 +30,7 @@ async function main() {
   // Recherche et suppression des comptes test
   for (const nom of COMPTES_A_SUPPRIMER) {
     const tenant = await prisma.tenant.findFirst({
-      where: { nom: { contains: nom } },
+      where: { nom: { contains: nom, mode: 'insensitive' } },
       include: { _count: { select: { users: true, chantiers: true, devis: true, factures: true } } }
     });
 

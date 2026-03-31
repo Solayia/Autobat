@@ -18,7 +18,10 @@ import {
   Plus,
   ListChecks,
   RefreshCw,
-  MessageSquare
+  MessageSquare,
+  Trash2,
+  Phone,
+  Mail
 } from 'lucide-react';
 import chantierService from '../../services/chantierService';
 import TachesTab from './TachesTab';
@@ -26,6 +29,7 @@ import DocumentsTab from './DocumentsTab';
 import BadgeagesTab from './BadgeagesTab';
 import DiscussionTab from './DiscussionTab';
 import useAuthStore from '../../stores/authStore';
+import api from '../../services/api';
 
 export default function ChantierDetail() {
   const { id } = useParams();
@@ -34,6 +38,7 @@ export default function ChantierDetail() {
   const isEmployee = user?.role === 'EMPLOYEE';
   const [loading, setLoading] = useState(true);
   const [chantier, setChantier] = useState(null);
+  const [heures, setHeures] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('taches'); // taches, badgeages, documents, infos
   const [showStartModal, setShowStartModal] = useState(false);
@@ -43,6 +48,7 @@ export default function ChantierDetail() {
 
   useEffect(() => {
     loadChantier();
+    api.get(`/chantiers/${id}/heures`).then(r => setHeures(r.data)).catch(() => {});
   }, [id]);
 
   const loadChantier = async () => {
@@ -131,6 +137,20 @@ export default function ChantierDetail() {
       console.error('Erreur annulation chantier:', error);
       toast.error('Erreur lors de l\'annulation du chantier');
     } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteChantier = async () => {
+    if (!confirm('Supprimer ce chantier ? Cette action est irréversible.')) return;
+    try {
+      setActionLoading(true);
+      await chantierService.deleteChantier(id);
+      toast.success('Chantier supprimé');
+      navigate('/chantiers');
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Erreur lors de la suppression';
+      toast.error(msg);
       setActionLoading(false);
     }
   };
@@ -283,6 +303,16 @@ export default function ChantierDetail() {
                   <span className="hidden sm:inline">Rouvrir</span>
                 </button>
               )}
+              {(chantier.statut === 'PLANIFIE' || chantier.statut === 'ANNULE') && user?.role === 'COMPANY_ADMIN' && (
+                <button
+                  onClick={handleDeleteChantier}
+                  disabled={actionLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500/20 text-white border border-red-300/30 rounded-lg text-sm font-medium hover:bg-red-500/40 transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Supprimer</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -382,6 +412,44 @@ export default function ChantierDetail() {
               <div>
                 <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Informations du chantier</h2>
 
+                {/* Heures prévues vs réalisées */}
+                {heures && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-5 mb-4 sm:mb-6">
+                    <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Suivi des heures
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-xs text-blue-600 mb-1">Heures planifiées</div>
+                        <div className="text-2xl font-bold text-blue-900">{heures.heures_prevues}h</div>
+                        <div className="text-xs text-blue-500">{heures.nb_assignations} assignation{heures.nb_assignations !== 1 ? 's' : ''}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-blue-600 mb-1">Heures réalisées</div>
+                        <div className={`text-2xl font-bold ${heures.heures_realisees > heures.heures_prevues && heures.heures_prevues > 0 ? 'text-orange-600' : 'text-green-700'}`}>
+                          {heures.heures_realisees}h
+                        </div>
+                        {heures.heures_prevues > 0 && (
+                          <div className="text-xs text-blue-500">
+                            {Math.round(heures.heures_realisees / heures.heures_prevues * 100)}% du prévu
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {heures.heures_prevues > 0 && (
+                      <div className="mt-3">
+                        <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${heures.heures_realisees > heures.heures_prevues ? 'bg-orange-500' : 'bg-green-500'}`}
+                            style={{ width: `${Math.min(heures.heures_realisees / heures.heures_prevues * 100, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   {/* Informations générales */}
                   <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
@@ -397,6 +465,18 @@ export default function ChantierDetail() {
                             {chantier.client?.nom || 'Client inconnu'}
                           </span>
                         </div>
+                        {chantier.client?.telephone && (
+                          <a href={`tel:${chantier.client.telephone}`} className="flex items-center gap-2 mt-1.5 text-sm text-blue-600 hover:text-blue-800">
+                            <Phone className="w-4 h-4" />
+                            {chantier.client.telephone}
+                          </a>
+                        )}
+                        {chantier.client?.email && (
+                          <a href={`mailto:${chantier.client.email}`} className="flex items-center gap-2 mt-1 text-sm text-blue-600 hover:text-blue-800">
+                            <Mail className="w-4 h-4" />
+                            {chantier.client.email}
+                          </a>
+                        )}
                       </div>
 
                       {/* Adresse */}

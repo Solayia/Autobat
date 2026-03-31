@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, FileText, BookOpen, Building, Receipt, LogOut, Menu, X, ChevronLeft, ChevronRight, UserCog, Settings, CalendarDays, Eye, AlertTriangle } from 'lucide-react';
+import { Home, Users, FileText, BookOpen, Building, Receipt, LogOut, Menu, X, ChevronLeft, ChevronRight, UserCog, Settings, CalendarDays, Eye, AlertTriangle, Truck, Sparkles } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import NotificationBell from './NotificationBell';
 import GlobalSearch from './GlobalSearch';
@@ -11,6 +11,8 @@ export default function Layout({ children }) {
   const { user, tenant, logout, setUser, setTenant } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
+  const logoUrl = tenant?.logo_url ? `${API_BASE}${tenant.logo_url}` : null;
 
   // Mode impersonation
   const isImpersonating = !!sessionStorage.getItem('sa_backup_token');
@@ -45,7 +47,6 @@ export default function Layout({ children }) {
       label: null,
       items: [
         { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['EMPLOYEE', 'MANAGER', 'COMPANY_ADMIN'] },
-        { name: 'Planning', href: '/pilotage', icon: CalendarDays, roles: ['MANAGER', 'COMPANY_ADMIN'] },
       ]
     },
     {
@@ -55,6 +56,7 @@ export default function Layout({ children }) {
         { name: 'Devis', href: '/devis', icon: FileText, roles: ['MANAGER', 'COMPANY_ADMIN'] },
         { name: 'Chantiers', href: '/chantiers', icon: Building, roles: ['EMPLOYEE', 'MANAGER', 'COMPANY_ADMIN'] },
         { name: 'Factures', href: '/factures', icon: Receipt, roles: ['MANAGER', 'COMPANY_ADMIN'] },
+        { name: 'Fournisseurs', href: '/factures-fournisseurs', icon: Truck, roles: ['MANAGER', 'COMPANY_ADMIN'] },
       ]
     },
     {
@@ -62,6 +64,13 @@ export default function Layout({ children }) {
       items: [
         { name: 'Catalogue', href: '/catalogue', icon: BookOpen, roles: ['MANAGER', 'COMPANY_ADMIN'] },
         { name: 'Employés', href: '/employes', icon: UserCog, roles: ['MANAGER', 'COMPANY_ADMIN'] },
+        { name: 'Planning', href: '/pilotage', icon: CalendarDays, roles: ['MANAGER', 'COMPANY_ADMIN'] },
+      ]
+    },
+    {
+      label: 'Les bons plans',
+      items: [
+        { name: 'Les bons plans', href: '/bons-plans', icon: Sparkles, roles: ['COMPANY_ADMIN'] },
       ]
     },
   ];
@@ -172,8 +181,8 @@ export default function Layout({ children }) {
               >
                 {/* Avatar : logo tenant ou initiales */}
                 <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-blue-500/30 flex items-center justify-center">
-                  {tenant?.logo_url
-                    ? <img src={tenant.logo_url} alt="logo" className="w-full h-full object-cover" />
+                  {logoUrl
+                    ? <img src={logoUrl} alt="logo" className="w-full h-full object-cover" />
                     : <span className="text-sm font-bold text-white leading-none">
                         {user?.prenom?.[0]}{user?.nom?.[0]}
                       </span>

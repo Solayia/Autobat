@@ -20,6 +20,9 @@ export default function CatalogueForm() {
     denomination: '',
     unite: 'M²',
     prix_unitaire_ht: '',
+    cout_materiaux: '',
+    cout_materiel: '',
+    cout_main_oeuvre: '',
     temps_estime_minutes: '60',
     notes: ''
   });
@@ -49,6 +52,9 @@ export default function CatalogueForm() {
         denomination: ouvrage.denomination || '',
         unite: ouvrage.unite || 'M²',
         prix_unitaire_ht: ouvrage.prix_unitaire_ht?.toString() || '',
+        cout_materiaux: ouvrage.cout_materiaux != null ? ouvrage.cout_materiaux.toString() : '',
+        cout_materiel: ouvrage.cout_materiel != null ? ouvrage.cout_materiel.toString() : '',
+        cout_main_oeuvre: ouvrage.cout_main_oeuvre != null ? ouvrage.cout_main_oeuvre.toString() : '',
         temps_estime_minutes: ouvrage.temps_estime_minutes?.toString() || '60',
         notes: ouvrage.notes || ''
       });
@@ -87,6 +93,9 @@ export default function CatalogueForm() {
         denomination: formData.denomination.trim(),
         unite: formData.unite,
         prix_unitaire_ht: prixHT,
+        cout_materiaux: formData.cout_materiaux ? parseFloat(formData.cout_materiaux) : null,
+        cout_materiel: formData.cout_materiel ? parseFloat(formData.cout_materiel) : null,
+        cout_main_oeuvre: formData.cout_main_oeuvre ? parseFloat(formData.cout_main_oeuvre) : null,
         temps_estime_minutes: formData.temps_estime_minutes ? parseInt(formData.temps_estime_minutes) : 60,
         notes: formData.notes.trim() || undefined
       };
@@ -373,11 +382,78 @@ export default function CatalogueForm() {
             <h2 className="text-xl font-semibold text-gray-900">Tarification</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Déboursé sec : 3 sous-champs */}
+          <div className="mb-5">
+            <p className="text-sm font-medium text-gray-700 mb-3">Déboursé sec (coût de revient HT)</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 block">Matériaux</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    name="cout_materiaux"
+                    value={formData.cout_materiaux}
+                    onChange={handleChange}
+                    step="0.01"
+                    min="0"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                    placeholder="0.00"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">€</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 block">Matériel / Outillage</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    name="cout_materiel"
+                    value={formData.cout_materiel}
+                    onChange={handleChange}
+                    step="0.01"
+                    min="0"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                    placeholder="0.00"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">€</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 block">Main d'œuvre</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    name="cout_main_oeuvre"
+                    value={formData.cout_main_oeuvre}
+                    onChange={handleChange}
+                    step="0.01"
+                    min="0"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                    placeholder="0.00"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">€</span>
+                </div>
+              </div>
+            </div>
+            {/* Total déboursé sec calculé */}
+            {(formData.cout_materiaux || formData.cout_materiel || formData.cout_main_oeuvre) && (() => {
+              const total = (parseFloat(formData.cout_materiaux) || 0) + (parseFloat(formData.cout_materiel) || 0) + (parseFloat(formData.cout_main_oeuvre) || 0);
+              return (
+                <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                  <span className="font-medium">Total déboursé sec :</span>
+                  <span className="font-bold text-gray-900">{total.toFixed(2)} €</span>
+                  <span className="text-gray-400">/ {formData.unite || 'unité'}</span>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Prix de revente + Marge */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 <DollarSign className="w-4 h-4 text-gray-400" />
-                Prix unitaire HT <span className="text-red-500">*</span>
+                Prix de revente HT <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -393,25 +469,50 @@ export default function CatalogueForm() {
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">€</span>
               </div>
-              <p className="mt-1 text-sm text-gray-500">Prix hors taxes par {formData.unite || 'unité'}</p>
+              <p className="mt-1 text-sm text-gray-500">Prix facturé au client par {formData.unite || 'unité'}</p>
             </div>
 
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <Clock className="w-4 h-4 text-gray-400" />
-                Temps estimé (minutes)
+                <TrendingUp className="w-4 h-4 text-gray-400" />
+                Marge calculée
               </label>
-              <input
-                type="number"
-                name="temps_estime_minutes"
-                value={formData.temps_estime_minutes}
-                onChange={handleChange}
-                min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="60"
-              />
-              <p className="mt-1 text-sm text-gray-500">Temps de réalisation estimé par {formData.unite || 'unité'}</p>
+              {(() => {
+                const coutTotal = (parseFloat(formData.cout_materiaux) || 0) + (parseFloat(formData.cout_materiel) || 0) + (parseFloat(formData.cout_main_oeuvre) || 0);
+                const prix = parseFloat(formData.prix_unitaire_ht);
+                if (coutTotal > 0 && prix > 0) {
+                  const marge = (prix - coutTotal) / coutTotal * 100;
+                  return (
+                    <div className={`px-4 py-3 rounded-xl border text-lg font-bold ${marge >= 0 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                      {marge >= 0 ? '+' : ''}{marge.toFixed(1)}%
+                    </div>
+                  );
+                }
+                return (
+                  <div className="px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-400 text-sm">
+                    Saisissez déboursé et prix
+                  </div>
+                );
+              })()}
+              <p className="mt-1 text-sm text-gray-500">Marge brute sur le déboursé sec</p>
             </div>
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <Clock className="w-4 h-4 text-gray-400" />
+              Temps estimé (minutes)
+            </label>
+            <input
+              type="number"
+              name="temps_estime_minutes"
+              value={formData.temps_estime_minutes}
+              onChange={handleChange}
+              min="0"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="60"
+            />
+            <p className="mt-1 text-sm text-gray-500">Temps de réalisation estimé par {formData.unite || 'unité'}</p>
           </div>
         </div>
 

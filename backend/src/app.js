@@ -31,6 +31,8 @@ import syncBadgeageRoutes from './routes/syncBadgeageRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
+import planningRoutes from './routes/planningRoutes.js';
+import fournisseurRoutes from './routes/fournisseurRoutes.js';
 
 const app = express();
 
@@ -156,6 +158,8 @@ app.use('/api/badgeages', syncBadgeageRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/planning', planningRoutes);
+app.use('/api/factures-fournisseurs', fournisseurRoutes);
 
 // Fichiers support (screenshots + pièces jointes) — publics pour superadmin
 app.use('/api/uploads/support', authenticate, express.static(path.join(uploadsDir, 'support')));

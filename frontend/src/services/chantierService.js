@@ -53,6 +53,12 @@ const chantierService = {
   assignEmployees: async (chantierId, employeeIds) => {
     const response = await api.post(`/chantiers/${chantierId}/assign`, { employee_ids: employeeIds });
     return response.data;
+  },
+
+  // Supprimer un chantier
+  deleteChantier: async (id) => {
+    const response = await api.delete(`/chantiers/${id}`);
+    return response.data;
   }
 };
 

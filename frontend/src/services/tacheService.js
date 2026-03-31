@@ -31,15 +31,27 @@ const tacheService = {
     return response.data;
   },
 
-  // Assigner un employé à une tâche
-  assignEmploye: async (chantierId, tacheId, employeId) => {
-    const response = await api.post(`/chantiers/${chantierId}/taches/${tacheId}/assign`, { employe_id: employeId });
+  // Assigner un employé à une tâche (avec créneau optionnel)
+  assignEmploye: async (chantierId, tacheId, employeId, scheduleData = {}) => {
+    const response = await api.post(`/chantiers/${chantierId}/taches/${tacheId}/assign`, {
+      employe_id: employeId,
+      ...scheduleData
+    });
     return response.data;
   },
 
   // Retirer l'assignation d'un employé
   unassignEmploye: async (chantierId, tacheId, employeId) => {
     const response = await api.delete(`/chantiers/${chantierId}/taches/${tacheId}/assign/${employeId}`);
+    return response.data;
+  },
+
+  // Récupérer les créneaux planifiés pour une période
+  getPlanning: async (dateDebut, dateFin) => {
+    const params = {};
+    if (dateDebut) params.date_debut = dateDebut instanceof Date ? dateDebut.toISOString().split('T')[0] : dateDebut;
+    if (dateFin) params.date_fin = dateFin instanceof Date ? dateFin.toISOString().split('T')[0] : dateFin;
+    const response = await api.get('/planning', { params });
     return response.data;
   }
 };

@@ -116,6 +116,7 @@ export const createFacture = async (req, res, next) => {
     const tenantId = req.tenantId;
     const {
       chantier_id,
+      client_id: client_id_direct,
       devis_id,
       lignes,
       acompte_demande = 0,
@@ -125,30 +126,39 @@ export const createFacture = async (req, res, next) => {
       mentions_legales
     } = req.body;
 
-    // Vérifier que le chantier existe et est TERMINÉ
-    const chantier = await prisma.chantier.findFirst({
-      where: {
-        id: chantier_id,
-        tenant_id: tenantId
-      },
-      include: {
-        client: true,
-        devis: true
-      }
-    });
-
-    if (!chantier) {
-      return res.status(404).json({
-        code: 'CHANTIER_NOT_FOUND',
-        message: 'Chantier introuvable'
+    // Chantier OU client direct requis
+    if (!chantier_id && !client_id_direct) {
+      return res.status(400).json({
+        code: 'CLIENT_REQUIRED',
+        message: 'Sélectionnez un chantier ou un client'
       });
     }
 
-    if (chantier.statut !== 'TERMINE') {
-      return res.status(400).json({
-        code: 'CHANTIER_NOT_TERMINE',
-        message: 'Le chantier doit être terminé pour créer une facture'
+    let chantier = null;
+    let client = null;
+
+    if (chantier_id) {
+      chantier = await prisma.chantier.findFirst({
+        where: { id: chantier_id, tenant_id: tenantId },
+        include: { client: true, devis: true }
       });
+      if (!chantier) {
+        return res.status(404).json({
+          code: 'CHANTIER_NOT_FOUND',
+          message: 'Chantier introuvable'
+        });
+      }
+      client = chantier.client;
+    } else {
+      client = await prisma.client.findFirst({
+        where: { id: client_id_direct, tenant_id: tenantId }
+      });
+      if (!client) {
+        return res.status(404).json({
+          code: 'CLIENT_NOT_FOUND',
+          message: 'Client introuvable'
+        });
+      }
     }
 
     // Récupérer les infos de l'entreprise (snapshots)
@@ -174,15 +184,17 @@ export const createFacture = async (req, res, next) => {
 
     const numero_facture = `FAC-${year}-${String(nextNumber).padStart(4, '0')}`;
 
-    // Calculer les montants
+    // Calculer les montants (TVA par ligne)
     const montant_ht = lignes.reduce((sum, ligne) => sum + (ligne.quantite * ligne.prix_unitaire_ht), 0);
-    const montant_tva = montant_ht * 0.20; // TVA fixe 20%
+    const montant_tva = lignes.reduce((sum, ligne) => {
+      const tva = ligne.tva_pourcent != null ? parseFloat(ligne.tva_pourcent) : 20;
+      return sum + (ligne.quantite * ligne.prix_unitaire_ht * tva / 100);
+    }, 0);
     const montant_ttc = montant_ht + montant_tva;
 
     // Récupérer l'acompte versé depuis le devis associé (s'il existe)
     let acompte_verse_devis = 0;
     if (devis_id) {
-      global.currentTenantId = null;
       const devisAssocie = await prisma.devis.findFirst({ where: { id: devis_id } });
       if (devisAssocie?.acompte_verse > 0) {
         acompte_verse_devis = devisAssocie.acompte_verse;
@@ -199,21 +211,21 @@ export const createFacture = async (req, res, next) => {
       data: {
         tenant_id: tenantId,
         numero_facture,
-        chantier_id,
+        chantier_id: chantier_id || null,
         devis_id: devis_id || null,
-        client_id: chantier.client_id,
+        client_id: client.id,
         // Snapshots entreprise
-        entreprise_nom: tenant.nom,
-        entreprise_siret: tenant.siret,
-        entreprise_adresse: `${tenant.adresse}, ${tenant.code_postal} ${tenant.ville}`,
-        entreprise_tel: tenant.telephone,
-        entreprise_email: tenant.email,
+        entreprise_nom: tenant.nom || '',
+        entreprise_siret: tenant.siret || '',
+        entreprise_adresse: tenant.adresse ? `${tenant.adresse}, ${tenant.code_postal || ''} ${tenant.ville || ''}`.trim() : '',
+        entreprise_tel: tenant.telephone || '',
+        entreprise_email: tenant.email || '',
         // Snapshots client
-        client_nom: chantier.client.nom,
-        client_adresse: chantier.client.adresse || '',
-        client_siret: chantier.client.siret || null,
-        client_tel: chantier.client.telephone,
-        client_email: chantier.client.email,
+        client_nom: client.nom,
+        client_adresse: client.adresse || '',
+        client_siret: client.siret || null,
+        client_tel: client.telephone || '',
+        client_email: client.email || '',
         // Montants
         montant_ht,
         montant_tva,
@@ -223,7 +235,7 @@ export const createFacture = async (req, res, next) => {
         reste_a_payer,
         // Dates
         date_emission: new Date(),
-        date_echeance: date_echeance ? new Date(date_echeance) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours par défaut
+        date_echeance: date_echeance ? new Date(date_echeance) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         objet: objet || null,
         notes,
         mentions_legales: mentions_legales ?? null,
@@ -233,14 +245,16 @@ export const createFacture = async (req, res, next) => {
         // Lignes
         lignes: {
           create: lignes.map((ligne, index) => {
+            const tva = ligne.tva_pourcent != null ? parseFloat(ligne.tva_pourcent) : 20;
             const ligne_montant_ht = ligne.quantite * ligne.prix_unitaire_ht;
-            const ligne_montant_ttc = ligne_montant_ht * 1.20; // TVA 20%
+            const ligne_montant_ttc = ligne_montant_ht * (1 + tva / 100);
             return {
               description: ligne.description,
               quantite: ligne.quantite,
               unite: ligne.unite || 'unité',
               prix_unitaire_ht: ligne.prix_unitaire_ht,
               montant_ht: ligne_montant_ht,
+              tva_pourcent: tva,
               montant_ttc: ligne_montant_ttc,
               ordre: index + 1
             };
@@ -250,9 +264,7 @@ export const createFacture = async (req, res, next) => {
       include: {
         lignes: true,
         chantier: {
-          select: {
-            nom: true
-          }
+          select: { nom: true }
         }
       }
     });
@@ -272,7 +284,7 @@ export const createFacture = async (req, res, next) => {
       });
     }
 
-    logger.info(`Facture créée: ${numero_facture} pour chantier ${chantier_id}`);
+    logger.info(`Facture créée: ${numero_facture}`);
     res.status(201).json(facture);
   } catch (error) {
     logger.error('Erreur création facture:', error);
@@ -327,9 +339,12 @@ export const updateFacture = async (req, res, next) => {
         where: { facture_id: id }
       });
 
-      // Recalculer les montants (arrondi centimes pour éviter les flottants)
+      // Recalculer les montants (TVA par ligne, arrondi centimes)
       const montant_ht = Math.round(lignes.reduce((sum, ligne) => sum + (ligne.quantite * ligne.prix_unitaire_ht), 0) * 100) / 100;
-      const montant_tva = Math.round(montant_ht * 0.20 * 100) / 100;
+      const montant_tva = Math.round(lignes.reduce((sum, ligne) => {
+        const tva = parseFloat(ligne.tva_pourcent) || 20;
+        return sum + (ligne.quantite * ligne.prix_unitaire_ht * tva / 100);
+      }, 0) * 100) / 100;
       const montant_ttc = Math.round((montant_ht + montant_tva) * 100) / 100;
       const reste_a_payer = Math.round((montant_ttc - facture.acompte_recu) * 100) / 100; // Basé sur ce qui a été réellement reçu
 
@@ -351,14 +366,16 @@ export const updateFacture = async (req, res, next) => {
         ...(lignes && {
           lignes: {
             create: lignes.map((ligne, index) => {
+              const tva = parseFloat(ligne.tva_pourcent) || 20;
               const ligne_montant_ht = ligne.quantite * ligne.prix_unitaire_ht;
-              const ligne_montant_ttc = ligne_montant_ht * 1.20; // TVA 20%
+              const ligne_montant_ttc = ligne_montant_ht * (1 + tva / 100);
               return {
                 description: ligne.description,
                 quantite: ligne.quantite,
                 unite: ligne.unite || 'unité',
                 prix_unitaire_ht: ligne.prix_unitaire_ht,
                 montant_ht: ligne_montant_ht,
+                tva_pourcent: tva,
                 montant_ttc: ligne_montant_ttc,
                 ordre: index + 1
               };

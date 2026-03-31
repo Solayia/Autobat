@@ -23,6 +23,8 @@ import FactureDetail from './pages/Factures/FactureDetail';
 import Employes from './pages/Employes';
 import Settings from './pages/Settings/Settings';
 import Planning from './pages/Planning';
+import FacturesFournisseurs from './pages/FacturesFournisseurs/FacturesFournisseurs';
+import BonsPlans from './pages/BonsPlans';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import SuperAdmin from './pages/SuperAdmin/SuperAdmin';
@@ -32,6 +34,7 @@ import CGV from './pages/CGV';
 import MentionsLegales from './pages/MentionsLegales';
 import Confidentialite from './pages/Confidentialite';
 import SupportWidget from './components/support/SupportWidget';
+import WhatsNewModal from './components/WhatsNewModal';
 
 function App() {
   return (
@@ -61,6 +64,7 @@ function App() {
       />
 
       <SupportWidget />
+      <WhatsNewModal />
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
@@ -242,6 +246,18 @@ function App() {
           }
         />
 
+        {/* Factures fournisseurs route */}
+        <Route
+          path="/factures-fournisseurs"
+          element={
+            <ProtectedRoute roles={['MANAGER', 'COMPANY_ADMIN']}>
+              <Layout>
+                <FacturesFournisseurs />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
         {/* Factures routes */}
         <Route
           path="/factures"
@@ -293,6 +309,18 @@ function App() {
             <ProtectedRoute roles={['MANAGER', 'COMPANY_ADMIN']}>
               <Layout>
                 <Planning />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Bons plans route */}
+        <Route
+          path="/bons-plans"
+          element={
+            <ProtectedRoute roles={['COMPANY_ADMIN']}>
+              <Layout>
+                <BonsPlans />
               </Layout>
             </ProtectedRoute>
           }

@@ -364,13 +364,30 @@ export default function DevisForm() {
   };
 
   const handleUpdateLigne = (index, field, value) => {
+    const numericFields = ['quantite', 'prix_unitaire_ht', 'taux_tva'];
     const newLignes = [...lignes];
-    newLignes[index][field] = parseFloat(value) || 0;
+    newLignes[index][field] = numericFields.includes(field) ? (parseFloat(value) || 0) : value;
     setLignes(newLignes);
   };
 
   const handleRemoveLigne = (index) => {
     setLignes(lignes.filter((_, i) => i !== index));
+  };
+
+  const handleAddLigneLibre = () => {
+    const nouvelleLigne = {
+      id: Date.now().toString(),
+      type: 'OUVRAGE',
+      ouvrage_id: null,
+      ouvrage: null,
+      description: '',
+      unite: 'u',
+      quantite: 1,
+      prix_unitaire_ht: 0,
+      taux_tva: 20,
+      parent_ligne_id: selectedSection
+    };
+    setLignes([...lignes, nouvelleLigne]);
   };
 
   // Gestion du drag and drop pour réorganiser les lignes
@@ -758,7 +775,15 @@ export default function DevisForm() {
                   className="flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium shadow-lg hover:shadow-xl"
                 >
                   <Plus className="w-5 h-5" />
-                  Ajouter un ouvrage
+                  Ajouter une prestation du catalogue
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddLigneLibre}
+                  className="flex items-center justify-center gap-2 px-6 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors font-medium shadow-lg hover:shadow-xl"
+                >
+                  <Plus className="w-5 h-5" />
+                  Ajouter un ouvrage libre
                 </button>
                 <button
                   type="button"
@@ -831,6 +856,7 @@ export default function DevisForm() {
                           const isSection = ligne.type === 'SECTION';
                           const isOuvrage = ligne.type === 'OUVRAGE';
                           const isMateriau = ligne.type === 'MATERIAU';
+                          const isMainOeuvre = ligne.type === 'MAIN_OEUVRE';
 
                           // Calculer la numérotation
                           let numero = '';
@@ -839,7 +865,7 @@ export default function DevisForm() {
                             currentSectionNumber = sectionNumber;
                             itemInSectionNumber = 0;
                             numero = sectionNumber.toString();
-                          } else if (isOuvrage || isMateriau) {
+                          } else if (isOuvrage || isMateriau || isMainOeuvre) {
                             itemInSectionNumber++;
                             numero = currentSectionNumber > 0
                               ? `${currentSectionNumber}.${itemInSectionNumber}`
@@ -892,7 +918,7 @@ export default function DevisForm() {
                               onDragOver={(e) => handleDragOver(e, index)}
                               onDragEnd={handleDragEnd}
                               className={`hover:bg-gray-50 border-b border-gray-100 cursor-move transition-opacity ${
-                                isMateriau ? 'bg-blue-50/20' : ''
+                                isMateriau ? 'bg-blue-50/20' : isMainOeuvre ? 'bg-purple-50/20' : ''
                               } ${draggedIndex === index ? 'opacity-50' : 'opacity-100'}`}
                             >
                               <td className="px-4 py-3 text-sm text-gray-600">
@@ -902,8 +928,8 @@ export default function DevisForm() {
                                 </div>
                               </td>
                               <td className="px-6 py-3">
-                                <div className={`flex items-start gap-2 ${isMateriau ? 'pl-6' : ''}`}>
-                                  {isMateriau && (
+                                <div className={`flex items-start gap-2 ${isMateriau || isMainOeuvre ? 'pl-6' : ''}`}>
+                                  {(isMateriau || isMainOeuvre) && (
                                     <ChevronRight className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
                                   )}
                                   <div className="flex-1">
@@ -913,7 +939,22 @@ export default function DevisForm() {
                                           Matériau
                                         </span>
                                       )}
-                                      <div className="font-medium text-gray-900 text-sm">{ligne.description}</div>
+                                      {isMainOeuvre && (
+                                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+                                          Main d'œuvre
+                                        </span>
+                                      )}
+                                      {isOuvrage && !ligne.ouvrage_id ? (
+                                        <input
+                                          type="text"
+                                          value={ligne.description}
+                                          onChange={(e) => handleUpdateLigne(index, 'description', e.target.value)}
+                                          placeholder="Description de la prestation"
+                                          className="font-medium text-gray-900 text-sm border-b border-gray-300 focus:border-green-500 focus:outline-none bg-transparent w-full"
+                                        />
+                                      ) : (
+                                        <div className="font-medium text-gray-900 text-sm">{ligne.description}</div>
+                                      )}
                                     </div>
                                     {isOuvrage && ligne.ouvrage && (
                                       <div className="text-xs text-gray-500 mt-1">{ligne.ouvrage.code}</div>
@@ -950,7 +991,9 @@ export default function DevisForm() {
                                   onChange={(e) => handleUpdateLigne(index, 'taux_tva', e.target.value)}
                                   className="px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                 >
+                                  <option value="2.1">2,1%</option>
                                   <option value="5.5">5,5%</option>
+                                  <option value="8.5">8,5%</option>
                                   <option value="10">10%</option>
                                   <option value="20">20%</option>
                                 </select>
@@ -1098,7 +1141,7 @@ export default function DevisForm() {
                     <span className="font-semibold">{formatCurrency(totals.montant_ht)}</span>
                   </div>
                   <div className="flex justify-between text-gray-700">
-                    <span>TVA (20%)</span>
+                    <span>TVA</span>
                     <span className="font-semibold">{formatCurrency(totals.montant_tva)}</span>
                   </div>
                   <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-green-300">
@@ -1493,7 +1536,7 @@ export default function DevisForm() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="sticky top-0 bg-gradient-to-r from-green-600 to-green-800 px-6 py-4 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-white">Ajouter un ouvrage du catalogue</h3>
+              <h3 className="text-xl font-bold text-white">Ajouter une prestation du catalogue</h3>
               <button
                 onClick={() => {
                   setShowOuvrageModal(false);

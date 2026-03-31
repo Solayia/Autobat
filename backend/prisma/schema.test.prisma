@@ -67,14 +67,16 @@ model Tenant {
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
-  users             User[]
-  clients           Client[]
-  devis             Devis[]
-  lignes_devis      LigneDevis[]
-  chantiers         Chantier[]
-  factures          Facture[]
-  catalogue         Ouvrage[]
-  employes          Employe[]
+  users                  User[]
+  clients                Client[]
+  devis                  Devis[]
+  lignes_devis           LigneDevis[]
+  chantiers              Chantier[]
+  factures               Facture[]
+  catalogue              Ouvrage[]
+  employes               Employe[]
+  fournisseurs           Fournisseur[]
+  factures_fournisseurs  FactureFournisseur[]
 }
 
 model User {
@@ -97,6 +99,10 @@ model User {
   refresh_tokens         RefreshToken[]
   password_reset_tokens  PasswordResetToken[]
   employe                Employe?
+  chantier_messages      ChantierMessage[]
+  support_tickets        SupportTicket[]
+  feature_requests       FeatureRequest[]
+  feature_votes          FeatureVote[]
 
   @@unique([tenant_id, email])
 }
@@ -169,6 +175,10 @@ model Ouvrage {
   denomination        String
   unite               String
   prix_unitaire_ht    Float
+  cout_ht             Float?  // Coût de revient HT (déboursé sec total)
+  cout_materiaux      Float?  // Coût matériaux HT
+  cout_materiel       Float?  // Coût matériel/outillage HT
+  cout_main_oeuvre    Float?  // Coût main d'oeuvre HT
   temps_estime_minutes Int?
   temps_reel_moyen     Float?
   nb_chantiers_realises Int @default(0)
@@ -283,6 +293,8 @@ model Chantier {
   employes_assignes     ChantierEmploye[]
   documents             Document[]
   factures              Facture[]
+  messages              ChantierMessage[]
+  factures_fournisseurs FactureFournisseur[]
 }
 
 model ChantierEmploye {
@@ -318,10 +330,13 @@ model Tache {
 }
 
 model TacheEmploye {
-  id          String   @id @default(cuid())
-  tache_id    String
-  employe_id  String
-  assigned_at DateTime @default(now())
+  id               String    @id @default(cuid())
+  tache_id         String
+  employe_id       String
+  assigned_at      DateTime  @default(now())
+  date_planifiee   DateTime?  // Jour planifié pour cette tâche
+  heure_debut      String?    // Format "HH:MM" ex: "08:00"
+  duree_minutes    Int?       // Durée estimée en minutes
 
   tache       Tache    @relation(fields: [tache_id], references: [id], onDelete: Cascade)
   employe     Employe  @relation(fields: [employe_id], references: [id], onDelete: Cascade)
@@ -369,7 +384,7 @@ model Facture {
   id                  String             @id @default(cuid())
   tenant_id           String
   numero_facture      String
-  chantier_id         String
+  chantier_id         String?
   devis_id            String?
   client_id           String
   entreprise_nom      String
@@ -395,14 +410,16 @@ model Facture {
   date_envoi          DateTime?
   date_paiement_complet DateTime?
   pdf_url             String?
+  objet               String?
   notes               String?
+  mentions_legales    String?
   facture_origine_id  String?
   facture_avoir_id    String?
   created_at          DateTime           @default(now())
   updated_at          DateTime           @updatedAt
 
   tenant              Tenant             @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-  chantier            Chantier           @relation(fields: [chantier_id], references: [id])
+  chantier            Chantier?          @relation(fields: [chantier_id], references: [id])
   client              Client             @relation(fields: [client_id], references: [id])
   lignes              LigneFacture[]
   paiements           PaiementFacture[]
@@ -479,6 +496,118 @@ model CodePromo {
   expires_at  DateTime?
   actif       Boolean   @default(true)
   created_at  DateTime  @default(now())
+}
+
+// ─── ChantierMessage ──────────────────────────────────────────────────────────
+
+model ChantierMessage {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  chantier_id String
+  user_id     String
+  message     String
+  created_at  DateTime @default(now())
+  chantier    Chantier @relation(fields: [chantier_id], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [user_id], references: [id])
+}
+
+// ─── Auto Bat Man : Support & Feature Requests ───────────────────────────────
+
+model SupportTicket {
+  id             String   @id @default(cuid())
+  tenant_id      String
+  user_id        String
+  type           String
+  titre          String
+  message        String
+  page_url       String?
+  entity_name    String?
+  screenshot_url String?
+  attachments    String?
+  statut         String   @default("OUVERT")
+  priorite       String   @default("MEDIUM")
+  admin_notes    String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  user           User     @relation(fields: [user_id], references: [id])
+}
+
+model FeatureRequest {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  user_id     String
+  titre       String
+  description String
+  statut      String   @default("PENDING")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  user        User          @relation(fields: [user_id], references: [id])
+  votes       FeatureVote[]
+}
+
+model FeatureVote {
+  id                 String         @id @default(cuid())
+  user_id            String
+  feature_request_id String
+  created_at         DateTime       @default(now())
+  user               User           @relation(fields: [user_id], references: [id])
+  feature_request    FeatureRequest @relation(fields: [feature_request_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, feature_request_id])
+}
+
+model FaqItem {
+  id         String   @id @default(cuid())
+  categorie  String
+  question   String
+  reponse    String
+  ordre      Int      @default(0)
+  actif      Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+// ─── Factures Fournisseurs ───────────────────────────────────────────────────
+
+model Fournisseur {
+  id         String   @id @default(cuid())
+  tenant_id  String
+  nom        String
+  siret      String?
+  email      String?
+  telephone  String?
+  adresse    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  tenant           Tenant              @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  factures         FactureFournisseur[]
+}
+
+model FactureFournisseur {
+  id              String    @id @default(cuid())
+  tenant_id       String
+  numero          String    // FRSN-YYYY-NNNN
+  fournisseur_id  String
+  chantier_id     String?
+  date_facture    DateTime
+  date_echeance   DateTime?
+  categorie       String    @default("AUTRE") // MATERIAUX | MATERIEL | SOUS_TRAITANCE | AUTRE
+  description     String?
+  montant_ht      Float
+  taux_tva        Float     @default(20)
+  montant_tva     Float
+  montant_ttc     Float
+  statut          String    @default("A_PAYER") // A_PAYER | PAYEE | EN_LITIGE
+  date_paiement   DateTime?
+  notes           String?
+  fichier_url     String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  tenant       Tenant       @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  fournisseur  Fournisseur  @relation(fields: [fournisseur_id], references: [id])
+  chantier     Chantier?    @relation(fields: [chantier_id], references: [id])
 }
 
 // Pipeline commercial (leads / prospects)

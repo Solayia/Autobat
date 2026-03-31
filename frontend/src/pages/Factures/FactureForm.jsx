@@ -4,17 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Save, Info } from 'lucide-react';
 import factureService from '../../services/factureService';
 import chantierService from '../../services/chantierService';
+import clientService from '../../services/clientService';
+import api from '../../services/api';
 
 export default function FactureForm() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [chantiersTermines, setChantiersTermines] = useState([]);
+  const [chantiers, setChantiers] = useState([]);
+  const [clients, setClients] = useState([]);
   const [chantierSelected, setChantierSelected] = useState(null);
   const [acompteFromDevis, setAcompteFromDevis] = useState(null);
   const MENTIONS_DEFAUT = `En cas de retard de paiement, seront exigibles, conformément à l'article L 441-6 du code de commerce, une indemnité calculée sur la base de trois fois le taux de l'intérêt légal en vigueur ainsi qu'une indemnité forfaitaire pour frais de recouvrement de 40 euros.\nEscompte pour paiement anticipé : néant.`;
 
   const [formData, setFormData] = useState({
     chantier_id: '',
+    client_id: '',
     devis_id: '',
     objet: '',
     acompte_demande: 0,
@@ -23,25 +27,48 @@ export default function FactureForm() {
     mentions_legales: MENTIONS_DEFAUT
   });
   const [lignes, setLignes] = useState([
-    { description: '', quantite: 1, unite: 'unité', prix_unitaire_ht: 0 }
+    { description: '', quantite: 1, unite: 'unité', prix_unitaire_ht: 0, tva_pourcent: 20 }
   ]);
 
   useEffect(() => {
-    loadChantiersTermines();
+    loadChantiers();
+    loadClients();
   }, []);
 
   useEffect(() => {
     if (formData.chantier_id) {
       loadChantier(formData.chantier_id);
+    } else {
+      setChantierSelected(null);
+      setAcompteFromDevis(null);
+      setFormData(prev => ({ ...prev, devis_id: '', acompte_demande: 0 }));
+      setLignes([{ description: '', quantite: 1, unite: 'unité', prix_unitaire_ht: 0 }]);
     }
   }, [formData.chantier_id]);
 
-  const loadChantiersTermines = async () => {
+  const loadChantiers = async () => {
     try {
-      const data = await chantierService.getChantiers({ statut: 'TERMINE', limit: 100 });
-      setChantiersTermines(data.data || []);
+      const [chantiersData, facturesData] = await Promise.all([
+        chantierService.getChantiers({ limit: 100 }),
+        api.get('/factures', { params: { limit: 200 } })
+      ]);
+      const chantiersWithFacture = new Set(
+        (facturesData.data?.data || [])
+          .filter(f => f.chantier_id && f.statut_facture !== 'BROUILLON')
+          .map(f => f.chantier_id)
+      );
+      setChantiers((chantiersData.data || []).filter(c => !chantiersWithFacture.has(c.id)));
     } catch (error) {
-      console.error('Erreur chargement chantiers terminés:', error);
+      console.error('Erreur chargement chantiers:', error);
+    }
+  };
+
+  const loadClients = async () => {
+    try {
+      const data = await clientService.getClients({ limit: 100 });
+      setClients(data.data || []);
+    } catch (error) {
+      console.error('Erreur chargement clients:', error);
     }
   };
 
@@ -66,7 +93,8 @@ export default function FactureForm() {
             description: ligne.description,
             quantite: ligne.quantite,
             unite: ligne.unite || 'unité',
-            prix_unitaire_ht: ligne.prix_unitaire_ht
+            prix_unitaire_ht: ligne.prix_unitaire_ht,
+            tva_pourcent: ligne.tva_pourcent ?? 20
           })));
         }
       } else {
@@ -78,7 +106,7 @@ export default function FactureForm() {
   };
 
   const handleAddLigne = () => {
-    setLignes([...lignes, { description: '', quantite: 1, unite: 'unité', prix_unitaire_ht: 0 }]);
+    setLignes([...lignes, { description: '', quantite: 1, unite: 'unité', prix_unitaire_ht: 0, tva_pourcent: 20 }]);
   };
 
   const handleRemoveLigne = (index) => {
@@ -91,7 +119,7 @@ export default function FactureForm() {
     const newLignes = [...lignes];
     newLignes[index] = {
       ...newLignes[index],
-      [field]: field === 'quantite' || field === 'prix_unitaire_ht' ? parseFloat(value) || 0 : value
+      [field]: field === 'quantite' || field === 'prix_unitaire_ht' || field === 'tva_pourcent' ? parseFloat(value) || 0 : value
     };
     setLignes(newLignes);
   };
@@ -100,7 +128,10 @@ export default function FactureForm() {
     const montant_ht = lignes.reduce((sum, ligne) => {
       return sum + (ligne.quantite * ligne.prix_unitaire_ht);
     }, 0);
-    const montant_tva = montant_ht * 0.20;
+    const montant_tva = lignes.reduce((sum, ligne) => {
+      const tva = ligne.tva_pourcent != null ? parseFloat(ligne.tva_pourcent) : 20;
+      return sum + (ligne.quantite * ligne.prix_unitaire_ht * tva / 100);
+    }, 0);
     const montant_ttc = montant_ht + montant_tva;
 
     return { montant_ht, montant_tva, montant_ttc };
@@ -109,8 +140,8 @@ export default function FactureForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.chantier_id) {
-      toast.error('Veuillez sélectionner un chantier');
+    if (!formData.chantier_id && !formData.client_id) {
+      toast.error('Veuillez sélectionner un chantier ou un client');
       return;
     }
 
@@ -122,16 +153,22 @@ export default function FactureForm() {
     try {
       setLoading(true);
 
-      // Calculer la date d'échéance par défaut (30 jours)
       const date_echeance = formData.date_echeance ||
         new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-      const facture = await factureService.createFacture({
+      const payload = {
         ...formData,
         date_echeance,
         acompte_demande: parseFloat(formData.acompte_demande) || 0,
         lignes
-      });
+      };
+
+      // Ne pas envoyer les champs vides
+      if (!payload.chantier_id) delete payload.chantier_id;
+      if (!payload.client_id) delete payload.client_id;
+      if (!payload.devis_id) delete payload.devis_id;
+
+      const facture = await factureService.createFacture(payload);
 
       toast.success('Facture créée avec succès !');
       navigate(`/factures/${facture.id}`);
@@ -145,6 +182,11 @@ export default function FactureForm() {
 
   const { montant_ht, montant_tva, montant_ttc } = calculateMontants();
 
+  const getStatutLabel = (statut) => {
+    const labels = { EN_COURS: 'En cours', PLANIFIE: 'Planifié', TERMINE: 'Terminé', ANNULE: 'Annulé' };
+    return labels[statut] || statut;
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -157,34 +199,55 @@ export default function FactureForm() {
         </button>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Nouvelle facture</h1>
-          <p className="text-gray-600 mt-1">Créer une facture depuis un chantier terminé</p>
+          <p className="text-gray-600 mt-1">Créer une facture depuis un chantier ou directement pour un client</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Sélection chantier */}
+        {/* Sélection chantier et/ou client */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Chantier</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Chantier & Client</h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chantier terminé *
+                Chantier associé <span className="text-gray-400 font-normal">(optionnel)</span>
               </label>
               <select
                 value={formData.chantier_id}
-                onChange={(e) => setFormData({ ...formData, chantier_id: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, chantier_id: e.target.value, client_id: '' })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
               >
-                <option value="">Sélectionner un chantier</option>
-                {chantiersTermines.map((chantier) => (
+                <option value="">— Aucun chantier —</option>
+                {chantiers.map((chantier) => (
                   <option key={chantier.id} value={chantier.id}>
-                    {chantier.reference ? `${chantier.reference} - ` : ''}{chantier.nom} ({chantier.client?.nom})
+                    {chantier.nom} ({chantier.client?.nom}) — {getStatutLabel(chantier.statut)}
                   </option>
                 ))}
               </select>
             </div>
+
+            {/* Client direct (si pas de chantier) */}
+            {!formData.chantier_id && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Client <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.client_id}
+                  onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required={!formData.chantier_id}
+                >
+                  <option value="">Sélectionner un client</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.nom}{client.prenom ? ` ${client.prenom}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -206,6 +269,7 @@ export default function FactureForm() {
                 <div className="text-sm text-blue-700 space-y-1">
                   <p><strong>Client:</strong> {chantierSelected.client?.nom}</p>
                   <p><strong>Adresse:</strong> {chantierSelected.adresse}</p>
+                  <p><strong>Statut:</strong> {getStatutLabel(chantierSelected.statut)}</p>
                   {chantierSelected.devis && (
                     <p><strong>Devis source:</strong> {chantierSelected.devis.numero_devis}</p>
                   )}
@@ -232,7 +296,7 @@ export default function FactureForm() {
           <div className="space-y-3">
             {lignes.map((ligne, index) => (
               <div key={index} className="flex gap-3 items-start p-4 bg-gray-50 rounded-lg">
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-3">
                   <div className="md:col-span-2">
                     <input
                       type="text"
@@ -272,6 +336,18 @@ export default function FactureForm() {
                       required
                     />
                   </div>
+                  <div>
+                    <select
+                      value={ligne.tva_pourcent ?? 20}
+                      onChange={(e) => handleLigneChange(index, 'tva_pourcent', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      <option value={0}>TVA 0%</option>
+                      <option value={5.5}>TVA 5,5%</option>
+                      <option value={10}>TVA 10%</option>
+                      <option value={20}>TVA 20%</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="text-right min-w-[100px] pt-2">
                   <div className="font-medium text-gray-900">
@@ -300,7 +376,7 @@ export default function FactureForm() {
                   <span className="font-medium">{montant_ht.toFixed(2)} €</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">TVA (20%):</span>
+                  <span className="text-gray-600">TVA:</span>
                   <span className="font-medium">{montant_tva.toFixed(2)} €</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2">

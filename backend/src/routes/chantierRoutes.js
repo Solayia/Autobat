@@ -9,7 +9,9 @@ import {
   cancelChantier,
   reopenChantier,
   assignEmployees,
-  getMesChantiers
+  getMesChantiers,
+  deleteChantier,
+  getChantierHeures
 } from '../controllers/chantierController.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import tacheRoutes from './tacheRoutes.js';
@@ -44,6 +46,7 @@ router.get('/', getChantiers);
  * @desc    Récupérer un chantier par ID
  * @access  EMPLOYEE, MANAGER, COMPANY_ADMIN
  */
+router.get('/:id/heures', getChantierHeures);
 router.get('/:id', getChantierById);
 
 /**
@@ -87,6 +90,13 @@ router.post('/:id/reopen', requireRole(['MANAGER', 'COMPANY_ADMIN']), reopenChan
  * @access  MANAGER, COMPANY_ADMIN
  */
 router.post('/:id/assign', requireRole(['MANAGER', 'COMPANY_ADMIN']), assignEmployees);
+
+/**
+ * @route   DELETE /api/chantiers/:id
+ * @desc    Supprimer un chantier (sans facture)
+ * @access  COMPANY_ADMIN
+ */
+router.delete('/:id', requireRole(['COMPANY_ADMIN']), deleteChantier);
 
 /**
  * Subroutes pour les tâches d'un chantier

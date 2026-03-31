@@ -762,3 +762,97 @@ export const assignEmployees = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * DELETE /api/chantiers/:id - Supprimer un chantier
+ * Uniquement si PLANIFIE ou ANNULE (pas EN_COURS ou TERMINE avec facture)
+ */
+export const deleteChantier = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const tenantId = req.tenantId;
+
+    const chantier = await prisma.chantier.findFirst({
+      where: { id, tenant_id: tenantId },
+      include: {
+        factures: { select: { id: true } },
+        badgeages: { select: { id: true }, take: 1 }
+      }
+    });
+
+    if (!chantier) {
+      return res.status(404).json({ code: 'CHANTIER_NOT_FOUND', message: 'Chantier introuvable' });
+    }
+
+    if (chantier.factures.length > 0) {
+      return res.status(400).json({
+        code: 'CHANTIER_HAS_FACTURES',
+        message: 'Impossible de supprimer un chantier avec des factures associées'
+      });
+    }
+
+    // Supprimer les données liées
+    await prisma.tache.deleteMany({ where: { chantier_id: id } });
+    await prisma.badgeage.deleteMany({ where: { chantier_id: id } });
+    await prisma.chantierEmploye.deleteMany({ where: { chantier_id: id } });
+
+    await prisma.chantier.delete({ where: { id } });
+
+    logger.info(`Chantier supprimé: ${chantier.nom} (${id})`);
+    res.json({ message: 'Chantier supprimé avec succès' });
+  } catch (error) {
+    logger.error('Erreur suppression chantier:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/chantiers/:id/heures - Stats heures prévues vs réalisées
+ */
+export const getChantierHeures = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const tenantId = req.tenantId;
+
+    const chantier = await prisma.chantier.findFirst({ where: { id, tenant_id: tenantId } });
+    if (!chantier) return res.status(404).json({ error: 'Chantier introuvable' });
+
+    // Heures prévues = somme des duree_minutes des TacheEmploye
+    const assignments = await prisma.tacheEmploye.findMany({
+      where: { tache: { chantier_id: id } },
+      select: { duree_minutes: true }
+    });
+    const minutes_prevues = assignments.reduce((sum, a) => sum + (a.duree_minutes || 0), 0);
+
+    // Heures réalisées = paires PRESENCE_DEBUT / PRESENCE_FIN
+    const badgeages = await prisma.badgeage.findMany({
+      where: { chantier_id: id, type: { in: ['PRESENCE_DEBUT', 'PRESENCE_FIN'] } },
+      orderBy: [{ employe_id: 'asc' }, { timestamp: 'asc' }],
+      select: { employe_id: true, type: true, timestamp: true }
+    });
+
+    const byEmploye = {};
+    for (const b of badgeages) {
+      if (!byEmploye[b.employe_id]) byEmploye[b.employe_id] = [];
+      byEmploye[b.employe_id].push(b);
+    }
+    let minutes_realisees = 0;
+    for (const badges of Object.values(byEmploye)) {
+      for (let i = 0; i < badges.length - 1; i++) {
+        if (badges[i].type === 'PRESENCE_DEBUT' && badges[i + 1].type === 'PRESENCE_FIN') {
+          minutes_realisees += (new Date(badges[i + 1].timestamp) - new Date(badges[i].timestamp)) / 60000;
+          i++;
+        }
+      }
+    }
+
+    res.json({
+      heures_prevues: Math.round(minutes_prevues / 6) / 10,
+      heures_realisees: Math.round(minutes_realisees / 6) / 10,
+      nb_assignations: assignments.length
+    });
+  } catch (error) {
+    logger.error('Erreur stats heures chantier:', error);
+    next(error);
+  }
+};

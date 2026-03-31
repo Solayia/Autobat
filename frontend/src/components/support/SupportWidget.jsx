@@ -17,12 +17,9 @@ function usePageContext() {
   const location = useLocation();
   const pathname = location.pathname;
 
-  // Tenter d'extraire un nom d'entité depuis le titre de la page
-  const title = document.title?.replace(' — Autobat', '').replace('Autobat', '').trim() || '';
-
   return {
     url: pathname,
-    entity: title || null
+    entity: null
   };
 }
 
@@ -97,14 +94,14 @@ export default function SupportWidget() {
       {/* Bouton flottant */}
       <button
         onClick={() => setOpen(!open)}
-        className={`fixed bottom-4 right-4 z-[9999] w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${
+        className={`fixed bottom-4 right-4 z-[9999] w-16 h-16 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 ${
           open
-            ? 'bg-primary-700 text-secondary-400 scale-95'
-            : 'bg-primary-600 text-secondary-400 hover:bg-primary-700 hover:scale-105'
+            ? 'bg-primary-700 text-white scale-95'
+            : 'bg-primary-600 text-white hover:bg-primary-700 hover:scale-105'
         }`}
         title="Support & Aide"
       >
-        {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        {open ? <X className="w-7 h-7" /> : <MessageCircle className="w-7 h-7" />}
       </button>
     </>
   );

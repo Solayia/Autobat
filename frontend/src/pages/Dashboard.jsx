@@ -8,22 +8,12 @@ import {
 import useAuthStore from '../stores/authStore';
 import dashboardService from '../services/dashboardService';
 import DashboardEmploye from './DashboardEmploye';
-import OnboardingWizard from '../components/OnboardingWizard';
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, tenant } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [periode, setPeriode] = useState('MOIS');
-  const [showOnboarding, setShowOnboarding] = useState(false);
-
-  // Afficher le wizard pour le COMPANY_ADMIN si onboarding pas terminé
-  useEffect(() => {
-    if (user?.role === 'COMPANY_ADMIN' && tenant && !tenant.onboarding_completed) {
-      setShowOnboarding(true);
-    }
-  }, [user?.role, tenant?.onboarding_completed]);
 
   useEffect(() => {
     if (user?.role !== 'EMPLOYEE') {
@@ -116,11 +106,6 @@ export default function Dashboard() {
         </div>
       </div>
       <div className="max-w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-      {/* Onboarding Wizard */}
-      {showOnboarding && (
-        <OnboardingWizard onClose={() => setShowOnboarding(false)} />
-      )}
-
       {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-4 sm:mb-8">
         {/* Chantiers actifs */}

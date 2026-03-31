@@ -108,6 +108,65 @@ export const getNotifications = async (req, res, next) => {
       });
     }
 
+    // ── 5. Nouveaux messages dans la discussion des chantiers ────────────────
+    const il_y_a_24h = new Date(now - 24 * 60 * 60 * 1000);
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    let chantiersForMessages = [];
+
+    if (userRole === 'EMPLOYEE') {
+      // Trouver les chantiers assignés à cet employé
+      const employe = await prisma.employe.findFirst({ where: { user_id: userId, tenant_id: tenantId }, select: { id: true } });
+      if (employe) {
+        const assignments = await prisma.chantierEmploye.findMany({ where: { employe_id: employe.id }, select: { chantier_id: true } });
+        chantiersForMessages = assignments.map(a => a.chantier_id);
+      }
+    } else {
+      // MANAGER / COMPANY_ADMIN : tous les chantiers du tenant
+      const chantiers = await prisma.chantier.findMany({ where: { tenant_id: tenantId }, select: { id: true } });
+      chantiersForMessages = chantiers.map(c => c.id);
+    }
+
+    if (chantiersForMessages.length > 0) {
+      const recentMessages = await prisma.chantierMessage.findMany({
+        where: {
+          tenant_id: tenantId,
+          chantier_id: { in: chantiersForMessages },
+          user_id: { not: userId },
+          created_at: { gte: il_y_a_24h }
+        },
+        include: {
+          chantier: { select: { id: true, nom: true } },
+          user: { select: { prenom: true, nom: true } }
+        },
+        orderBy: { created_at: 'desc' }
+      });
+
+      // Grouper par chantier
+      const byChantier = {};
+      for (const msg of recentMessages) {
+        if (!byChantier[msg.chantier_id]) {
+          byChantier[msg.chantier_id] = { chantier: msg.chantier, messages: [] };
+        }
+        byChantier[msg.chantier_id].messages.push(msg);
+      }
+
+      for (const { chantier, messages: msgs } of Object.values(byChantier)) {
+        const nb = msgs.length;
+        const auteurs = [...new Set(msgs.map(m => `${m.user.prenom} ${m.user.nom}`))];
+        alerts.push({
+          id: `discussion-${chantier.id}`,
+          type: 'DISCUSSION_MESSAGE',
+          severity: 'info',
+          title: `Discussion — ${chantier.nom}`,
+          message: `${nb} nouveau${nb > 1 ? 'x' : ''} message${nb > 1 ? 's' : ''} de ${auteurs.join(', ')}`,
+          link: `/chantiers/${chantier.id}?tab=discussion`,
+          created_at: msgs[0].created_at
+        });
+      }
+    }
+
     // Trier par sévérité puis date décroissante
     const severityOrder = { error: 0, warning: 1, info: 2 };
     alerts.sort((a, b) => {

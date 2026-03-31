@@ -435,7 +435,7 @@ export const deleteTache = async (req, res, next) => {
 export const assignEmployeToTache = async (req, res, next) => {
   try {
     const { chantierId, id } = req.params;
-    const { employe_id } = req.body;
+    const { employe_id, date_planifiee, heure_debut, duree_minutes } = req.body;
     const tenantId = req.tenantId;
 
     if (!employe_id) {
@@ -491,6 +491,11 @@ export const assignEmployeToTache = async (req, res, next) => {
     }
 
     // Assigner l'employé (upsert pour éviter les doublons)
+    const scheduleData = {
+      ...(date_planifiee !== undefined && { date_planifiee: date_planifiee ? new Date(date_planifiee) : null }),
+      ...(heure_debut !== undefined && { heure_debut: heure_debut || null }),
+      ...(duree_minutes !== undefined && { duree_minutes: duree_minutes ? parseInt(duree_minutes) : null })
+    };
     const assignment = await prisma.tacheEmploye.upsert({
       where: {
         tache_id_employe_id: {
@@ -500,9 +505,10 @@ export const assignEmployeToTache = async (req, res, next) => {
       },
       create: {
         tache_id: id,
-        employe_id: employe_id
+        employe_id: employe_id,
+        ...scheduleData
       },
-      update: {},
+      update: scheduleData,
       include: {
         employe: {
           include: {
@@ -564,6 +570,53 @@ export const unassignEmployeFromTache = async (req, res, next) => {
     res.json({ message: 'Employé retiré de la tâche avec succès' });
   } catch (error) {
     logger.error('Erreur retrait assignation:', error);
+    next(error);
+  }
+};
+
+/**
+ * @desc    Récupérer les créneaux planifiés (TacheEmploye avec date_planifiee) pour une période
+ * @route   GET /api/planning
+ * @access  EMPLOYEE, MANAGER, COMPANY_ADMIN
+ */
+export const getPlanningSlots = async (req, res, next) => {
+  try {
+    const tenantId = req.tenantId;
+    const { date_debut, date_fin } = req.query;
+
+    const dateFilter = {};
+    if (date_debut) dateFilter.gte = new Date(date_debut);
+    if (date_fin) {
+      const fin = new Date(date_fin);
+      fin.setHours(23, 59, 59, 999);
+      dateFilter.lte = fin;
+    }
+
+    const slots = await prisma.tacheEmploye.findMany({
+      where: {
+        date_planifiee: Object.keys(dateFilter).length > 0 ? dateFilter : { not: null },
+        tache: { chantier: { tenant_id: tenantId } }
+      },
+      include: {
+        employe: {
+          include: {
+            user: { select: { id: true, prenom: true, nom: true } }
+          }
+        },
+        tache: {
+          include: {
+            chantier: {
+              select: { id: true, nom: true, statut: true, client: { select: { nom: true } } }
+            }
+          }
+        }
+      },
+      orderBy: [{ date_planifiee: 'asc' }, { heure_debut: 'asc' }]
+    });
+
+    res.json(slots);
+  } catch (error) {
+    logger.error('Erreur chargement planning:', error);
     next(error);
   }
 };

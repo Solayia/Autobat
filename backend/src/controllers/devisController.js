@@ -62,28 +62,34 @@ export const createDevis = async (req, res, next) => {
         ouvrage_id = null;
         // Les sections ont quantite = 0 et prix = 0, donc ne contribuent pas au total
       } else if (type === 'OUVRAGE') {
-        // Pour un ouvrage: récupérer les infos depuis le catalogue
-        if (!ligne.ouvrage_id) {
-          return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'ouvrage_id est obligatoire pour une ligne de type OUVRAGE'
+        if (ligne.ouvrage_id) {
+          // Ouvrage du catalogue
+          const ouvrage = await prisma.ouvrage.findUnique({
+            where: { id: ligne.ouvrage_id }
           });
+
+          if (!ouvrage) {
+            return res.status(404).json({
+              code: 'OUVRAGE_NOT_FOUND',
+              message: `Ouvrage ${ligne.ouvrage_id} introuvable`
+            });
+          }
+
+          description = ligne.description || ouvrage.denomination;
+          unite = ligne.unite || ouvrage.unite;
+          ouvrage_id = ligne.ouvrage_id;
+        } else {
+          // Ouvrage libre (sans catalogue)
+          if (!ligne.description) {
+            return res.status(400).json({
+              code: 'VALIDATION_ERROR',
+              message: 'description est obligatoire pour un ouvrage libre'
+            });
+          }
+          description = ligne.description;
+          unite = ligne.unite || 'u';
+          ouvrage_id = null;
         }
-
-        const ouvrage = await prisma.ouvrage.findUnique({
-          where: { id: ligne.ouvrage_id }
-        });
-
-        if (!ouvrage) {
-          return res.status(404).json({
-            code: 'OUVRAGE_NOT_FOUND',
-            message: `Ouvrage ${ligne.ouvrage_id} introuvable`
-          });
-        }
-
-        description = ouvrage.denomination;
-        unite = ouvrage.unite;
-        ouvrage_id = ligne.ouvrage_id;
       } else {
         // Pour un matériau: utiliser les données fournies
         if (!ligne.description || !ligne.unite || ligne.prix_unitaire_ht === undefined) {
@@ -98,20 +104,22 @@ export const createDevis = async (req, res, next) => {
         ouvrage_id = ligne.ouvrage_id || null; // Optionnel pour les matériaux
       }
 
-      const taux_tva = type === 'SECTION' ? 0 : (parseFloat(ligne.taux_tva) || 20);
-      const montant_ligne_ht = ligne.quantite * ligne.prix_unitaire_ht;
+      const taux_tva = type === 'SECTION' ? 0 : (ligne.taux_tva != null ? parseFloat(ligne.taux_tva) : 20);
+      const montant_ligne_ht = type === 'SECTION' ? 0 : (parseFloat(ligne.quantite) || 0) * (parseFloat(ligne.prix_unitaire_ht) || 0);
       const montant_ligne_tva = montant_ligne_ht * (taux_tva / 100);
       const montant_ligne_ttc = montant_ligne_ht + montant_ligne_tva;
-      montant_ht += montant_ligne_ht;
+      if (type !== 'SECTION') {
+        montant_ht += montant_ligne_ht;
+      }
 
       lignesData.push({
         type,
         ouvrage_id,
         parent_ligne_id: ligne.parent_ligne_id || null,
         description,
-        quantite: ligne.quantite,
+        quantite: type === 'SECTION' ? 0 : (parseFloat(ligne.quantite) || 0),
         unite,
-        prix_unitaire_ht: ligne.prix_unitaire_ht,
+        prix_unitaire_ht: type === 'SECTION' ? 0 : (parseFloat(ligne.prix_unitaire_ht) || 0),
         montant_ht: montant_ligne_ht,
         tva_pourcent: taux_tva,
         montant_ttc: montant_ligne_ttc,
@@ -430,8 +438,8 @@ export const updateDevis = async (req, res, next) => {
         const description = ligne.description || ligne.ouvrage?.description || '';
         const unite = ligne.unite || ligne.ouvrage?.unite || 'u';
 
-        const taux_tva = type === 'SECTION' ? 0 : (parseFloat(ligne.taux_tva) || 20);
-        const montant_ligne_ht = ligne.quantite * ligne.prix_unitaire_ht;
+        const taux_tva = type === 'SECTION' ? 0 : (ligne.taux_tva != null ? parseFloat(ligne.taux_tva) : 20);
+        const montant_ligne_ht = type === 'SECTION' ? 0 : (parseFloat(ligne.quantite) || 0) * (parseFloat(ligne.prix_unitaire_ht) || 0);
         const montant_ligne_tva = montant_ligne_ht * (taux_tva / 100);
         const montant_ligne_ttc = montant_ligne_ht + montant_ligne_tva;
 
@@ -445,9 +453,9 @@ export const updateDevis = async (req, res, next) => {
           ouvrage_id,
           parent_ligne_id: ligne.parent_ligne_id || null,
           description,
-          quantite: ligne.quantite,
+          quantite: type === 'SECTION' ? 0 : (parseFloat(ligne.quantite) || 0),
           unite,
-          prix_unitaire_ht: ligne.prix_unitaire_ht,
+          prix_unitaire_ht: type === 'SECTION' ? 0 : (parseFloat(ligne.prix_unitaire_ht) || 0),
           montant_ht: montant_ligne_ht,
           tva_pourcent: taux_tva,
           montant_ttc: montant_ligne_ttc,
@@ -748,7 +756,10 @@ export const refuseDevis = async (req, res, next) => {
  * Génère le HTML pour le PDF du devis
  */
 function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
-  const brandColor = tenant.couleur_primaire || '#FF9F43';
+  // Design épuré gris — sans couleur de marque
+  const accentColor = '#444444';
+  const borderColor = '#cccccc';
+  const lightGray = '#f7f7f7';
 
   // Utiliser l'ordre défini par l'utilisateur (champ ordre)
   // devis.lignes est déjà trié par ordre ASC
@@ -756,7 +767,8 @@ function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
     ligne,
     isSection: ligne.type === 'SECTION',
     isOuvrage: ligne.type === 'OUVRAGE' || !ligne.type,
-    isMateriau: ligne.type === 'MATERIAU'
+    isMateriau: ligne.type === 'MATERIAU',
+    isMainOeuvre: ligne.type === 'MAIN_OEUVRE'
   }));
 
   // Générer les lignes HTML avec numérotation
@@ -764,7 +776,7 @@ function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
   let currentSectionNumber = 0;
   let itemInSectionNumber = 0;
 
-  const lignesHTML = organizedLines.map(({ ligne, isSection, isOuvrage, isMateriau }) => {
+  const lignesHTML = organizedLines.map(({ ligne, isSection, isOuvrage, isMateriau, isMainOeuvre }) => {
     let numero = '';
     if (isSection) {
       sectionNumber++;
@@ -773,8 +785,8 @@ function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
       numero = sectionNumber.toString();
 
       return `
-        <tr style="border-top: 2px solid ${brandColor}; border-bottom: 2px solid ${brandColor}; background: white;">
-          <td colspan="7" style="padding: 8px 12px; font-weight: 700; font-size: 11px; color: ${brandColor}; letter-spacing: 0.8px; text-transform: uppercase;">
+        <tr style="background: ${lightGray}; border-top: 1px solid ${borderColor}; border-bottom: 1px solid ${borderColor};">
+          <td colspan="7" style="padding: 8px 12px; font-weight: 700; font-size: 11px; color: ${accentColor}; letter-spacing: 0.5px; text-transform: uppercase;">
             <span style="display: inline-block; margin-right: 10px; font-size: 13px; font-weight: 700;">${numero}.</span>${ligne.description}
           </td>
         </tr>
@@ -785,20 +797,24 @@ function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
         ? `${currentSectionNumber}.${itemInSectionNumber}`
         : itemInSectionNumber.toString();
 
-      const indent = isMateriau ? 'padding-left: 30px;' : '';
+      const indent = isMateriau || isMainOeuvre ? 'padding-left: 30px;' : '';
+      const typeBadge = isMateriau
+        ? '<span style="color: #999; font-style: italic; margin-right: 6px;">›</span>'
+        : isMainOeuvre
+        ? '<span style="display:inline-block;padding:1px 5px;background:#e8e8e8;color:#555;border-radius:3px;font-size:8px;font-weight:600;margin-right:6px;">MO</span>'
+        : '';
 
       return `
-        <tr style="border-bottom: 1px solid #e0e0e0;">
-          <td style="padding: 7px 8px; color: #666; font-size: 10px; text-align: center;">${numero}</td>
+        <tr style="border-bottom: 1px solid #e8e8e8;">
+          <td style="padding: 7px 8px; color: #888; font-size: 10px; text-align: center;">${numero}</td>
           <td style="padding: 7px 12px; ${indent} color: #333; font-size: 10px;">
-            ${isMateriau ? '<span style="color: #999; font-style: italic; margin-right: 6px;">›</span>' : ''}
-            ${ligne.description}
+            ${typeBadge}${ligne.description}
           </td>
-          <td style="padding: 7px 8px; text-align: center; color: #666; font-size: 9px;">${ligne.unite}</td>
+          <td style="padding: 7px 8px; text-align: center; color: #777; font-size: 9px;">${ligne.unite}</td>
           <td style="padding: 7px 8px; text-align: center; color: #333; font-size: 10px; font-weight: 600;">${ligne.quantite}</td>
           <td style="padding: 7px 10px; text-align: right; color: #333; font-size: 10px;">${ligne.prix_unitaire_ht.toFixed(2)} €</td>
-          <td style="padding: 7px 8px; text-align: center; color: #666; font-size: 9px;">20%</td>
-          <td style="padding: 7px 12px; text-align: right; color: #1a1a1a; font-size: 10px; font-weight: 700;">${ligne.montant_ht.toFixed(2)} €</td>
+          <td style="padding: 7px 8px; text-align: center; color: #777; font-size: 9px;">${ligne.tva_pourcent !== undefined ? ligne.tva_pourcent : 20}%</td>
+          <td style="padding: 7px 12px; text-align: right; color: #222; font-size: 10px; font-weight: 700;">${ligne.montant_ht.toFixed(2)} €</td>
         </tr>
       `;
     }
@@ -812,59 +828,49 @@ function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #333; line-height: 1.5; }
-        .container { padding: 25px; background: white; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid ${brandColor}; }
-        .logo { font-size: 22px; font-weight: 700; color: ${brandColor}; }
+        .container { padding: 30px; background: white; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid ${accentColor}; }
+        .logo { font-size: 22px; font-weight: 700; color: ${accentColor}; }
         .devis-info { text-align: right; color: #666; }
-        .devis-number { font-size: 16px; font-weight: 700; color: ${brandColor}; margin-bottom: 6px; }
+        .devis-number { font-size: 18px; font-weight: 700; color: ${accentColor}; margin-bottom: 6px; letter-spacing: 1px; }
         .section { margin-bottom: 20px; margin-top: 15px; }
-        .section-title {
-          background: white;
-          color: ${brandColor};
-          padding: 10px 0;
-          font-weight: 700;
-          margin-bottom: 0;
-          font-size: 11px;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          border-bottom: 2px solid ${brandColor};
-        }
         table {
           width: 100%;
           border-collapse: collapse;
           margin-bottom: 15px;
           background: white;
-          border: 1px solid #ddd;
+          border: 1px solid ${borderColor};
         }
         th {
-          background: #f5f5f5;
+          background: ${lightGray};
           padding: 8px;
           text-align: left;
           font-size: 8px;
-          color: #666;
+          color: #777;
           text-transform: uppercase;
-          border-bottom: 1px solid #ddd;
+          border-bottom: 1px solid ${borderColor};
           font-weight: 700;
           letter-spacing: 0.5px;
         }
-        .totals { margin-top: 15px; padding: 10px 0; border-top: 2px solid ${brandColor}; }
+        .totals { margin-top: 15px; padding: 10px 0; border-top: 1px solid ${borderColor}; }
         .total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 10px; color: #333; }
         .total-final {
           font-size: 14px;
           font-weight: 700;
-          color: ${brandColor};
+          color: ${accentColor};
           padding-top: 8px;
           margin-top: 5px;
-          border-top: 2px solid ${brandColor};
+          border-top: 2px solid ${accentColor};
         }
         .info-box {
-          background: #fafafa;
-          padding: 8px 10px;
+          background: ${lightGray};
+          padding: 8px 12px;
           margin-bottom: 8px;
-          border: 1px solid #e0e0e0;
+          border: 1px solid ${borderColor};
         }
         .info-row { display: flex; margin-bottom: 3px; font-size: 9px; }
         .info-label { font-weight: 700; min-width: 100px; color: #666; font-size: 9px; }
+        .label-header { font-weight: 700; margin-bottom: 5px; font-size: 9px; color: #777; text-transform: uppercase; letter-spacing: 0.5px; }
       </style>
     </head>
     <body>
@@ -879,26 +885,26 @@ function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
             ` : `
             <div class="logo">${tenant.nom}</div>
             `}
-            <div style="margin-top: 10px;">
+            <div style="margin-top: 10px; font-size: 9px; color: #555; line-height: 1.8;">
               ${tenant.adresse || ''}<br>
               ${tenant.code_postal || ''} ${tenant.ville || ''}<br>
               ${tenant.telephone || ''}<br>
               ${tenant.email || ''}<br>
-              SIRET: ${tenant.siret || ''}
+              SIRET : ${tenant.siret || ''}
             </div>
           </div>
           <div class="devis-info">
-            <div class="devis-number">DEVIS ${devis.numero_devis}</div>
-            <div style="margin-top: 10px;">
-              Date: ${new Date(devis.created_at).toLocaleDateString('fr-FR')}<br>
-              Validité: ${new Date(devis.date_validite).toLocaleDateString('fr-FR')}
+            <div class="devis-number">DEVIS N° ${devis.numero_devis}</div>
+            <div style="margin-top: 10px; font-size: 9px; line-height: 1.8; color: #555;">
+              Date : ${new Date(devis.created_at).toLocaleDateString('fr-FR')}<br>
+              Valable jusqu'au : ${new Date(devis.date_validite).toLocaleDateString('fr-FR')}
             </div>
           </div>
         </div>
 
         <!-- Client -->
         <div class="info-box">
-          <div style="font-weight: bold; margin-bottom: 5px; font-size: 9px; color: ${brandColor};">CLIENT</div>
+          <div class="label-header">Client</div>
           <div class="info-row">
             <div class="info-label">Nom :</div>
             <div>${devis.client.nom}</div>
@@ -919,26 +925,25 @@ function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
           </div>` : ''}
         </div>
 
-        <!-- Détails du devis -->
+        <!-- Objet -->
         ${devis.objet ? `
         <div class="info-box">
-          <div style="font-weight: bold; margin-bottom: 5px; font-size: 9px; color: ${brandColor};">OBJET</div>
+          <div class="label-header">Objet</div>
           <div style="font-size: 9px;">${devis.objet}</div>
         </div>` : ''}
 
-        <!-- Ouvrages -->
+        <!-- Descriptif des travaux -->
         <div class="section">
-          <div class="section-title">DESCRIPTIF DES TRAVAUX</div>
           <table>
             <thead>
               <tr>
                 <th style="width: 40px;">N°</th>
-                <th>Dénomination</th>
-                <th style="width: 60px; text-align: center;">U.</th>
-                <th style="width: 60px; text-align: center;">Q.</th>
-                <th style="width: 100px; text-align: right;">PU</th>
-                <th style="width: 60px; text-align: center;">TVA</th>
-                <th style="width: 120px; text-align: right;">Total HT</th>
+                <th>Désignation</th>
+                <th style="width: 55px; text-align: center;">Unité</th>
+                <th style="width: 55px; text-align: center;">Qté</th>
+                <th style="width: 90px; text-align: right;">P.U. HT</th>
+                <th style="width: 55px; text-align: center;">TVA</th>
+                <th style="width: 110px; text-align: right;">Total HT</th>
               </tr>
             </thead>
             <tbody>
@@ -948,13 +953,13 @@ function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
         </div>
 
         <!-- Totaux -->
-        <div class="totals" style="max-width: 400px; margin-left: auto;">
+        <div class="totals" style="max-width: 350px; margin-left: auto;">
           <div class="total-row">
             <div>Total HT :</div>
             <div style="font-weight: bold;">${devis.montant_ht.toFixed(2)} €</div>
           </div>
           <div class="total-row">
-            <div>TVA (20%) :</div>
+            <div>TVA :</div>
             <div style="font-weight: bold;">${devis.montant_tva.toFixed(2)} €</div>
           </div>
           <div class="total-row total-final">
@@ -964,12 +969,12 @@ function generateDevisPDFHTML(devis, tenant, logoDataUrl = null) {
         </div>
 
         <!-- Conditions -->
-        <div style="margin-top: 20px; page-break-inside: avoid;">
-          <div style="font-weight: bold; margin-bottom: 5px; font-size: 9px; color: ${brandColor};">CONDITIONS</div>
-          <div style="font-size: 9px; line-height: 1.5;">
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid ${borderColor}; page-break-inside: avoid;">
+          <div class="label-header">Conditions</div>
+          <div style="font-size: 9px; line-height: 1.8; color: #555;">
             <div><strong>Conditions de paiement :</strong> ${devis.conditions_paiement || 'N/A'}</div>
             <div><strong>Délai de réalisation :</strong> ${devis.delai_realisation || 'N/A'}</div>
-            <div style="margin-top: 6px;"><em>Devis valable jusqu'au ${new Date(devis.date_validite).toLocaleDateString('fr-FR')}</em></div>
+            <div style="margin-top: 6px; font-style: italic;">Devis valable jusqu'au ${new Date(devis.date_validite).toLocaleDateString('fr-FR')}</div>
           </div>
         </div>
       </div>

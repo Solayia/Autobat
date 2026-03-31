@@ -62,6 +62,12 @@ export default function FactureDetail() {
       return;
     }
 
+    const montantStr = paiementData.montant.toString().replace(',', '.');
+    if (!/^\d+(\.\d{1,2})?$/.test(montantStr)) {
+      toast.error('Le montant ne peut pas avoir plus de 2 décimales');
+      return;
+    }
+
     try {
       await factureService.enregistrerPaiement(id, {
         ...paiementData,

@@ -13,7 +13,7 @@ export default function FeedbackTab({ pageContext }) {
   const [type, setType] = useState('BUG');
   const [titre, setTitre] = useState('');
   const [message, setMessage] = useState('');
-  const [priorite, setPriorite] = useState('MEDIUM');
+  const [priorite] = useState('MEDIUM');
   const [screenshot, setScreenshot] = useState(null); // base64
   const [attachments, setAttachments] = useState([]);
   const [capturing, setCapturing] = useState(false);
@@ -62,9 +62,7 @@ export default function FeedbackTab({ pageContext }) {
       if (screenshot) formData.append('screenshot_data', screenshot);
       attachments.forEach(f => formData.append('attachments', f));
 
-      await api.post('/support/tickets', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post('/support/tickets', formData);
 
       setSent(true);
     } catch {
@@ -134,27 +132,6 @@ export default function FeedbackTab({ pageContext }) {
         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-300"
       />
 
-      {/* Priorité (BUG uniquement) */}
-      {type === 'BUG' && (
-        <div className="flex gap-2 text-xs">
-          {['LOW', 'MEDIUM', 'HIGH'].map(p => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPriorite(p)}
-              className={`flex-1 py-1.5 rounded-lg border font-medium transition-all ${
-                priorite === p
-                  ? p === 'HIGH' ? 'border-red-400 bg-red-50 text-red-700'
-                    : p === 'MEDIUM' ? 'border-yellow-400 bg-yellow-50 text-yellow-700'
-                    : 'border-green-400 bg-green-50 text-green-700'
-                  : 'border-gray-200 text-gray-500 hover:border-gray-300'
-              }`}
-            >
-              {p === 'LOW' ? '🟢 Basse' : p === 'MEDIUM' ? '🟡 Moyenne' : '🔴 Haute'}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Contexte page */}
       {(pageContext?.url || pageContext?.entity) && (

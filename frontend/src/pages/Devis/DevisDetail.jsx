@@ -488,6 +488,7 @@ export default function DevisDetail() {
                         const isSection = ligne.type === 'SECTION';
                         const isOuvrage = ligne.type === 'OUVRAGE' || !ligne.type;
                         const isMateriau = ligne.type === 'MATERIAU';
+                        const isMainOeuvre = ligne.type === 'MAIN_OEUVRE';
 
                         let numero = '';
                         if (isSection) {
@@ -495,7 +496,7 @@ export default function DevisDetail() {
                           currentSectionNumber = sectionNumber;
                           itemInSectionNumber = 0;
                           numero = sectionNumber.toString();
-                        } else if (isOuvrage || isMateriau) {
+                        } else if (isOuvrage || isMateriau || isMainOeuvre) {
                           itemInSectionNumber++;
                           numero = currentSectionNumber > 0
                             ? `${currentSectionNumber}.${itemInSectionNumber}`
@@ -523,13 +524,13 @@ export default function DevisDetail() {
                         }
 
                         return (
-                          <tr key={`ligne-${ligne.id}`} className={`border-b border-gray-100 ${isMateriau ? 'bg-blue-50/20' : ''}`}>
+                          <tr key={`ligne-${ligne.id}`} className={`border-b border-gray-100 ${isMateriau ? 'bg-blue-50/20' : isMainOeuvre ? 'bg-purple-50/20' : ''}`}>
                             <td className="px-4 py-3 text-sm text-gray-600">
                               {numero}
                             </td>
                             <td className="px-6 py-3">
-                              <div className={`flex items-start gap-2 ${isMateriau ? 'pl-6' : ''}`}>
-                                {isMateriau && (
+                              <div className={`flex items-start gap-2 ${isMateriau || isMainOeuvre ? 'pl-6' : ''}`}>
+                                {(isMateriau || isMainOeuvre) && (
                                   <ChevronRight className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
                                 )}
                                 <div className="flex-1">
@@ -537,6 +538,11 @@ export default function DevisDetail() {
                                     {isMateriau && (
                                       <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
                                         Matériau
+                                      </span>
+                                    )}
+                                    {isMainOeuvre && (
+                                      <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+                                        Main d'œuvre
                                       </span>
                                     )}
                                     <div className="font-medium text-gray-900 text-sm">
@@ -559,7 +565,7 @@ export default function DevisDetail() {
                               {formatCurrency(ligne.prix_unitaire_ht)}
                             </td>
                             <td className="px-4 py-3 text-center text-sm text-gray-600">
-                              20%
+                              {ligne.tva_pourcent ?? 20}%
                             </td>
                             <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
                               {formatCurrency(ligne.montant_ht)}
@@ -589,7 +595,7 @@ export default function DevisDetail() {
                 </div>
 
                 <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                  <span className="text-gray-700 font-medium">TVA (20%)</span>
+                  <span className="text-gray-700 font-medium">TVA</span>
                   <span className="text-lg font-semibold text-gray-900">{formatCurrency(devis.montant_tva)}</span>
                 </div>
 
