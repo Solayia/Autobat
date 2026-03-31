@@ -87,6 +87,10 @@ const migrations = [
     CONSTRAINT "FactureFournisseur_chantier_id_fkey" FOREIGN KEY ("chantier_id") REFERENCES "Chantier"("id") ON DELETE SET NULL ON UPDATE CASCADE
   )`,
   `CREATE INDEX IF NOT EXISTS "FactureFournisseur_tenant_id_idx" ON "FactureFournisseur"("tenant_id")`,
+  // TacheEmploye : colonnes planning (ajoutées v1.4.0)
+  `ALTER TABLE "TacheEmploye" ADD COLUMN IF NOT EXISTS "date_planifiee" TIMESTAMP(3)`,
+  `ALTER TABLE "TacheEmploye" ADD COLUMN IF NOT EXISTS "heure_debut" TEXT`,
+  `ALTER TABLE "TacheEmploye" ADD COLUMN IF NOT EXISTS "duree_minutes" INTEGER`,
 ];
 
 async function main() {
