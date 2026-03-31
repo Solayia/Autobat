@@ -35,8 +35,12 @@ const migrations = [
   `ALTER TABLE "Tenant" ADD COLUMN IF NOT EXISTS "rcs" TEXT`,
   `ALTER TABLE "Tenant" ADD COLUMN IF NOT EXISTS "tva_intra" TEXT`,
   `ALTER TABLE "Tenant" ADD COLUMN IF NOT EXISTS "logo_url" TEXT`,
-  // Nouvelles tables support (créées par prisma db push normalement)
-  // On les ignore ici car ADD TABLE IF NOT EXISTS n'est pas standard
+  // Chantier : rendre adresse et GPS optionnels
+  `ALTER TABLE "Chantier" ALTER COLUMN "adresse" DROP NOT NULL`,
+  `ALTER TABLE "Chantier" ALTER COLUMN "code_postal" DROP NOT NULL`,
+  `ALTER TABLE "Chantier" ALTER COLUMN "ville" DROP NOT NULL`,
+  `ALTER TABLE "Chantier" ALTER COLUMN "latitude" DROP NOT NULL`,
+  `ALTER TABLE "Chantier" ALTER COLUMN "longitude" DROP NOT NULL`,
 ];
 
 async function main() {
