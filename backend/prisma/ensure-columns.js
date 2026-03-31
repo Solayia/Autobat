@@ -35,6 +35,11 @@ const migrations = [
   `ALTER TABLE "Tenant" ADD COLUMN IF NOT EXISTS "rcs" TEXT`,
   `ALTER TABLE "Tenant" ADD COLUMN IF NOT EXISTS "tva_intra" TEXT`,
   `ALTER TABLE "Tenant" ADD COLUMN IF NOT EXISTS "logo_url" TEXT`,
+  // Ouvrage : colonnes coûts détaillés (ajoutées v1.1.0)
+  `ALTER TABLE "Ouvrage" ADD COLUMN IF NOT EXISTS "cout_ht" DOUBLE PRECISION`,
+  `ALTER TABLE "Ouvrage" ADD COLUMN IF NOT EXISTS "cout_materiaux" DOUBLE PRECISION`,
+  `ALTER TABLE "Ouvrage" ADD COLUMN IF NOT EXISTS "cout_materiel" DOUBLE PRECISION`,
+  `ALTER TABLE "Ouvrage" ADD COLUMN IF NOT EXISTS "cout_main_oeuvre" DOUBLE PRECISION`,
   // Chantier : rendre adresse et GPS optionnels
   `ALTER TABLE "Chantier" ALTER COLUMN "adresse" DROP NOT NULL`,
   `ALTER TABLE "Chantier" ALTER COLUMN "code_postal" DROP NOT NULL`,
