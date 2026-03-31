@@ -270,11 +270,11 @@ model Chantier {
   client_id             String
   devis_id              String?
   nom                   String
-  adresse               String
-  code_postal           String
-  ville                 String
-  latitude              Float
-  longitude             Float
+  adresse               String?
+  code_postal           String?
+  ville                 String?
+  latitude              Float?
+  longitude             Float?
   rayon_gps_metres      Int             @default(100)
   badgeage_par_tache    Boolean         @default(false)
   date_debut            DateTime        @default(now())

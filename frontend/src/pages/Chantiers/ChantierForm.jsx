@@ -310,12 +310,6 @@ export default function ChantierForm() {
       return;
     }
 
-    if (!formData.latitude || !formData.longitude) {
-      if (!confirm('Aucune position GPS définie. Le badgeage automatique ne sera pas disponible. Continuer ?')) {
-        return;
-      }
-    }
-
     try {
       setSubmitting(true);
 
@@ -865,7 +859,12 @@ export default function ChantierForm() {
                 Précédent
               </button>
               <button
-                onClick={() => setCurrentStep(3)}
+                onClick={() => {
+                  if (!formData.latitude || !formData.longitude) {
+                    if (!window.confirm('Aucune position GPS définie. Le badgeage automatique ne sera pas disponible. Continuer ?')) return;
+                  }
+                  setCurrentStep(3);
+                }}
                 className="px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
               >
                 Suivant

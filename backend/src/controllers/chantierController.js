@@ -100,10 +100,10 @@ export const createChantier = async (req, res, next) => {
     const tenantId = req.tenantId;
 
     // Validation
-    if (!nom || !date_debut || !date_fin_prevue || !adresse || !code_postal || !ville || !latitude || !longitude) {
+    if (!nom || !date_debut || !date_fin_prevue) {
       return res.status(400).json({
         code: 'VALIDATION_ERROR',
-        message: 'Le nom, les dates, l\'adresse complète et les coordonnées GPS sont obligatoires'
+        message: 'Le nom et les dates sont obligatoires'
       });
     }
 
@@ -180,8 +180,8 @@ export const createChantier = async (req, res, next) => {
         statut: 'EN_COURS', // Statut par défaut du schema
         date_debut: new Date(date_debut),
         date_fin_prevue: date_fin_prevue ? new Date(date_fin_prevue) : null,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
         rayon_gps_metres: rayon_metres ? parseInt(rayon_metres) : 100, // Valeur par défaut du schema
         badgeage_par_tache: badgeage_par_tache !== undefined ? badgeage_par_tache : false,
         notes: notes || null
