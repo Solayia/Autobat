@@ -657,7 +657,8 @@ async function main() {
   }});
 
   // F_EN_ATTENTE — CH_B, acompte 30% envoyé
-  const fAtHT = r2(m5.ht * 0.3);
+  const fAtRawLignes = l5.slice(0, 2).map((l, i) => ({ ouvrage: l.ouvrage, qte: r2(l.qte * 0.3), prix: l.ouvrage.prix_unitaire_ht, ordre: i + 1 }));
+  const fAtHT = r2(fAtRawLignes.reduce((s, l) => s + l.qte * l.prix, 0));
   await prisma.facture.create({ data: {
     tenant_id: tenantId, numero_facture: `FAC-${year}-00${facNumCounter++}`,
     chantier_id: chB.id, devis_id: devis5.id, client_id: cHorizon.id,
@@ -667,11 +668,12 @@ async function main() {
     statut_paiement: 'EN_ATTENTE', statut_facture: 'ENVOYEE',
     objet: 'Réhabilitation résidence Les Lilas — acompte 30%',
     date_emission: dAgo(12), date_echeance: dFut(18), date_envoi: dAgo(12),
-    lignes: mkLignesFac(l5.slice(0, 2).map((l, i) => ({ ouvrage: l.ouvrage, qte: r2(l.qte * 0.3), prix: l.ouvrage.prix_unitaire_ht, ordre: i + 1 }))),
+    lignes: mkLignesFac(fAtRawLignes),
   }});
 
   // F_EN_RETARD — CH_D (terminé), facture pas encore réglée, échéance dépassée
-  const fRetHT = r2(m5.ht * 0.2); // petite facture intermédiaire
+  const fRetRawLignes = l3b.slice(0, 2).map((l, i) => ({ ouvrage: l.ouvrage, qte: r2(l.qte * 0.15), prix: l.ouvrage.prix_unitaire_ht, ordre: i + 1 }));
+  const fRetHT = r2(fRetRawLignes.reduce((s, l) => s + l.qte * l.prix, 0));
   await prisma.facture.create({ data: {
     tenant_id: tenantId, numero_facture: `FAC-${year}-00${facNumCounter++}`,
     chantier_id: chD.id, client_id: cPlatanes.id,
@@ -682,11 +684,12 @@ async function main() {
     objet: 'Isolation combles — solde (en retard)',
     date_emission: dAgo(40), date_echeance: dAgo(10), date_envoi: dAgo(40),
     notes: 'Relance envoyée le ' + dAgo(5).toLocaleDateString('fr-FR') + '. Client ne répond pas.',
-    lignes: mkLignesFac(l3b.slice(0, 2).map((l, i) => ({ ouvrage: l.ouvrage, qte: r2(l.qte * 0.15), prix: l.ouvrage.prix_unitaire_ht, ordre: i + 1 }))),
+    lignes: mkLignesFac(fRetRawLignes),
   }});
 
   // F_PARTIEL — CH_B 2ème appel de fonds, partiellement payé
-  const fPHT = r2(m5.ht * 0.25);
+  const fPRawLignes = l5.slice(2, 4).map((l, i) => ({ ouvrage: l.ouvrage, qte: r2(l.qte * 0.25), prix: l.ouvrage.prix_unitaire_ht, ordre: i + 1 }));
+  const fPHT = r2(fPRawLignes.reduce((s, l) => s + l.qte * l.prix, 0));
   const fPTTC = r2(fPHT * 1.2);
   const fPRecu = r2(fPTTC * 0.5);
   const facPartiel = await prisma.facture.create({ data: {
@@ -699,7 +702,7 @@ async function main() {
     objet: 'Réhabilitation résidence Les Lilas — 2ème appel de fonds 25%',
     date_emission: dAgo(20), date_echeance: dFut(10), date_envoi: dAgo(20),
     notes: 'Virement partiel reçu le ' + dAgo(8).toLocaleDateString('fr-FR') + '. Solde attendu.',
-    lignes: mkLignesFac(l5.slice(2, 4).map((l, i) => ({ ouvrage: l.ouvrage, qte: r2(l.qte * 0.25), prix: l.ouvrage.prix_unitaire_ht, ordre: i + 1 }))),
+    lignes: mkLignesFac(fPRawLignes),
     paiements: { create: [{ tenant_id: tenantId, montant: fPRecu, date_paiement: dAgo(8), moyen_paiement: 'VIREMENT', reference: `VIR-${year}-0234`, type: 'ACOMPTE', valide: true }] },
   }});
 

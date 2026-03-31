@@ -15,7 +15,7 @@ export const getNotifications = async (req, res, next) => {
     const facturesEnRetard = await prisma.facture.findMany({
       where: {
         tenant_id: tenantId,
-        statut_paiement: { not: 'SOLDE' },
+        statut_paiement: { in: ['EN_ATTENTE', 'PARTIEL'] },
         date_echeance: { lt: now }
       },
       select: { id: true, numero_facture: true, date_echeance: true, montant_ttc: true }
