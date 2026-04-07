@@ -21,6 +21,12 @@ const CHANGELOG = [
         title: 'BIC dans les paramètres',
         desc: 'Vous pouvez désormais renseigner votre code BIC à côté de votre RIB/IBAN dans les paramètres généraux.',
       },
+      {
+        type: 'fix',
+        icon: '📐',
+        title: 'Alignement des lignes de devis',
+        desc: 'Les lignes Matériau et Main d\'œuvre sont désormais parfaitement alignées avec les ouvrages dans la création et l\'affichage du devis.',
+      },
     ],
   },
   {

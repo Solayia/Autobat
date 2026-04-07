@@ -995,10 +995,7 @@ export default function DevisForm() {
                                 </div>
                               </td>
                               <td className="px-6 py-3">
-                                <div className={`flex items-start gap-2 ${isMateriau || isMainOeuvre ? 'pl-6' : ''}`}>
-                                  {(isMateriau || isMainOeuvre) && (
-                                    <ChevronRight className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
-                                  )}
+                                <div className="flex items-start gap-2">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2">
                                       {isMateriau && (
