@@ -128,17 +128,8 @@ export const createTicket = async (req, res) => {
 
     res.status(201).json(ticket);
   } catch (error) {
-    logger.error('[Support] createTicket:', {
-      message: error?.message,
-      code: error?.code,
-      meta: error?.meta,
-      stack: error?.stack,
-      body: req.body
-    });
-    res.status(500).json({
-      error: 'Erreur serveur',
-      debug: { message: error?.message, code: error?.code, meta: error?.meta }
-    });
+    logger.error('[Support] createTicket:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 };
 

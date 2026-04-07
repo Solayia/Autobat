@@ -148,6 +148,10 @@ const migrations = [
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "FaqItem_pkey" PRIMARY KEY ("id")
   )`,
+  // Filet de sécurité : si les tables ont été créées par un autre rôle (postgres),
+  // s'assurer que l'utilisateur applicatif a tous les droits dessus.
+  `GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO autobat_user`,
+  `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO autobat_user`,
 ];
 
 async function main() {
