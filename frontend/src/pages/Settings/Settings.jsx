@@ -1180,8 +1180,8 @@ export default function Settings() {
                 </div>
               )}
 
-              {/* Si pas encore de customer Stripe */}
-              {!tenant?.stripe_customer_id && (
+              {/* Si pas encore de customer Stripe ET pas déjà actif/trial */}
+              {!tenant?.stripe_customer_id && tenant?.statut !== 'ACTIF' && tenant?.statut !== 'TRIAL' && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <p className="text-sm text-amber-800">
                     Votre abonnement n'est pas encore activé. Contactez le support à{' '}
