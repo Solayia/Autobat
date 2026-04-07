@@ -13,6 +13,14 @@ const chantierService = {
     return response.data;
   },
 
+  // Vérifier la disponibilité d'un nom de chantier
+  checkNom: async (nom, excludeId = null) => {
+    const response = await api.get('/chantiers/check-nom', {
+      params: { nom, ...(excludeId ? { exclude_id: excludeId } : {}) }
+    });
+    return response.data;
+  },
+
   // Créer un chantier depuis un devis
   createChantier: async (chantierData) => {
     const response = await api.post('/chantiers', chantierData);

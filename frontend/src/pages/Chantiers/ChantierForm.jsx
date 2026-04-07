@@ -30,6 +30,10 @@ export default function ChantierForm() {
   const [submitting, setSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
+  // Validation nom de chantier
+  const [nomError, setNomError] = useState('');
+  const [nomChecking, setNomChecking] = useState(false);
+
   // Formulaire
   const [formData, setFormData] = useState({
     devis_id: devisId || '',
@@ -117,6 +121,28 @@ export default function ChantierForm() {
 
     return () => clearTimeout(timeoutId);
   }, [searchAddress]);
+
+  // Validation temps réel du nom de chantier (debounce 400ms)
+  useEffect(() => {
+    const nom = (formData.nom || '').trim();
+    if (!nom) {
+      setNomError('Le nom du chantier est obligatoire');
+      return;
+    }
+    setNomChecking(true);
+    const timer = setTimeout(async () => {
+      try {
+        const { available } = await chantierService.checkNom(nom, isEditMode ? id : null);
+        setNomError(available ? '' : 'Ce nom de chantier est déjà utilisé');
+      } catch (err) {
+        console.error('Erreur vérification nom:', err);
+        setNomError('');
+      } finally {
+        setNomChecking(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [formData.nom, id, isEditMode]);
 
   const loadChantier = async () => {
     try {
@@ -305,6 +331,11 @@ export default function ChantierForm() {
       return;
     }
 
+    if (nomError) {
+      toast.error(nomError);
+      return;
+    }
+
     if (!isEditMode && !formData.devis_id && !formData.client_id) {
       toast.error('Veuillez sélectionner un client ou un devis');
       return;
@@ -336,6 +367,9 @@ export default function ChantierForm() {
       }
     } catch (error) {
       console.error('Erreur sauvegarde chantier:', error);
+      if (error?.response?.data?.code === 'NOM_CHANTIER_DUPLICATE') {
+        setNomError('Ce nom de chantier est déjà utilisé');
+      }
       const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Erreur lors de la sauvegarde du chantier';
       toast.error(errorMessage);
     } finally {
@@ -508,8 +542,16 @@ export default function ChantierForm() {
                 value={formData.nom}
                 onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
                 placeholder="Ex: Rénovation maison Dupont"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent ${
+                  nomError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'
+                }`}
               />
+              {nomError && (
+                <p className="mt-1 text-sm text-red-600">{nomError}</p>
+              )}
+              {!nomError && nomChecking && (
+                <p className="mt-1 text-sm text-gray-500">Vérification…</p>
+              )}
             </div>
 
             {/* Dates */}

@@ -79,6 +79,32 @@ export const getMesChantiers = async (req, res, next) => {
 /**
  * POST /api/chantiers - Créer un nouveau chantier
  */
+/**
+ * GET /api/chantiers/check-nom?nom=X&exclude_id=Y - Vérifier la disponibilité d'un nom de chantier
+ */
+export const checkNom = async (req, res, next) => {
+  try {
+    const tenantId = req.tenantId;
+    const { nom, exclude_id } = req.query;
+
+    if (!nom || !nom.trim()) {
+      return res.json({ available: false, reason: 'EMPTY' });
+    }
+
+    const existing = await prisma.chantier.findFirst({
+      where: {
+        tenant_id: tenantId,
+        nom: nom.trim(),
+        ...(exclude_id ? { NOT: { id: exclude_id } } : {})
+      }
+    });
+
+    res.json({ available: !existing });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createChantier = async (req, res, next) => {
   try {
     const {
@@ -104,6 +130,17 @@ export const createChantier = async (req, res, next) => {
       return res.status(400).json({
         code: 'VALIDATION_ERROR',
         message: 'Le nom et les dates sont obligatoires'
+      });
+    }
+
+    // Vérifier l'unicité du nom
+    const dupChantier = await prisma.chantier.findFirst({
+      where: { tenant_id: tenantId, nom: nom.trim() }
+    });
+    if (dupChantier) {
+      return res.status(409).json({
+        code: 'NOM_CHANTIER_DUPLICATE',
+        message: 'Ce nom de chantier est déjà utilisé'
       });
     }
 
@@ -398,6 +435,19 @@ export const updateChantier = async (req, res, next) => {
         code: 'CHANTIER_CLOSED',
         message: 'Un chantier terminé ou annulé ne peut pas être modifié'
       });
+    }
+
+    // Vérifier l'unicité du nom si modifié
+    if (nom !== undefined && nom.trim() && nom.trim() !== chantier.nom) {
+      const dupChantier = await prisma.chantier.findFirst({
+        where: { tenant_id: tenantId, nom: nom.trim(), NOT: { id } }
+      });
+      if (dupChantier) {
+        return res.status(409).json({
+          code: 'NOM_CHANTIER_DUPLICATE',
+          message: 'Ce nom de chantier est déjà utilisé'
+        });
+      }
     }
 
     // Préparer les données de mise à jour

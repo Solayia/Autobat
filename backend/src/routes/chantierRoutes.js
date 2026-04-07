@@ -11,7 +11,8 @@ import {
   assignEmployees,
   getMesChantiers,
   deleteChantier,
-  getChantierHeures
+  getChantierHeures,
+  checkNom
 } from '../controllers/chantierController.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import tacheRoutes from './tacheRoutes.js';
@@ -36,8 +37,9 @@ router.post('/', requireRole(['MANAGER', 'COMPANY_ADMIN']), createChantier);
  * @desc    Lister les chantiers avec pagination et filtres
  * @access  EMPLOYEE, MANAGER, COMPANY_ADMIN
  */
-// IMPORTANT: Route spécifique AVANT /:id
+// IMPORTANT: Routes spécifiques AVANT /:id
 router.get('/mes-chantiers', getMesChantiers);
+router.get('/check-nom', requireRole(['MANAGER', 'COMPANY_ADMIN']), checkNom);
 
 router.get('/', getChantiers);
 

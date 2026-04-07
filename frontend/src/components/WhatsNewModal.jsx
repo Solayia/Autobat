@@ -27,6 +27,12 @@ const CHANGELOG = [
         title: 'Alignement des lignes de devis',
         desc: 'Les lignes Matériau et Main d\'œuvre sont désormais parfaitement alignées avec les ouvrages dans la création et l\'affichage du devis.',
       },
+      {
+        type: 'improve',
+        icon: '🏗️',
+        title: 'Nom de chantier unique',
+        desc: 'Le nom du chantier est pré-rempli automatiquement et reste modifiable. Une vérification en temps réel vous alerte si ce nom est déjà utilisé.',
+      },
     ],
   },
   {
