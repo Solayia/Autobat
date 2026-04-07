@@ -7,6 +7,20 @@ const devisService = {
     return response.data;
   },
 
+  // Suggérer un numéro de devis
+  suggestNumero: async () => {
+    const response = await api.get('/devis/suggest-numero');
+    return response.data;
+  },
+
+  // Vérifier la disponibilité d'un numéro
+  checkNumero: async (numero, excludeId = null) => {
+    const response = await api.get('/devis/check-numero', {
+      params: { numero, ...(excludeId ? { exclude_id: excludeId } : {}) }
+    });
+    return response.data;
+  },
+
   // Récupérer un devis par ID
   getDevisById: async (id) => {
     const response = await api.get(`/devis/${id}`);

@@ -9,11 +9,66 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
+ * GET /api/devis/suggest-numero - Suggérer un prochain numéro de devis
+ */
+export const suggestNumero = async (req, res, next) => {
+  try {
+    const tenantId = req.tenantId;
+    const currentYear = new Date().getFullYear();
+    const lastDevis = await prisma.devis.findFirst({
+      where: {
+        tenant_id: tenantId,
+        numero_devis: { startsWith: `DEV-${currentYear}-` }
+      },
+      orderBy: { created_at: 'desc' }
+    });
+
+    let nextNumber = 1;
+    if (lastDevis) {
+      const parts = lastDevis.numero_devis.split('-');
+      const parsed = parseInt(parts[2]);
+      if (!isNaN(parsed)) nextNumber = parsed + 1;
+    }
+
+    const numero = `DEV-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
+    res.json({ numero });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/devis/check-numero?numero=X&exclude_id=Y - Vérifier la disponibilité d'un numéro
+ */
+export const checkNumero = async (req, res, next) => {
+  try {
+    const tenantId = req.tenantId;
+    const { numero, exclude_id } = req.query;
+
+    if (!numero || !numero.trim()) {
+      return res.json({ available: false, reason: 'EMPTY' });
+    }
+
+    const existing = await prisma.devis.findFirst({
+      where: {
+        tenant_id: tenantId,
+        numero_devis: numero.trim(),
+        ...(exclude_id ? { NOT: { id: exclude_id } } : {})
+      }
+    });
+
+    res.json({ available: !existing });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * POST /api/devis - Créer un nouveau devis
  */
 export const createDevis = async (req, res, next) => {
   try {
-    const { client_id, objet, conditions_paiement, delai_realisation, date_validite, lignes } = req.body;
+    const { client_id, objet, conditions_paiement, delai_realisation, date_validite, lignes, numero_devis: numeroInput } = req.body;
     const tenantId = req.tenantId;
 
     // Validation
@@ -130,27 +185,36 @@ export const createDevis = async (req, res, next) => {
     const montant_tva = lignesData.reduce((sum, l) => sum + (l.montant_ttc - l.montant_ht), 0);
     const montant_ttc = montant_ht + montant_tva;
 
-    // Générer le numéro de devis (DEV-YYYY-NNNN)
-    const currentYear = new Date().getFullYear();
-    const lastDevis = await prisma.devis.findFirst({
-      where: {
-        tenant_id: tenantId,
-        numero_devis: {
-          startsWith: `DEV-${currentYear}-`
-        }
-      },
-      orderBy: {
-        created_at: 'desc'
+    // Numéro de devis : utiliser celui fourni (validé pour unicité) ou en générer un
+    let numero_devis;
+    if (numeroInput && numeroInput.trim()) {
+      numero_devis = numeroInput.trim();
+      const dup = await prisma.devis.findFirst({
+        where: { tenant_id: tenantId, numero_devis }
+      });
+      if (dup) {
+        return res.status(409).json({
+          code: 'NUMERO_DEVIS_DUPLICATE',
+          message: 'Ce numéro de devis est déjà utilisé'
+        });
       }
-    });
+    } else {
+      const currentYear = new Date().getFullYear();
+      const lastDevis = await prisma.devis.findFirst({
+        where: {
+          tenant_id: tenantId,
+          numero_devis: { startsWith: `DEV-${currentYear}-` }
+        },
+        orderBy: { created_at: 'desc' }
+      });
 
-    let nextNumber = 1;
-    if (lastDevis) {
-      const lastNumber = parseInt(lastDevis.numero_devis.split('-')[2]);
-      nextNumber = lastNumber + 1;
+      let nextNumber = 1;
+      if (lastDevis) {
+        const lastNumber = parseInt(lastDevis.numero_devis.split('-')[2]);
+        if (!isNaN(lastNumber)) nextNumber = lastNumber + 1;
+      }
+      numero_devis = `DEV-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
     }
-
-    const numero_devis = `DEV-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
 
     // Créer le devis sans les lignes d'abord
     const devis = await prisma.devis.create({
@@ -396,7 +460,7 @@ export const getDevisById = async (req, res, next) => {
 export const updateDevis = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { client_id, objet, conditions_paiement, delai_realisation, date_validite, lignes } = req.body;
+    const { client_id, objet, conditions_paiement, delai_realisation, date_validite, lignes, numero_devis: numeroInput } = req.body;
     const tenantId = req.tenantId;
 
     // Vérifier que le devis existe et appartient au tenant
@@ -412,6 +476,30 @@ export const updateDevis = async (req, res, next) => {
         code: 'DEVIS_NOT_FOUND',
         message: 'Devis introuvable'
       });
+    }
+
+    // Validation du numéro de devis si fourni et différent de l'actuel
+    let newNumero = null;
+    if (numeroInput !== undefined) {
+      const trimmed = (numeroInput || '').trim();
+      if (!trimmed) {
+        return res.status(400).json({
+          code: 'NUMERO_DEVIS_REQUIRED',
+          message: 'Le numéro de devis est obligatoire'
+        });
+      }
+      if (trimmed !== existingDevis.numero_devis) {
+        const dup = await prisma.devis.findFirst({
+          where: { tenant_id: tenantId, numero_devis: trimmed, NOT: { id } }
+        });
+        if (dup) {
+          return res.status(409).json({
+            code: 'NUMERO_DEVIS_DUPLICATE',
+            message: 'Ce numéro de devis est déjà utilisé'
+          });
+        }
+        newNumero = trimmed;
+      }
     }
 
     // Vérifier que le devis est en BROUILLON
@@ -526,6 +614,7 @@ export const updateDevis = async (req, res, next) => {
         ...(conditions_paiement && { conditions_paiement }),
         ...(delai_realisation && { delai_realisation }),
         ...(date_validite && { date_validite: new Date(date_validite) }),
+        ...(newNumero && { numero_devis: newNumero }),
         montant_ht,
         montant_tva,
         montant_ttc

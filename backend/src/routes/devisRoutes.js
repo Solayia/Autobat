@@ -9,7 +9,9 @@ import {
   refuseDevis,
   downloadPDF,
   duplicateDevis,
-  deleteDevis
+  deleteDevis,
+  suggestNumero,
+  checkNumero
 } from '../controllers/devisController.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
@@ -31,6 +33,16 @@ router.post('/', requireRole(['MANAGER', 'COMPANY_ADMIN']), createDevis);
  * @access  MANAGER, COMPANY_ADMIN
  */
 router.get('/', requireRole(['MANAGER', 'COMPANY_ADMIN']), getDevis);
+
+/**
+ * @route   GET /api/devis/suggest-numero
+ */
+router.get('/suggest-numero', requireRole(['MANAGER', 'COMPANY_ADMIN']), suggestNumero);
+
+/**
+ * @route   GET /api/devis/check-numero
+ */
+router.get('/check-numero', requireRole(['MANAGER', 'COMPANY_ADMIN']), checkNumero);
 
 /**
  * @route   GET /api/devis/:id

@@ -34,11 +34,16 @@ export default function DevisForm() {
   // Données du formulaire
   const [formData, setFormData] = useState({
     client_id: '',
+    numero_devis: '',
     objet: '',
     conditions_paiement: '30% à la commande, 70% à la livraison',
     delai_realisation: '2 semaines',
     date_validite: ''
   });
+
+  // Validation numéro de devis
+  const [numeroError, setNumeroError] = useState('');
+  const [numeroChecking, setNumeroChecking] = useState(false);
 
   // Lignes du devis
   const [lignes, setLignes] = useState([]);
@@ -114,8 +119,34 @@ export default function DevisForm() {
         ...prev,
         date_validite: dateValidite.toISOString().split('T')[0]
       }));
+      // Suggérer un numéro de devis
+      devisService.suggestNumero()
+        .then(({ numero }) => setFormData(prev => ({ ...prev, numero_devis: numero })))
+        .catch(err => console.error('Erreur suggestion numéro:', err));
     }
   }, [id]);
+
+  // Validation temps réel du numéro de devis (debounce 400ms)
+  useEffect(() => {
+    const numero = (formData.numero_devis || '').trim();
+    if (!numero) {
+      setNumeroError('Le numéro de devis est obligatoire');
+      return;
+    }
+    setNumeroChecking(true);
+    const timer = setTimeout(async () => {
+      try {
+        const { available } = await devisService.checkNumero(numero, isEditMode ? id : null);
+        setNumeroError(available ? '' : 'Ce numéro de devis est déjà utilisé');
+      } catch (err) {
+        console.error('Erreur vérification numéro:', err);
+        setNumeroError('');
+      } finally {
+        setNumeroChecking(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [formData.numero_devis, id, isEditMode]);
 
   // Charger les ouvrages automatiquement quand la modale s'ouvre
   useEffect(() => {
@@ -131,6 +162,7 @@ export default function DevisForm() {
 
       setFormData({
         client_id: data.client.id,
+        numero_devis: data.numero_devis || '',
         objet: data.objet || '',
         conditions_paiement: data.conditions_paiement || '30% à la commande, 70% à la livraison',
         delai_realisation: data.delai_realisation || '2 semaines',
@@ -453,12 +485,18 @@ export default function DevisForm() {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
+    if (numeroError || !formData.numero_devis.trim()) {
+      toast.error(numeroError || 'Le numéro de devis est obligatoire');
+      setCurrentStep(1);
+      return;
+    }
 
     try {
       setSubmitting(true);
 
       const payload = {
         client_id: formData.client_id,
+        numero_devis: formData.numero_devis.trim(),
         objet: formData.objet,
         conditions_paiement: formData.conditions_paiement,
         date_validite: formData.date_validite,
@@ -486,7 +524,13 @@ export default function DevisForm() {
       }
     } catch (error) {
       console.error('Erreur sauvegarde devis:', error);
-      toast.error('Erreur lors de la sauvegarde du devis');
+      if (error?.response?.data?.code === 'NUMERO_DEVIS_DUPLICATE') {
+        setNumeroError('Ce numéro de devis est déjà utilisé');
+        setCurrentStep(1);
+        toast.error('Ce numéro de devis est déjà utilisé');
+      } else {
+        toast.error('Erreur lors de la sauvegarde du devis');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -667,6 +711,28 @@ export default function DevisForm() {
               )}
             </div>
 
+            {/* Numéro de devis */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Numéro de devis <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.numero_devis}
+                onChange={(e) => setFormData({ ...formData, numero_devis: e.target.value })}
+                placeholder="DEV-2026-0001"
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent ${
+                  numeroError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'
+                }`}
+              />
+              {numeroError && (
+                <p className="mt-1 text-sm text-red-600">{numeroError}</p>
+              )}
+              {!numeroError && numeroChecking && (
+                <p className="mt-1 text-sm text-gray-500">Vérification…</p>
+              )}
+            </div>
+
             {/* Objet */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -717,7 +783,8 @@ export default function DevisForm() {
               </button>
               <button
                 onClick={() => goToStep(2)}
-                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
+                disabled={!!numeroError || !formData.numero_devis.trim()}
+                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Suivant
                 <ArrowRight className="w-5 h-5" />

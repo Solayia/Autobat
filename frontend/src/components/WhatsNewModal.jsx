@@ -2,9 +2,21 @@ import { useState, useEffect } from 'react';
 import { X, Sparkles, Zap, Wrench, Star } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 
-const CURRENT_VERSION = '1.1.0';
+const CURRENT_VERSION = '1.2.0';
 
 const CHANGELOG = [
+  {
+    version: '1.2.0',
+    date: 'Avril 2026',
+    entries: [
+      {
+        type: 'improve',
+        icon: '🔢',
+        title: 'Numéro de devis personnalisable',
+        desc: 'Le numéro de devis est pré-rempli automatiquement, mais vous pouvez maintenant le modifier librement. Une vérification en temps réel vous alerte si ce numéro est déjà utilisé.',
+      },
+    ],
+  },
   {
     version: '1.1.0',
     date: 'Avril 2026',
