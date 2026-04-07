@@ -22,6 +22,7 @@ model Tenant {
   email             String
   logo_url          String?
   rib               String?
+  bic               String?
   capital           String?
   rcs               String?
   tva_intra         String?

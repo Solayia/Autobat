@@ -15,6 +15,12 @@ const CHANGELOG = [
         title: 'Numéro de devis personnalisable',
         desc: 'Le numéro de devis est pré-rempli automatiquement, mais vous pouvez maintenant le modifier librement. Une vérification en temps réel vous alerte si ce numéro est déjà utilisé.',
       },
+      {
+        type: 'new',
+        icon: '🏦',
+        title: 'BIC dans les paramètres',
+        desc: 'Vous pouvez désormais renseigner votre code BIC à côté de votre RIB/IBAN dans les paramètres généraux.',
+      },
     ],
   },
   {

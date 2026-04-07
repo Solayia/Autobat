@@ -579,11 +579,22 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">RIB</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">RIB / IBAN</label>
                 <input
                   type="text"
                   value={settings.rib || ''}
                   onChange={(e) => setSettings({ ...settings, rib: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">BIC</label>
+                <input
+                  type="text"
+                  value={settings.bic || ''}
+                  onChange={(e) => setSettings({ ...settings, bic: e.target.value })}
+                  placeholder="Ex: BNPAFRPPXXX"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
